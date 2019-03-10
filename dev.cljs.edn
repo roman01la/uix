@@ -1,0 +1,4 @@
+{:main       uix.core
+ :output-to  "resources/public/out/main.js"
+ :output-dir "resources/public/out"
+ :asset-path "out"}
