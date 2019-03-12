@@ -46,8 +46,31 @@
       :attr (s/? map?)
       :children (s/* :hiccup/child))))
 
+(s/def :hiccup/interop
+  (s/and
+    vector?
+    (s/cat
+      :marker #{:>}
+      :type fn?
+      :attr (s/? map?)
+      :children (s/* :hiccup/child))))
+
+(defn dom-node? [node]
+  #?(:cljs (instance? js/Node node)
+     :clj nil))
+
+(s/def :hiccup/portal
+  (s/and
+    vector?
+    (s/cat
+      :marker #{:->}
+      :child :hiccup/form
+      :node dom-node?)))
+
 (s/def :hiccup/form
   (s/or
+    :portal :hiccup/portal
+    :interop :hiccup/interop
     :fragment :hiccup/fragment
     :element :hiccup/element-inst
     :component :hiccup/component-inst

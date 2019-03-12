@@ -1,5 +1,31 @@
 (ns uix.compiler
-  #?(:cljs (:require [react :as r])))
+  (:require [clojure.string :as str]
+            #?(:cljs  [react :as r])
+            #?(:cljs  [react-dom :as rdom])
+            #?(:cljs [goog.object :as gobj])))
+
+(defn unwrap-ref [-ref]
+  #?(:cljs (.-rref -ref)
+     :clj nil))
+
+(defn kebab->camel [k]
+  (let [s (name k)
+        [prefix & words] (str/split s #"-")]
+    (if (#{"data" "aria"} prefix)
+      s
+      (apply str prefix (map str/capitalize words)))))
+
+(defn transform-attrs [m]
+  #?(:cljs
+     (reduce
+       (fn [o [k v]]
+         (cond
+           (= k :style) (gobj/set o (kebab->camel k) (transform-attrs v))
+           (satisfies? IDeref v) (gobj/set o "ref" (unwrap-ref v))
+           :else (gobj/set o (kebab->camel k) v))
+         o)
+       #js {}
+       m)))
 
 (defmulti compile-hiccup-ast first)
 
@@ -20,7 +46,7 @@
      (apply
        r/createElement
        (name type)
-       (clj->js attr)
+       (transform-attrs attr)
        (map compile-hiccup-ast children))))
 
 (defmethod compile-hiccup-ast :fragment [[_ {:keys [attr children]}]]
@@ -28,8 +54,20 @@
      (apply
        r/createElement
        r/Fragment
-       (clj->js attr)
+       (transform-attrs attr)
        (map compile-hiccup-ast children))))
+
+(defmethod compile-hiccup-ast :interop [[_ {:keys [type attr children]}]]
+  #?(:cljs
+     (apply
+       r/createElement
+       type
+       (transform-attrs attr)
+       (map compile-hiccup-ast children))))
+
+(defmethod compile-hiccup-ast :portal [[_ {:keys [child node]}]]
+  #?(:cljs
+     (rdom/createPortal (compile-hiccup-ast child) node)))
 
 (defmethod compile-hiccup-ast :component [[_ {:keys [type args] :as c}]]
   #?(:cljs

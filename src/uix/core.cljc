@@ -36,12 +36,39 @@
                 (hiccup->react (do ~@body))))))
         (debug-name ~sym (meta (var ~sym))))))
 
-#?(:cljs
-        (defn render [element node]
-          (-> (hiccup->react element)
-              (rdom/render node)))
+;; React's top-level API
+(defn render [element node]
+  #?(:cljs
+      (-> (hiccup->react element)
+          (rdom/render node))
+     :clj nil))
 
-   :clj (defn render [element node]))
+(defn hydrate [element node]
+  #?(:cljs (rdom/hydrate element node)
+     :clj nil))
+
+(defn unmount-at-node [node]
+  #?(:cljs (rdom/unmountComponentAtNode node)
+     :clj nil))
+
+(defn find-dom-node [component]
+  #?(:cljs (rdom/findDOMNode component)
+     :clj nil))
+
+(defn create-portal [child node]
+  #?(:cljs (rdom/createPortal child node)
+     :clj nil))
+
+#?(:clj (deftype ReactRef [-ref])
+   :cljs
+   (deftype ReactRef [rref]
+     IDeref
+     (-deref [o]
+       (.-current rref))))
+
+(defn react-ref []
+  #?(:cljs (ReactRef. (r/createRef))
+     :clj nil))
 
 ;; == Usage ==
 
@@ -51,7 +78,8 @@
 (defui counter []
   (let [n (hooks/state 0)]
     [:<>
-     [:button {:onClick #(swap! n inc)} "+"]
+     [:button {:on-click #(swap! n inc)}
+      "+"]
      [:ul
       (for [n (range @n)]
         ^{:key n}
