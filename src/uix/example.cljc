@@ -1,9 +1,9 @@
 (ns ^:figwheel-hooks uix.example
-  #?(:cljs (:require-macros [uix.core :refer [defui require-lazy]]))
+  #?(:cljs (:require-macros [uix.core.alpha :refer [defui require-lazy]]))
   (:require #?(:cljs [cljs.loader :as loader])
-            #?(:cljs [uix.core :as uix])
-            #?(:clj [uix.core :refer [defui require-lazy]])
-            [uix.hooks :as hooks]))
+            #?(:cljs [uix.core.alpha :as uix])
+            #?(:clj [uix.core.alpha :refer [defui require-lazy]])
+            [uix.hooks.alpha :as hooks]))
 
 (require-lazy '[uix.components :refer [view]])
 

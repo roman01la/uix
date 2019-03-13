@@ -1,4 +1,4 @@
-(ns uix.specs
+(ns uix.specs.alpha
   (:require #?(:clj [clojure.spec.alpha :as s])
             #?(:cljs [cljs.spec.alpha :as s])
             #?(:cljs [goog.object :as gobj])

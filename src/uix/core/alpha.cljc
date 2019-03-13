@@ -1,10 +1,11 @@
-(ns uix.core
+(ns uix.core.alpha
   (:require #?(:clj [clojure.spec.alpha :as s])
             #?(:cljs [cljs.spec.alpha :as s])
             #?(:cljs [react :as r])
             #?(:cljs [react-dom :as rdom])
-            [uix.compiler :as compiler]
-            [uix.specs]))
+            #?(:cljs [cljs.loader])
+            [uix.compiler.alpha :as compiler]
+            [uix.specs.alpha]))
 
 (defn hiccup->react [element]
   (if (s/valid? :hiccup/form element)

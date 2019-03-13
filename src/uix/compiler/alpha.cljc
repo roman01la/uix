@@ -1,4 +1,4 @@
-(ns uix.compiler
+(ns uix.compiler.alpha
   (:require [clojure.string :as str]
             #?(:cljs  [react :as r])
             #?(:cljs  [react-dom :as rdom])

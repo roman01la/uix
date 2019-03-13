@@ -1,4 +1,4 @@
-(ns uix.hooks
+(ns uix.hooks.alpha
   #?(:cljs (:require [react :as r])))
 
 ;; == State hook ==

@@ -1,8 +1,8 @@
 (ns uix.components
-  #?(:cljs (:require-macros [uix.core :refer [defui]]))
+  #?(:cljs (:require-macros [uix.core.alpha :refer [defui]]))
   (:require #?(:cljs [cljs.loader :as loader])
-            #?(:clj [uix.core :refer [defui]])
-            [uix.core]))
+            #?(:clj [uix.core.alpha :refer [defui]])
+            [uix.core.alpha]))
 
 (defui view [child]
   [:div {}
