@@ -91,6 +91,7 @@
   #?(:cljs
      (let [type (compile-hiccup-ast type)
            {:keys [key]} (meta c)
-           attrs #js {:uixargs args}
+           attrs #js {}
+           _ (set! (.-uixargs attrs) args)
            _ (when key (set! (.-key attrs) key))]
        (r/createElement type attrs))))
