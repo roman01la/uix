@@ -1,4 +1,5 @@
 (ns uix.compiler.alpha
+  (:refer-clojure :exclude [ref])
   (:require [clojure.string :as str]
             #?(:cljs  [react :as r])
             #?(:cljs  [react-dom :as rdom])
@@ -84,11 +85,12 @@
        (r/createElement
          r/Suspense
          #js {:fallback fallback}
-         (compile-hiccup-ast child)))))
+         (when child (compile-hiccup-ast child))))))
 
 (defmethod compile-hiccup-ast :component [[_ {:keys [type args] :as c}]]
   #?(:cljs
-     (let [type (compile-hiccup-ast type)]
-       (if-let [key (-> (meta c) :key)]
-         (r/createElement type #js {:uixargs args :key key})
-         (r/createElement type #js {:uixargs args})))))
+     (let [type (compile-hiccup-ast type)
+           {:keys [key]} (meta c)
+           attrs #js {:uixargs args}
+           _ (when key (set! (.-key attrs) key))]
+       (r/createElement type attrs))))

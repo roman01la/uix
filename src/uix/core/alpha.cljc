@@ -1,4 +1,5 @@
 (ns uix.core.alpha
+  (:refer-clojure :exclude [ref])
   (:require #?(:clj [clojure.spec.alpha :as s])
             #?(:cljs [cljs.spec.alpha :as s])
             #?(:cljs [react :as r])
@@ -64,7 +65,7 @@
      (-deref [o]
        (.-current rref))))
 
-(defn react-ref []
+(defn ref []
   #?(:cljs (ReactRef. (r/createRef))
      :clj nil))
 

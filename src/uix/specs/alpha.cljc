@@ -91,7 +91,7 @@
     (s/cat
       :marker #{:#}
       :attr (s/keys :req-un [:suspense/fallback])
-      :child :hiccup/form)))
+      :child (s/? :hiccup/form))))
 
 (s/def :hiccup/form
   (s/or
