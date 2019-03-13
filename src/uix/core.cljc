@@ -1,12 +1,9 @@
-(ns ^:figwheel-hooks uix.core
-  #?(:cljs (:require-macros [uix.core :refer [defui]]
-                            [uix.hooks :refer [with-effect]]))
+(ns uix.core
   (:require #?(:clj [clojure.spec.alpha :as s])
             #?(:cljs [cljs.spec.alpha :as s])
             #?(:cljs [react :as r])
             #?(:cljs [react-dom :as rdom])
             [uix.compiler :as compiler]
-            [uix.hooks :as hooks]
             [uix.specs]))
 
 (defn hiccup->react [element]
@@ -70,24 +67,27 @@
   #?(:cljs (ReactRef. (r/createRef))
      :clj nil))
 
-;; == Usage ==
+#?(:cljs
+   (defn load-module [module get-var]
+     (js/Promise.
+       (fn [ok fail]
+         (cljs.loader/load module #(ok #js {:default @(get-var)}))))))
 
-(defui list-item [child]
-  [:li child])
+(defn require-lazy* [module get-var]
+  #?(:clj nil
+     :cljs (r/lazy #(load-module module get-var))))
 
-(defui counter []
-  (let [n (hooks/state 0)]
-    [:<>
-     [:button {:on-click #(swap! n inc)}
-      "+"]
-     [:ul
-      (for [n (range @n)]
-        ^{:key n}
-        [list-item (str "#" n)])]]))
-
-#?(:cljs (render [counter] js/root))
-
-
-
-(defn ^:after-load -render [])
-
+#?(:clj
+   (defmacro require-lazy [form]
+     (let [m (s/conform :lazy/libspec form)]
+       (when (not= m ::s/invalid)
+         (let [{:keys [lib refer]} (:libspec m)
+               module (->> (str lib)
+                           (re-find #"\.([a-z0-9-]+)")
+                           second
+                           keyword)]
+           `(do
+              ~@(for [sym refer]
+                  (let [qualified-sym (symbol (str lib "/" sym))]
+                    `(def ~sym
+                       (require-lazy* ~module #(resolve '~qualified-sym)))))))))))

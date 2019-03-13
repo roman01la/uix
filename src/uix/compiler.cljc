@@ -35,6 +35,15 @@
 (defmethod compile-hiccup-ast :string [[_ value]]
   value)
 
+(defmethod compile-hiccup-ast :null [[_ value]]
+  value)
+
+(defmethod compile-hiccup-ast :memo [[_ value]]
+  value)
+
+(defmethod compile-hiccup-ast :lazy [[_ value]]
+  value)
+
 (defmethod compile-hiccup-ast :hiccup/form [[_ value]]
   (compile-hiccup-ast value))
 
@@ -69,8 +78,17 @@
   #?(:cljs
      (rdom/createPortal (compile-hiccup-ast child) node)))
 
+(defmethod compile-hiccup-ast :suspense [[_ {:keys [attr child]}]]
+  (let [fallback (compile-hiccup-ast (:fallback attr))]
+    #?(:cljs
+       (r/createElement
+         r/Suspense
+         #js {:fallback fallback}
+         (compile-hiccup-ast child)))))
+
 (defmethod compile-hiccup-ast :component [[_ {:keys [type args] :as c}]]
   #?(:cljs
-     (if-let [key (-> (meta c) :key)]
-       (r/createElement type #js {:uixargs args :key key})
-       (r/createElement type #js {:uixargs args}))))
+     (let [type (compile-hiccup-ast type)]
+       (if-let [key (-> (meta c) :key)]
+         (r/createElement type #js {:uixargs args :key key})
+         (r/createElement type #js {:uixargs args})))))
