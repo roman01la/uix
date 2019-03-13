@@ -11,7 +11,7 @@
 
 (defui input [{:keys [value on-change]}]
   [:input {:value value
-           :on-change #(on-change (.. % -target -value))}])
+           :on-change #(on-change (.. ^js % -target -value))}])
 
 (defui popup [value]
   (with-effect
@@ -36,7 +36,7 @@
       (when @popup?
         [:-> [popup @value] #?(:cljs js/popup)])]]))
 
-#?(:cljs (defn ^:exports renderApp [] (uix/render [app] js/root)))
+#?(:cljs (defn ^:export renderApp [] (uix/render [app] js/root)))
 
 (defn ^:after-load -render [])
 

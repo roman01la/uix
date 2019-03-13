@@ -12,13 +12,15 @@
   (if (s/valid? :hiccup/form element)
     (-> (s/conform :hiccup/form element)
         compiler/compile-hiccup-ast)
-    (prn (s/explain-data :hiccup/form element))))
+    (throw (s/explain-data :hiccup/form element))))
 
-(defn debug-name [v m]
+(defn debug-name [sym memo-sym m]
   #?(:cljs
      (let [{ns' :ns name' :name} m
-           unmangled-name (str ns' "/" name')]
-       (set! (.-displayName v) unmangled-name))
+           unmangled-name (str ns' "/" name')
+           unmangled-memo-sym (str "memoized:" unmangled-name)]
+       (set! (.-displayName sym) unmangled-memo-sym)
+       (set! (.-displayName memo-sym) unmangled-name))
      :clj (fn [v m])))
 
 (defn use-memo [f]
@@ -27,13 +29,14 @@
 
 #?(:clj
    (defmacro defui [sym args & body]
-     `(do
-        (def ~sym
-          (use-memo
-            (fn [prop#]
-              (let [~args (.-uixargs prop#)]
-                (hiccup->react (do ~@body))))))
-        (debug-name ~sym (meta (var ~sym))))))
+     (let [memo-sym (gensym "memo")]
+       `(do
+          (defn ~memo-sym [prop#]
+            (let [~args (.-uixargs prop#)]
+              (hiccup->react (do ~@body))))
+          (def ~sym
+            (use-memo ~memo-sym))
+          (debug-name ~sym ~memo-sym (meta (var ~sym)))))))
 
 ;; React's top-level API
 (defn render [element node]
