@@ -93,3 +93,7 @@
                   (let [qualified-sym (symbol (str lib "/" sym))]
                     `(def ~sym
                        (require-lazy* ~module #(resolve '~qualified-sym)))))))))))
+
+#?(:clj (defn set-loaded! [module])
+   :cljs (defn set-loaded! [module]
+           (cljs.loader/set-loaded! module)))

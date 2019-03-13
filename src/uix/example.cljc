@@ -40,4 +40,4 @@
 
 (defn ^:after-load -render [])
 
-#?(:cljs (loader/set-loaded! :example))
+(uix/set-loaded! :example)
