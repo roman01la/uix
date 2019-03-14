@@ -50,7 +50,7 @@
   (compile-hiccup-ast value))
 
 (defmethod compile-hiccup-ast :hiccup/seq [[_ value]]
-  (map compile-hiccup-ast value))
+  (into-array (map compile-hiccup-ast value)))
 
 (defn parse-selector [s]
   (loop [matches (re-seq #"([#.])?([^#.]+)" (name s))
@@ -71,11 +71,17 @@
         (update :id #(str/join " " (if % (cons % ids) ids)))
         (assoc :class-name (str/join " " classes)))))
 
+(defn children->react-children [children]
+  (let [children (map compile-hiccup-ast children)]
+    (if (= 1 (count children))
+      (first children)
+      (into-array children))))
+
 (defmethod compile-hiccup-ast :element [[_ {:keys [type attr children] :as e}]]
   #?(:cljs
      (let [[type ids classes] (parse-selector (name type))
            {:keys [key ref]} (meta e)
-           children (into-array (map compile-hiccup-ast children))
+           children (children->react-children children)
            attr (cond-> (normalize-attrs ids classes attr)
                         key (assoc :key key)
                         ref (assoc :ref ref)
@@ -85,14 +91,14 @@
 
 (defmethod compile-hiccup-ast :fragment [[_ {:keys [attr children]}]]
   #?(:cljs
-     (let [children (into-array (map compile-hiccup-ast children))
+     (let [children (children->react-children children)
            attr (transform-attrs attr)
            _ (set! (.-children attr) children)]
        (r/createElement r/Fragment attr))))
 
 (defmethod compile-hiccup-ast :interop [[_ {:keys [type attr children]}]]
   #?(:cljs
-     (let [children (into-array (map compile-hiccup-ast children))
+     (let [children (children->react-children children)
            attr (transform-attrs attr)
            _ (set! (.-children attr) children)]
        (r/createElement type attr))))
