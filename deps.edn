@@ -2,5 +2,5 @@
          org.clojure/clojurescript {:mvn/version "1.10.439"}
          cljsjs/react              {:mvn/version "16.8.3-0"}
          cljsjs/react-dom          {:mvn/version "16.8.3-0"}
-         com.bhauman/figwheel-main {:mvn/version "0.2.0"}}
+         com.bhauman/figwheel-main {:mvn/version "0.2.1-SNAPSHOT"}}
  :paths ["dev" "src" "resources"]}

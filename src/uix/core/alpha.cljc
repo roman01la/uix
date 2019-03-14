@@ -28,15 +28,17 @@
           ret#))))
 
 (defn hiccup->react [element]
-  (if #?(:cljs goog/DEBUG :clj true)
+  (if #?(:cljs ^boolean js/goog.DEBUG :clj true)
     (let [ast (s/conform :hiccup/form element)]
       (if-not (= ::s/invalid ast)
         (compiler/compile-hiccup-ast ast)
         (throw (s/explain-data :hiccup/form element))))
-    (let [ast (compiler/read-hiccup-form element)]
-      (if-not (= ::compiler/invalid ast)
-        (compiler/compile-hiccup-ast ast)
-        (throw (str "Don't know how to read Hiccup form: " element))))))
+    (try
+      (let [ast (compiler/read-hiccup-form element)]
+        (compiler/compile-hiccup-ast ast))
+      (catch #?(:cljs js/Error :clj Exception) e
+        #?(:cljs (js/console.error e)
+           :clj (println e))))))
 
 (defn debug-name [sym memo-sym m]
   #?(:cljs

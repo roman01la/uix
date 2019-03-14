@@ -147,7 +147,8 @@
 (defn read-hiccup-component [[type & args]]
   {:type (cond
            (uix.specs/memo? type) [:memo type]
-           (uix.specs/lazy? type) [:lazy type])
+           (uix.specs/lazy? type) [:lazy type]
+           :else (throw (str "Unknown type of Hiccup component: " type)))
    :args args})
 
 (defn read-hiccup-vector [form]
@@ -159,7 +160,7 @@
       (= :<> type) [:fragment (read-hiccup-fragment form)]
       (keyword? type) [:element (read-hiccup-element form)]
       (hiccup-component? type) [:component (read-hiccup-component form)]
-      :else ::invalid)))
+      :else (throw (str "Unknown type of Hiccup element: " type " in " form)))))
 
 (defn read-hiccup-form [form]
   (cond
@@ -167,4 +168,4 @@
     (number? form) [:number form]
     (string? form) [:string form]
     (nil? form) [:null form]
-    :else ::invalid))
+    :else (throw (str "Don't know how to read Hiccup form: " form))))
