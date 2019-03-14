@@ -16,7 +16,6 @@
        ^{:key n}
         [:span n])]))
 
-
 #?(:cljs (defn ^:export renderApp [] (uix/render [app] js/root)))
 
 #?(:cljs (defn ^:after-load -render []

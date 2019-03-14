@@ -5,6 +5,7 @@
             #?(:cljs [cljs.spec.alpha :as s])
             #?(:cljs [react :as r])
             #?(:cljs [react-dom :as rdom])
+            #?(:cljs ["react-dom/server" :as rdoms])
             #?(:cljs [cljs.loader])
             [uix.compiler.alpha :as compiler]
             [uix.specs.alpha]))
@@ -69,6 +70,10 @@
   #?(:cljs
       (-> (hiccup->react element)
           (rdom/render node))
+     :clj nil))
+
+(defn render-to-string [element]
+  #?(:cljs (rdoms/renderToString (hiccup->react element))
      :clj nil))
 
 (defn hydrate [element node]
