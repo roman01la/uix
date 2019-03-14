@@ -85,23 +85,20 @@
            attr (cond-> (normalize-attrs ids classes attr)
                         key (assoc :key key)
                         ref (assoc :ref ref)
-                        :always transform-attrs)
-           _ (set! (.-children attr) children)]
-       (r/createElement type attr))))
+                        :always transform-attrs)]
+       (.apply r/createElement nil (.concat #js [type attr] children)))))
 
 (defmethod compile-hiccup-ast :fragment [[_ {:keys [attr children]}]]
   #?(:cljs
      (let [children (children->react-children children)
-           attr (transform-attrs attr)
-           _ (set! (.-children attr) children)]
-       (r/createElement r/Fragment attr))))
+           attr (transform-attrs attr)]
+       (.apply r/createElement nil (.concat #js [r/Fragment attr] children)))))
 
 (defmethod compile-hiccup-ast :interop [[_ {:keys [type attr children]}]]
   #?(:cljs
      (let [children (children->react-children children)
-           attr (transform-attrs attr)
-           _ (set! (.-children attr) children)]
-       (r/createElement type attr))))
+           attr (transform-attrs attr)]
+       (.apply r/createElement nil (.concat #js [type attr] children)))))
 
 (defmethod compile-hiccup-ast :portal [[_ {:keys [child node]}]]
   #?(:cljs
