@@ -10,7 +10,7 @@
 (defui app []
   (let [n (hooks/state 0)]
     [:<>
-     [:button {:on-click #(swap! n + 5)}
+     [:button.btn#button-1 {:on-click #(swap! n + 5)}
       "+"]
      (for [n (range @n)]
        ^{:key n}
@@ -19,6 +19,7 @@
 
 #?(:cljs (defn ^:export renderApp [] (uix/render [app] js/root)))
 
-(defn ^:after-load -render [])
+#?(:cljs (defn ^:after-load -render []
+           (renderApp)))
 
 (uix/set-loaded! :example)

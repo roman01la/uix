@@ -52,12 +52,32 @@
 (defmethod compile-hiccup-ast :hiccup/seq [[_ value]]
   (map compile-hiccup-ast value))
 
+(defn parse-selector [s]
+  (loop [matches (re-seq #"([#.])?([^#.]+)" (name s))
+         tag     "div"
+         ids      nil
+         classes nil]
+    (if-let [[_ prefix val] (first matches)]
+      (case prefix
+        nil (recur (next matches) val ids classes)
+        "#" (recur (next matches) tag (cons val ids) classes)
+        "." (recur (next matches) tag ids (cons val classes)))
+      [tag ids classes])))
+
+(defn normalize-attrs [ids classes attr]
+  (let [class (:class attr)
+        classes (if class (cons class classes) classes)]
+    (-> attr
+        (update :id #(str/join " " (if % (cons % ids) ids)))
+        (assoc :class-name (str/join " " classes)))))
+
 (defmethod compile-hiccup-ast :element [[_ {:keys [type attr children]}]]
   #?(:cljs
-     (let [children (into-array (map compile-hiccup-ast children))
-           attr (transform-attrs attr)
+     (let [[type ids classes] (parse-selector (name type))
+           children (into-array (map compile-hiccup-ast children))
+           attr (transform-attrs (normalize-attrs ids classes attr))
            _ (set! (.-children attr) children)]
-       (r/createElement (name type) attr))))
+       (r/createElement type attr))))
 
 (defmethod compile-hiccup-ast :fragment [[_ {:keys [attr children]}]]
   #?(:cljs
@@ -94,7 +114,7 @@
            _ (when key (set! (.-key attrs) key))]
        (r/createElement type attrs))))
 
-;; == Fast-path Hiccup parser ==
+;; == Fast-path Hiccup reader ==
 
 (declare read-hiccup-form)
 
