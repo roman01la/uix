@@ -20,14 +20,6 @@
     :hiccup/form :hiccup/form
     :hiccup/seq (s/coll-of :hiccup/form :min-count 0 :kind seq?)))
 
-(s/def :hiccup/element-inst
-  (s/and
-    vector?
-    (s/cat
-      :type keyword?
-      :attr (s/? map?)
-      :children (s/* :hiccup/child))))
-
 (defn preserve-metadata [spec]
   (s/conformer
     #(let [m (meta %)
@@ -35,6 +27,15 @@
        (if (satisfies? #?(:cljs IMeta :clj clojure.lang.IMeta) ret)
          (with-meta ret m)
          ret))))
+
+(s/def :hiccup/element-inst
+  (s/and
+    vector?
+    (preserve-metadata
+      (s/cat
+        :type keyword?
+        :attr (s/? map?)
+        :children (s/* :hiccup/child)))))
 
 #?(:cljs (def memo-symbol (js-invoke js/Symbol "for" "react.memo")))
 #?(:cljs (def lazy-symbol (js-invoke js/Symbol "for" "react.lazy")))

@@ -71,11 +71,15 @@
         (update :id #(str/join " " (if % (cons % ids) ids)))
         (assoc :class-name (str/join " " classes)))))
 
-(defmethod compile-hiccup-ast :element [[_ {:keys [type attr children]}]]
+(defmethod compile-hiccup-ast :element [[_ {:keys [type attr children] :as e}]]
   #?(:cljs
      (let [[type ids classes] (parse-selector (name type))
+           {:keys [key ref]} (meta e)
            children (into-array (map compile-hiccup-ast children))
-           attr (transform-attrs (normalize-attrs ids classes attr))
+           attr (cond-> (normalize-attrs ids classes attr)
+                        key (assoc :key key)
+                        ref (assoc :ref ref)
+                        :always transform-attrs)
            _ (set! (.-children attr) children)]
        (r/createElement type attr))))
 
