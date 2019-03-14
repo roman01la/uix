@@ -162,21 +162,27 @@
      :attr attr
      :children (map read-hiccup-child children)}))
 
-(defn read-hiccup-element [[type attr & children]]
-  (let [children (if (map? attr)
+(defn read-hiccup-element [form]
+  (let [[type attr & children] form
+        children (if (map? attr)
                    children
                    (cons attr children))
         attr (when (map? attr) attr)]
-    {:type type
-     :attr attr
-     :children (map read-hiccup-child children)}))
+    (with-meta
+      {:type type
+       :attr attr
+       :children (map read-hiccup-child children)}
+      (meta form))))
 
-(defn read-hiccup-component [[type & args]]
-  {:type (cond
-           (uix.specs/memo? type) [:memo type]
-           (uix.specs/lazy? type) [:lazy type]
-           :else (throw (str "Unknown type of Hiccup component: " type)))
-   :args args})
+(defn read-hiccup-component [form]
+  (let [[type & args] form]
+    (with-meta
+      {:type (cond
+               (uix.specs/memo? type) [:memo type]
+               (uix.specs/lazy? type) [:lazy type]
+               :else (throw (str "Unknown type of Hiccup component: " type)))
+       :args args}
+      (meta form))))
 
 (defn read-hiccup-vector [form]
   (let [[type] form]
