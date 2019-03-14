@@ -7,34 +7,15 @@
             #?(:clj [uix.hooks.alpha :refer [with-effect]])
             [uix.hooks.alpha :as hooks]))
 
-(require-lazy '[uix.components :refer [view]])
-
-(defui input [{:keys [value on-change]}]
-  [:input {:value value
-           :on-change #(on-change (.. ^js % -target -value))}])
-
-(defui popup [value]
-  (with-effect
-    (prn "Did mount")
-    (finally
-      (prn "Will unmount")))
-  [view value])
-
 (defui app []
-  (let [value (hooks/state "Hello!")
-        popup? (hooks/state false)
-        button-ref (uix/ref)]
-    [:div {:style {:padding 32}}
-     [input {:value @value
-             :on-change #(reset! value %)}]
-     [:button {:ref button-ref
-               :on-click #(do
-                            (prn @button-ref)
-                            (swap! popup? not))}
-      "Toggle popup"]
-     [:# {:fallback "loading..."}
-      (when @popup?
-        [:-> [popup @value] #?(:cljs js/popup)])]]))
+  (let [n (hooks/state 0)]
+    [:<>
+     [:button {:on-click #(swap! n + 5)}
+      "+"]
+     (for [n (range @n)]
+       ^{:key n}
+        [:span n])]))
+
 
 #?(:cljs (defn ^:export renderApp [] (uix/render [app] js/root)))
 

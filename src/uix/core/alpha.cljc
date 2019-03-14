@@ -1,5 +1,6 @@
 (ns uix.core.alpha
   (:refer-clojure :exclude [ref])
+  #?(:cljs (:require-macros [uix.core.alpha :refer [perf]]))
   (:require #?(:clj [clojure.spec.alpha :as s])
             #?(:cljs [cljs.spec.alpha :as s])
             #?(:cljs [react :as r])
@@ -8,11 +9,34 @@
             [uix.compiler.alpha :as compiler]
             [uix.specs.alpha]))
 
+(defn perf-mark [s]
+  #?(:cljs (js/performance.mark s)
+     :clj nil))
+
+(defn perf-measure [s1 s2 s3]
+  #?(:cljs (js/performance.measure s1 s2 s3)
+     :clj nil))
+
+#?(:clj
+   (defmacro perf [k & body]
+     (let [start-mark (str (gensym))
+           end-mark (str (gensym))]
+       `(let [_# (perf-mark ~start-mark)
+              ret# (do ~@body)
+              _# (perf-mark ~end-mark)
+              _# (perf-measure ~(name k) ~start-mark ~end-mark)]
+          ret#))))
+
 (defn hiccup->react [element]
-  (if (s/valid? :hiccup/form element)
-    (-> (s/conform :hiccup/form element)
-        compiler/compile-hiccup-ast)
-    (throw (s/explain-data :hiccup/form element))))
+  (if #?(:cljs goog/DEBUG :clj true)
+    (let [ast (s/conform :hiccup/form element)]
+      (if-not (= ::s/invalid ast)
+        (compiler/compile-hiccup-ast ast)
+        (throw (s/explain-data :hiccup/form element))))
+    (let [ast (compiler/read-hiccup-form element)]
+      (if-not (= ::compiler/invalid ast)
+        (compiler/compile-hiccup-ast ast)
+        (throw (str "Don't know how to read Hiccup form: " element))))))
 
 (defn debug-name [sym memo-sym m]
   #?(:cljs

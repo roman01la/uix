@@ -3,7 +3,8 @@
   (:require [clojure.string :as str]
             #?(:cljs  [react :as r])
             #?(:cljs  [react-dom :as rdom])
-            #?(:cljs [goog.object :as gobj])))
+            #?(:cljs [goog.object :as gobj])
+            [uix.specs.alpha :as uix.specs]))
 
 (defn unwrap-ref [-ref]
   #?(:cljs (.-rref -ref)
@@ -14,7 +15,7 @@
         [prefix & words] (str/split s #"-")]
     (if (#{"data" "aria"} prefix)
       s
-      (apply str prefix (map str/capitalize words)))))
+      (str/join (cons prefix (map str/capitalize words))))))
 
 (defn transform-attrs [m]
   #?(:cljs
@@ -53,27 +54,24 @@
 
 (defmethod compile-hiccup-ast :element [[_ {:keys [type attr children]}]]
   #?(:cljs
-     (apply
-       r/createElement
-       (name type)
-       (transform-attrs attr)
-       (map compile-hiccup-ast children))))
+     (let [children (into-array (map compile-hiccup-ast children))
+           attr (transform-attrs attr)
+           _ (set! (.-children attr) children)]
+       (r/createElement (name type) attr))))
 
 (defmethod compile-hiccup-ast :fragment [[_ {:keys [attr children]}]]
   #?(:cljs
-     (apply
-       r/createElement
-       r/Fragment
-       (transform-attrs attr)
-       (map compile-hiccup-ast children))))
+     (let [children (into-array (map compile-hiccup-ast children))
+           attr (transform-attrs attr)
+           _ (set! (.-children attr) children)]
+       (r/createElement r/Fragment attr))))
 
 (defmethod compile-hiccup-ast :interop [[_ {:keys [type attr children]}]]
   #?(:cljs
-     (apply
-       r/createElement
-       type
-       (transform-attrs attr)
-       (map compile-hiccup-ast children))))
+     (let [children (into-array (map compile-hiccup-ast children))
+           attr (transform-attrs attr)
+           _ (set! (.-children attr) children)]
+       (r/createElement type attr))))
 
 (defmethod compile-hiccup-ast :portal [[_ {:keys [child node]}]]
   #?(:cljs
@@ -95,3 +93,78 @@
            _ (set! (.-uixargs attrs) args)
            _ (when key (set! (.-key attrs) key))]
        (r/createElement type attrs))))
+
+;; == Fast-path Hiccup parser ==
+
+(declare read-hiccup-form)
+
+(defn hiccup-component? [type]
+  (or (uix.specs/memo? type) (uix.specs/lazy? type)))
+
+(defn read-hiccup-child [form]
+  (if (seq? form)
+    [:hiccup/seq (map read-hiccup-form form)]
+    [:hiccup/form (read-hiccup-form form)]))
+
+(defn read-hiccup-suspense [[marker attr child]]
+  {:marker marker
+   :attr {:fallback (read-hiccup-form (:fallback attr))}
+   :child (read-hiccup-form child)})
+
+(defn read-hiccup-portal [[marker child node]]
+  {:marker marker
+   :child (read-hiccup-form child)
+   :node node})
+
+(defn read-hiccup-interop [[marker type attr & children]]
+  (let [children (if (map? attr)
+                   children
+                   (cons attr children))
+        attr (when (map? attr) attr)]
+    {:marker marker
+     :type type
+     :attr attr
+     :children (map read-hiccup-child children)}))
+
+(defn read-hiccup-fragment [[type attr & children]]
+  (let [children (if (map? attr)
+                   children
+                   (cons attr children))
+        attr (when (map? attr) attr)]
+    {:type type
+     :attr attr
+     :children (map read-hiccup-child children)}))
+
+(defn read-hiccup-element [[type attr & children]]
+  (let [children (if (map? attr)
+                   children
+                   (cons attr children))
+        attr (when (map? attr) attr)]
+    {:type type
+     :attr attr
+     :children (map read-hiccup-child children)}))
+
+(defn read-hiccup-component [[type & args]]
+  {:type (cond
+           (uix.specs/memo? type) [:memo type]
+           (uix.specs/lazy? type) [:lazy type])
+   :args args})
+
+(defn read-hiccup-vector [form]
+  (let [[type] form]
+    (cond
+      (= :# type) [:suspense (read-hiccup-suspense form)]
+      (= :-> type) [:portal (read-hiccup-portal form)]
+      (= :> type) [:interop (read-hiccup-interop form)]
+      (= :<> type) [:fragment (read-hiccup-fragment form)]
+      (keyword? type) [:element (read-hiccup-element form)]
+      (hiccup-component? type) [:component (read-hiccup-component form)]
+      :else ::invalid)))
+
+(defn read-hiccup-form [form]
+  (cond
+    (vector? form) (read-hiccup-vector form)
+    (number? form) [:number form]
+    (string? form) [:string form]
+    (nil? form) [:null form]
+    :else ::invalid))
