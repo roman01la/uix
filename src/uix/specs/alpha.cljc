@@ -2,7 +2,8 @@
   (:require #?(:clj [clojure.spec.alpha :as s])
             #?(:cljs [cljs.spec.alpha :as s])
             #?(:cljs [goog.object :as gobj])
-            [cljs.core.specs.alpha :as core.specs]))
+            [cljs.core.specs.alpha :as core.specs])
+  #?(:clj (:import (clojure.lang IMeta))))
 
 (s/def :lazy/libspec
   (s/and
@@ -24,7 +25,8 @@
   (s/conformer
     #(let [m (meta %)
            ret (s/conform spec %)]
-       (if (satisfies? #?(:cljs IMeta :clj clojure.lang.IMeta) ret)
+       (if #?(:clj (instance? IMeta ret)
+              :cljs (satisfies? IMeta ret))
          (with-meta ret m)
          ret))))
 
