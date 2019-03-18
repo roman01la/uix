@@ -61,10 +61,22 @@
      :clj nil))
 
 ;; == Effect hook ==
+
+#?(:cljs (def refs* (atom {})))
+
+;; this* ref represents an identity of a component, it is stored in refs* registry
+;; prev-deps* tracks previous dependencies of a current effect
+;; when effect's dependencies change we increment a value bound to component's identity
+;; which causes React to call the effect again
 (defn use-effect [setup-fn deps]
-  #?(:cljs (r/useEffect #(or (setup-fn) js/undefined)
-                        (when-not (nil? deps)
-                          (into-array deps)))
+  #?(:cljs (let [prev-deps* (ref deps)
+                 this* (ref #js {})]
+             (when (not= @prev-deps* deps)
+               (swap! refs* update @this* inc))
+             (r/useEffect (fn []
+                            (reset! prev-deps* deps)
+                            (or (setup-fn) js/undefined))
+                          #js [(get @refs* @this*)]))
      :clj (identity setup-fn)))
 
 #?(:clj
