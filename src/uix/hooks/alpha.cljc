@@ -34,10 +34,12 @@
 
 ;; == Effect hook ==
 (defn use-effect [setup-fn cleanup-fn]
-  #?(:cljs (r/useEffect #(do (setup-fn) js/undefined)
-                        (if (nil? cleanup-fn)
-                          js/undefined
-                          #(do (cleanup-fn) js/undefined)))
+  #?(:cljs (r/useEffect
+             (fn []
+               (setup-fn)
+               (if (nil? cleanup-fn)
+                 js/undefined
+                 #(do (cleanup-fn) js/undefined))))
      :clj (identity setup-fn)))
 
 #?(:clj
