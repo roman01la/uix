@@ -33,19 +33,15 @@
    (defn state [value]))
 
 ;; == Effect hook ==
-(defn use-effect [setup-fn cleanup-fn]
-  #?(:cljs (r/useEffect
-             (fn []
-               (setup-fn)
-               (if (nil? cleanup-fn)
-                 js/undefined
-                 #(do (cleanup-fn) js/undefined))))
+(defn use-effect [setup-fn deps]
+  #?(:cljs (r/useEffect #(or (setup-fn) js/undefined)
+                        (when-not (nil? deps)
+                          (into-array deps)))
      :clj (identity setup-fn)))
 
 #?(:clj
-   (defmacro with-effect [& body]
-     (let [le (last body)
-           with-cleanup? (and (list? le) (= 'finally (first le)))]
-       (if with-cleanup?
-         `(use-effect #(do ~@(butlast body)) #(do ~@(rest le)))
-         `(use-effect #(do ~@body) nil)))))
+   (defmacro with-effect [deps & setup-fn]
+     (let [[deps setup-fn] (if (vector? deps)
+                             [deps setup-fn]
+                             [nil (cons deps setup-fn)])]
+       `(use-effect #(do ~@setup-fn) ~deps))))
