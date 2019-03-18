@@ -1,4 +1,5 @@
 (ns uix.hooks.alpha
+  (:refer-clojure :exclude [ref])
   #?(:cljs (:require [react :as r])))
 
 ;; == State hook ==
@@ -31,6 +32,33 @@
 
    :clj
    (defn state [value]))
+
+;; == Ref hook
+#?(:cljs
+   (deftype RefHook [-ref]
+     IDeref
+     (-deref [o]
+       (.-current -ref))
+     IReset
+     (-reset! [o new-value]
+       (set! (.-current -ref) new-value)
+       new-value)
+     ISwap
+     (-swap! [o f]
+       (-reset! o (f (.-current -ref))))
+     (-swap! [o f a]
+       (-reset! o (f (.-current -ref) a)))
+     (-swap! [o f a b]
+       (-reset! o (f (.-current -ref) a b)))
+     (-swap! [o f a b xs]
+       (-reset! o (apply f (.-current -ref) a b xs)))))
+
+#?(:clj
+   (deftype RefHook [value set-value]))
+
+(defn ref [value]
+  #?(:cljs (RefHook. (r/useRef value))
+     :clj nil))
 
 ;; == Effect hook ==
 (defn use-effect [setup-fn deps]
