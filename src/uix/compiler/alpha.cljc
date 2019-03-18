@@ -37,6 +37,9 @@
 (defmethod compile-hiccup-ast :string [[_ value]]
   value)
 
+(defmethod compile-hiccup-ast :bool [[_ value]]
+  value)
+
 (defmethod compile-hiccup-ast :null [[_ value]]
   value)
 
@@ -200,5 +203,6 @@
     (vector? form) (read-hiccup-vector form)
     (number? form) [:number form]
     (string? form) [:string form]
+    (boolean? form) [:bool form]
     (nil? form) [:null form]
     :else (throw (str "Don't know how to read Hiccup form: " form))))

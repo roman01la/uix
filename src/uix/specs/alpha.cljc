@@ -106,6 +106,7 @@
     :component :hiccup/component-inst
     :number number?
     :string string?
+    :bool boolean?
     :null nil?))
 
 (s/def :suspense/fallback
