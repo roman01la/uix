@@ -5,17 +5,25 @@
 ;; == State hook ==
 #?(:cljs
    (deftype StateHook [value set-value]
+     Object
+     (equiv [this other]
+       (-equiv this other))
+
+     IHash
+     (-hash [o] (goog/getUid o))
+
      IDeref
      (-deref [o]
        value)
+
      IReset
      (-reset! [o new-value]
        ;; Do not update state when passing an equal value
        ;; we should rely on Clojure's equality semantics here,
        ;; because it's different from JavaScript
        (when (not= new-value value)
-         (set-value new-value))
-       new-value)
+         (set-value new-value)))
+
      ISwap
      (-swap! [o f]
        (-reset! o (f value)))
@@ -24,7 +32,13 @@
      (-swap! [o f a b]
        (-reset! o (f value a b)))
      (-swap! [o f a b xs]
-       (-reset! o (apply f value a b xs)))))
+       (-reset! o (apply f value a b xs)))
+
+     IPrintWithWriter
+     (-pr-writer [o writer opts]
+       (-write writer "#object [uix.hooks.alpha.StateHook ")
+       (pr-writer {:val value} writer opts)
+       (-write writer "]"))))
 
 #?(:clj
    (deftype StateHook [value set-value]))
@@ -40,22 +54,37 @@
 ;; == Ref hook
 #?(:cljs
    (deftype RefHook [-ref]
+     Object
+     (equiv [this other]
+       (-equiv this other))
+
+     IHash
+     (-hash [o] (goog/getUid o))
+
      IDeref
      (-deref [o]
        (.-current -ref))
+
      IReset
      (-reset! [o new-value]
        (set! (.-current -ref) new-value)
        new-value)
+
      ISwap
      (-swap! [o f]
-       (-reset! o (f (.-current -ref))))
+       (-reset! o (f (-deref o))))
      (-swap! [o f a]
-       (-reset! o (f (.-current -ref) a)))
+       (-reset! o (f (-deref o) a)))
      (-swap! [o f a b]
-       (-reset! o (f (.-current -ref) a b)))
+       (-reset! o (f (-deref o) a b)))
      (-swap! [o f a b xs]
-       (-reset! o (apply f (.-current -ref) a b xs)))))
+       (-reset! o (apply f (-deref o) a b xs)))
+
+     IPrintWithWriter
+     (-pr-writer [o writer opts]
+       (-write writer "#object [uix.hooks.alpha.RefHook ")
+       (pr-writer {:val (-deref o)} writer opts)
+       (-write writer "]"))))
 
 #?(:clj
    (deftype RefHook [value set-value]))

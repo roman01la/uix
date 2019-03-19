@@ -95,9 +95,22 @@
 #?(:clj (deftype ReactRef [-ref])
    :cljs
    (deftype ReactRef [rref]
+     Object
+     (equiv [this other]
+       (-equiv this other))
+
+     IHash
+     (-hash [o] (goog/getUid o))
+
      IDeref
      (-deref [o]
-       (.-current rref))))
+       (.-current rref))
+
+     IPrintWithWriter
+     (-pr-writer [o writer opts]
+       (-write writer "#object [uix.core.alpha.ReactRef ")
+       (pr-writer {:val (-deref o)} writer opts)
+       (-write writer "]"))))
 
 (defn ref []
   #?(:cljs (ReactRef. (r/createRef))
