@@ -87,7 +87,7 @@
            children (children->react-children children)
            attr (cond-> (normalize-attrs ids classes attr)
                         key (assoc :key key)
-                        ref (assoc :ref ref)
+                        ref (assoc :ref (unwrap-ref ref))
                         :always transform-attrs)]
        (.apply r/createElement nil (.concat #js [type attr] children)))))
 
