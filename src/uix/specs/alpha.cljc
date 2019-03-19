@@ -72,7 +72,7 @@
     vector?
     (s/cat
       :marker #{:>}
-      :type fn?
+      :type some?
       :attr (s/? map?)
       :children (s/* :hiccup/child))))
 
