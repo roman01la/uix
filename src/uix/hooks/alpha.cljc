@@ -10,7 +10,11 @@
        value)
      IReset
      (-reset! [o new-value]
-       (set-value new-value)
+       ;; Do not update state when passing an equal value
+       ;; we should rely on Clojure's equality semantics here,
+       ;; because it's different from JavaScript
+       (when (not= new-value value)
+         (set-value new-value))
        new-value)
      ISwap
      (-swap! [o f]
