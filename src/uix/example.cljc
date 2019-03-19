@@ -16,7 +16,11 @@
        ^{:key n}
         [:span n])]))
 
-#?(:cljs (defn ^:export renderApp [] (uix/render [app] js/root)))
+(defonce root
+  #?(:cljs (uix/create-root js/root)
+     :clj nil))
+
+#?(:cljs (defn ^:export renderApp [] (uix/render-root [app] root)))
 
 #?(:cljs (defn ^:after-load -render []
            (renderApp)))

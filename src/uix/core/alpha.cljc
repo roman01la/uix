@@ -72,6 +72,14 @@
           (rdom/render node))
      :clj nil))
 
+(defn create-root [node]
+  #?(:cljs (rdom/unstable_createRoot node)
+     :clj nil))
+
+(defn render-root [element root]
+  #?(:cljs (.render root (hiccup->react element))
+     :clj nil))
+
 (defn render-to-string [element]
   #?(:cljs (rdoms/renderToString (hiccup->react element))
      :clj nil))
@@ -79,6 +87,26 @@
 (defn hydrate [element node]
   #?(:cljs (rdom/hydrate element node)
      :clj nil))
+
+(defn strict-mode [child]
+  #?(:cljs [:> r/StrictMode child]
+     :clj child))
+
+(defn flush-sync* [cb]
+  #?(:cljs (rdom/flushSync cb)
+     :clj nil))
+
+(defn flush-controlled* [cb]
+  #?(:cljs (rdom/unstable_flushControlled cb)
+     :clj nil))
+
+#?(:clj
+   (defmacro flush-sync [& body]
+     `(flush-sync* (fn [] ~@body))))
+
+#?(:clj
+   (defmacro flush-controlled [& body]
+     `(flush-controlled* (fn [] ~@body))))
 
 (defn unmount-at-node [node]
   #?(:cljs (rdom/unmountComponentAtNode node)
