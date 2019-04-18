@@ -93,7 +93,7 @@
      (js/Promise.
        (fn [ok fail]
          (cljs.loader/load module
-           #(ok #js {:default @(get-var)}))))))
+           #(ok #js {:default (compiler/as-lazy-component @(get-var))}))))))
 
 (defn require-lazy* [module get-var]
   #?(:clj nil

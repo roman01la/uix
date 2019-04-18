@@ -218,16 +218,29 @@
         name-part (.slice parts (dec (count parts)))]
     (str (.join ns-parts ".") "/" name-part)))
 
+(defn with-name [f rf rf-memo]
+  (when (string? (.-name f))
+    (let [display-name (format-display-name (.-name f))]
+      (set! (.-displayName rf) display-name)
+      (set! (.-displayName rf-memo) (str "memo(" display-name ")")))))
+
 (defn fn-to-react-fn [f]
   (if (when f (.hasOwnProperty f "$$typeof"))
     f
     (let [rf #(let [[tag & args] (.-argv %)]
                 (as-element (.apply tag nil (array-from args))))
           rf-memo (react/memo rf #(= (.-argv %1) (.-argv %2)))]
-      (when (string? (.-name f))
-        (let [display-name (format-display-name (.-name f))]
-          (set! (.-displayName rf) display-name)
-          (set! (.-displayName rf-memo) (str "memo(" display-name ")"))))
+      (with-name f rf rf-memo)
+      (cache-react-fn f rf-memo)
+      rf-memo)))
+
+(defn as-lazy-component [f]
+  (if-some [cached-fn (cached-react-fn f)]
+    cached-fn
+    (let [rf #(let [[_ & args] (.-argv %)]
+                (as-element (.apply f nil (array-from args))))
+          rf-memo (react/memo rf #(= (.-argv %1) (.-argv %2)))]
+      (with-name f rf rf-memo)
       (cache-react-fn f rf-memo)
       rf-memo)))
 
