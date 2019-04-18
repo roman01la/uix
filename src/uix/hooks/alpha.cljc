@@ -53,7 +53,7 @@
 
 ;; == Ref hook
 #?(:cljs
-   (deftype RefHook [-ref]
+   (deftype RefHook [rref]
      Object
      (equiv [this other]
        (-equiv this other))
@@ -63,11 +63,11 @@
 
      IDeref
      (-deref [o]
-       (.-current -ref))
+       (.-current rref))
 
      IReset
      (-reset! [o new-value]
-       (set! (.-current -ref) new-value)
+       (set! (.-current rref) new-value)
        new-value)
 
      ISwap
@@ -89,12 +89,14 @@
 #?(:clj
    (deftype RefHook [value set-value]))
 
-(defn ref [value]
-  #?(:cljs (RefHook. (r/useRef value))
-     :clj nil))
+(defn ref
+  ([]
+   (ref nil))
+  ([value]
+   #?(:cljs (RefHook. (r/useRef value))
+      :clj nil)))
 
 ;; == Effect hook ==
-
 (defn use-effect [setup-fn deps]
   #?(:cljs (let [prev-deps* (ref deps)]
              (when (not= @prev-deps* deps)
@@ -111,3 +113,8 @@
                              [deps setup-fn]
                              [nil (cons deps setup-fn)])]
        `(use-effect #(do ~@setup-fn) ~deps))))
+
+;; == Memo hook ==
+(defn use-memo [f deps]
+  #?(:cljs (r/useMemo f deps)
+     :clj f))

@@ -1,3 +1,4 @@
 {:static-fns       true
  :fn-invoke-direct true
- :closure-defines  {goog.DEBUG false}}
+ :closure-defines  {goog.DEBUG false}
+ :externs ["resources/externs.js"]}
