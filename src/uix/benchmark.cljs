@@ -1,7 +1,31 @@
 (ns uix.benchmark
   (:require-macros [uix.benchmark :refer [bench]])
   (:require [reagent.core :as r]
-            [uix.compiler.reagent :as uix]))
+            [uix.compiler.reagent :as uix]
+            [uix.compiler.react :refer-macros [html]]))
+
+(def >el js/React.createElement)
+
+(defn button [p]
+  (>el "button" #js {:children p}))
+
+(defn button-int [text]
+  [:button text])
+
+(defn button-c [text]
+  (html [:button text]))
+
+(defn react [{:keys [title body items]}]
+  (>el "div" #js {:className "card"}
+    (>el "div" #js {:className "card-title"} title)
+    (>el "div" #js {:className "card-body"} body)
+    (>el "ul" #js {:className "card-list"}
+      (for [item items]
+        (>el "li" #js {:key item} item)))
+    (>el "div" #js {:className "card-footer"}
+      (>el "div" #js {:className "card-actions"}
+        (button "ok")
+        (button "cancel")))))
 
 (defn reagent-interpret [{:keys [title body items]}]
   (r/as-element
@@ -13,8 +37,8 @@
         ^{:key item} [:li item])]
      [:div.card-footer
       [:div.card-actions
-       [:button "ok"]
-       [:button "cancel"]]]]))
+       [button-int "ok"]
+       [button-int "cancel"]]]]))
 
 (defn uix-interpret [{:keys [title body items]}]
   (uix/as-element
@@ -26,12 +50,31 @@
         ^{:key item} [:li item])]
      [:div.card-footer
       [:div.card-actions
-       [:button "ok"]
-       [:button "cancel"]]]]))
+       [button-int "ok"]
+       [button-int "cancel"]]]]))
+
+(defn uix-compile [{:keys [title body items]}]
+  (html
+    [:div.card
+     [:div.card-title title]
+     [:div.card-body body]
+     [:ul.card-list
+      (for [item items]
+        ^{:key item} [:li item])]
+     [:div.card-footer
+      [:div.card-actions
+       [button-c "ok"]
+       [button-c "cancel"]]]]))
 
 (let [data {:title "hello world"
             :body "body"
             :items (shuffle (range 10))}]
+
+  (bench :react 10000 (react data))
+  (bench :react 10000 (react data))
+
+  (bench :uix-compile 10000 (uix-compile data))
+  (bench :uix-compile 10000 (uix-compile data))
 
   (bench :uix-interpret 10000 (uix-interpret data))
   (bench :uix-interpret 10000 (uix-interpret data))

@@ -2,21 +2,21 @@
   (:require-macros [uix.core.alpha :refer [require-lazy]]
                    [uix.hooks.alpha :refer [with-effect]])
   (:require [uix.core.alpha :as uix]
-            [uix.hooks.alpha :as hooks]))
+            [uix.hooks.alpha :as hooks]
+            [uix.compiler.react :refer-macros [html]]))
 
-(require-lazy '[uix.components :refer [view]])
+(defn button [{:keys [on-click]} text]
+  (html [:button {:on-click on-click}
+         text]))
+
 
 (defn app []
-  (let [n (hooks/state 0)]
+  (html
     [:<>
-     [:button#button-1.btn {:on-click #(swap! n + 5)}
-      "+"]
-     [:# {:fallback "Loading..."}
-      (when (>= @n 5)
-        [view "VIEW!"])]
-     (for [n (range @n)]
+     (for [n (range 3)]
        ^{:key n}
-        [:span n])]))
+       [button {:on-click js/console.log}
+        "Submit+"])]))
 
 (defonce root
   (uix/create-root js/root))
