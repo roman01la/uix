@@ -1,4 +1,4 @@
-# uix
+<img src="logo.png" width="125" />
 
 _Experimental ClojureScript wrapper for modern React.js_
 
