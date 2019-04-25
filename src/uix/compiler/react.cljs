@@ -5,7 +5,7 @@
 
 (def >el react/createElement)
 (def suspense react/Suspense)
-(def fragment react/React.Fragment)
+(def fragment react/Fragment)
 (def >portal rdom/createPortal)
 
 (defn fn-to-react-fn [f]
@@ -24,7 +24,7 @@
     (fn-to-react-fn tag)))
 
 (defn component-element [tag attrs args]
-  (let [js-props attrs
+  (let [js-props (or attrs #js {})
         el (as-component tag)]
     (set! (.-argv js-props) args)
     (>el el js-props)))

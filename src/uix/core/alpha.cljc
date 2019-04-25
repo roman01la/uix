@@ -121,4 +121,4 @@
 
 #?(:clj
    (defmacro html [expr]
-     (uixr/compile-html expr)))
+     (uixr/compile-html expr &env)))

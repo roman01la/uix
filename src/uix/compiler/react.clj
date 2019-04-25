@@ -1,8 +1,47 @@
 (ns uix.compiler.react
-  (:require [clojure.string :as str])
-  (:import (clojure.lang Keyword Symbol)))
+  (:require [clojure.string :as str]
+            [cljs.analyzer :as ana]
+            [cljs.spec.alpha :as s]))
 
-(declare compile-html)
+(def ^:dynamic *skip-check?*)
+(def ^:dynamic *cljs-env*)
+
+(def inlineable-types #{'number 'string 'clj-nil})
+
+(defn infer-type [expr env]
+  (->> (ana/analyze env expr)
+       ana/no-warn
+       (ana/infer-tag env)))
+
+(defn has-spec? [expr env]
+  (->> (ana/analyze env expr)
+       ana/no-warn
+       :name
+       (contains? @s/registry-ref)))
+
+(defn specked-arg? [sym]
+  (let [spec? (-> *cljs-env* :fn-scope first :name (has-spec? *cljs-env*))
+        local (-> (:locals *cljs-env*) (get sym))
+        local? (some? local)
+        shadow? (some? (:shadow local))
+        arg? (number? (:arg-id local))]
+    (and spec? local? arg? (if arg? true (not shadow?)))))
+
+(defmacro maybe-interpret [expr]
+  (let [tag (infer-type expr &env)]
+    (if (contains? inlineable-types tag)
+      expr
+      (binding [*out* *err*]
+        (println "WARNING: interpreting by default, please specify ^:inline or ^:interpret")
+        (prn expr)
+        (println "Inferred tag was:" tag)
+        (let [{:keys [line file]} (meta expr)]
+          (when (and line file)
+            (println (str file ":" line))))
+        (println "")
+        `(uix.compiler.alpha/as-element ~expr)))))
+
+(declare compile-html*)
 
 (defn unevaluated? [expr]
   (or (symbol? expr)
@@ -160,70 +199,70 @@
 
 (defmethod compile-form "do"
   [[_ & forms]]
-  `(do ~@(butlast forms) ~(compile-html (last forms))))
+  `(do ~@(butlast forms) ~(compile-html* (last forms))))
 
 (defmethod compile-form "array"
   [[_ & forms]]
-  `(cljs.core/array ~@(mapv compile-html forms)))
+  `(cljs.core/array ~@(mapv compile-html* forms)))
 
 (defmethod compile-form "let"
   [[_ bindings & body]]
-  `(let ~bindings ~@(butlast body) ~(compile-html (last body))))
+  `(let ~bindings ~@(butlast body) ~(compile-html* (last body))))
 
 (defmethod compile-form "let*"
   [[_ bindings & body]]
-  `(let* ~bindings ~@(butlast body) ~(compile-html (last body))))
+  `(let* ~bindings ~@(butlast body) ~(compile-html* (last body))))
 
 (defmethod compile-form "letfn*"
   [[_ bindings & body]]
-  `(letfn* ~bindings ~@(butlast body) ~(compile-html (last body))))
+  `(letfn* ~bindings ~@(butlast body) ~(compile-html* (last body))))
 
 (defmethod compile-form "for"
   [[_ bindings body]]
   (if (== 2 (count bindings))
     (let [[item coll] bindings]
       `(reduce (fn ~'hicada-for-reducer [out-arr# ~item]
-                 (.push out-arr# ~(compile-html body))
+                 (.push out-arr# ~(compile-html* body))
                  out-arr#)
                (cljs.core/array) ~coll))
     (list 'uix.compiler.alpha/array-from
-          `(for ~bindings ~(compile-html body)))))
+          `(for ~bindings ~(compile-html* body)))))
 
 (defmethod compile-form "if"
   [[_ condition & body]]
-  `(if ~condition ~@(doall (for [x body] (compile-html x)))))
+  `(if ~condition ~@(doall (for [x body] (compile-html* x)))))
 
 (defmethod compile-form "when"
   [[_ bindings & body]]
-  `(when ~bindings ~@(doall (for [x body] (compile-html x)))))
+  `(when ~bindings ~@(doall (for [x body] (compile-html* x)))))
 
 (defmethod compile-form "when-some"
   [[_ bindings & body]]
-  `(when-some ~bindings ~@(butlast body) ~(compile-html (last body))))
+  `(when-some ~bindings ~@(butlast body) ~(compile-html* (last body))))
 
 (defmethod compile-form "when-let"
   [[_ bindings & body]]
-  `(when-let ~bindings ~@(butlast body) ~(compile-html (last body))))
+  `(when-let ~bindings ~@(butlast body) ~(compile-html* (last body))))
 
 (defmethod compile-form "when-first"
   [[_ bindings & body]]
-  `(when-first ~bindings ~@(butlast body) ~(compile-html (last body))))
+  `(when-first ~bindings ~@(butlast body) ~(compile-html* (last body))))
 
 (defmethod compile-form "when-not"
   [[_ bindings & body]]
-  `(when-not ~bindings ~@(doall (for [x body] (compile-html x)))))
+  `(when-not ~bindings ~@(doall (for [x body] (compile-html* x)))))
 
 (defmethod compile-form "if-not"
   [[_ bindings & body]]
-  `(if-not ~bindings ~@(doall (for [x body] (compile-html x)))))
+  `(if-not ~bindings ~@(doall (for [x body] (compile-html* x)))))
 
 (defmethod compile-form "if-some"
   [[_ bindings & body]]
-  `(if-some ~bindings ~@(doall (for [x body] (compile-html x)))))
+  `(if-some ~bindings ~@(doall (for [x body] (compile-html* x)))))
 
 (defmethod compile-form "if-let"
   [[_ bindings & body]]
-  `(if-let ~bindings ~@(doall (for [x body] (compile-html x)))))
+  `(if-let ~bindings ~@(doall (for [x body] (compile-html* x)))))
 
 (defmethod compile-form "case"
   [[_ v & cases]]
@@ -231,8 +270,8 @@
      ~@(doall (mapcat
                 (fn [[test hiccup]]
                   (if hiccup
-                    [test (compile-html hiccup)]
-                    [(compile-html test)]))
+                    [test (compile-html* hiccup)]
+                    [(compile-html* test)]))
                 (partition-all 2 cases)))))
 
 (defmethod compile-form "condp"
@@ -241,26 +280,32 @@
      ~@(doall (mapcat
                 (fn [[test hiccup]]
                   (if hiccup
-                    [test (compile-html hiccup)]
-                    [(compile-html test)]))
+                    [test (compile-html* hiccup)]
+                    [(compile-html* test)]))
                 (partition-all 2 cases)))))
 
 (defmethod compile-form "cond"
   [[_ & clauses]]
   `(cond ~@(mapcat
-             (fn [[check expr]] [check (compile-html expr)])
+             (fn [[check expr]] [check (compile-html* expr)])
              (partition 2 clauses))))
 
+(defmethod compile-form :default [expr]
+  (cond
+    (-> expr meta :inline) expr
+    (-> expr meta :interpret) `(uix.compiler.alpha/as-element ~expr)
+    (true? *skip-check?*) expr
+    (and (symbol? expr) (specked-arg? expr)) expr
+    :else `(maybe-interpret ~expr)))
 
-(defmethod compile-form :default [expr] expr)
 
-(defn check-attrs [attrs children expr]
+(defn check-attrs [tag v attrs children expr]
   (if (and (nil? attrs) (symbol? (first children)))
     `(let [m# ~(first children)]
-       (assert (map? m#)
+       (assert (not (map? m#))
                (str "Looks like you've passed a dynamic map of props " m#
-                    " into React element. "
-                    "This is not supported in UIx's pre-compilation mode. "
+                    " in " ~(str v) " form. "
+                    "Dynamic props are not supported in UIx's pre-compilation mode. "
                     "Make sure to declare props explicitly as map literal."))
        ~expr)
     expr))
@@ -277,7 +322,7 @@
       :else :component)))
 
 (defmethod compile-element :seq [v]
-  (seq (mapv compile-html v)))
+  (seq (mapv compile-html* v)))
 
 (defmethod compile-element :element [v]
   (let [[tag attrs children] (normalize-element v)
@@ -289,8 +334,8 @@
                 (:key m) (assoc :key (:key m))
                 (:ref m) (assoc :ref `(uix.compiler.alpha/unwrap-ref ~(:ref m))))
         js-attrs (to-js (compile-attrs attrs))
-        children (mapv compile-html children)]
-    (check-attrs attrs children
+        children (mapv compile-html* children)]
+    (check-attrs (keyword tag) v attrs children
       `(>el ~tag ~js-attrs ~@children))))
 
 (defmethod compile-element :component [v]
@@ -300,7 +345,8 @@
                       (:key m) (assoc :key (:key m))
                       (:ref m) (assoc :ref `(uix.compiler.alpha/unwrap-ref ~(:ref m))))
         attrs (to-js (compile-attrs attrs))
-        args (mapv compile-html args)]
+        args (binding [*skip-check?* (has-spec? tag *cljs-env*)]
+               (mapv compile-html* args))]
     `(component-element ~tag ~attrs [~@args])))
 
 (defmethod compile-element :fragment [v]
@@ -309,22 +355,24 @@
         attrs (cond-> attrs
                       (:key m) (assoc :key (:key m)))
         attrs (to-js (compile-attrs attrs))
-        children (mapv compile-html children)]
-    `(>el fragment ~attrs ~@children)))
+        children (mapv compile-html* children)]
+    (check-attrs ":<> (React.Fragment)" v attrs children
+      `(>el fragment ~attrs ~@children))))
 
 (defmethod compile-element :suspense [v]
   (let [[_ attrs children] (normalize-element v)
         m (meta v)
         attrs (cond-> attrs
-                      (:fallback attrs) (update :fallback compile-html)
+                      (:fallback attrs) (update :fallback compile-html*)
                       (:key m) (assoc :key (:key m)))
         attrs (to-js (compile-attrs attrs))
-        children (mapv compile-html children)]
-    `(>el suspense ~attrs ~@children)))
+        children (mapv compile-html* children)]
+    (check-attrs ":# (React.Suspense)" v attrs children
+      `(>el suspense ~attrs ~@children))))
 
 (defmethod compile-element :portal [v]
   (let [[_ child node] v]
-    `(>portal ~(compile-html child) ~node)))
+    `(>portal ~(compile-html* child) ~node)))
 
 (defmethod compile-element :interop [v]
   (let [[tag attrs children] (normalize-element v 2)
@@ -333,29 +381,17 @@
                       (:key m) (assoc :key (:key m))
                       (:ref m) (assoc :ref `(uix.compiler.alpha/unwrap-ref ~(:ref m))))
         attrs (to-js (compile-attrs attrs))
-        children (mapv compile-html children)]
-    `(>el ~tag ~attrs ~@children)))
+        children (mapv compile-html* children)]
+    (check-attrs `(.-name ~tag) v attrs children
+      `(>el ~tag ~attrs ~@children))))
 
 
-(defn compile-html [expr]
+(defn compile-html* [expr]
   (cond
     (vector? expr) (compile-element expr)
     (literal? expr) expr
     :else (compile-form expr)))
 
-
-(comment
-  (compile-html '[:button {:on-click 1} "hello"])
-  (compile-html '[button {:on-click 1} "hello"])
-  (compile-html
-    '[:div
-      [button "Submit+"]])
-
-  (compile-html
-    ^{:key 1} [:div "j"])
-
-  (compile-html
-    '[:span a])
-
-  (compile-html
-    '[:> A a b]))
+(defn compile-html [expr env]
+  (binding [*cljs-env* env]
+    (compile-html* expr)))

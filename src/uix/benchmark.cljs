@@ -2,12 +2,16 @@
   (:require-macros [uix.benchmark :refer [bench]])
   (:require [reagent.core :as r]
             [uix.compiler.alpha :as uix]
-            [uix.core.alpha :refer-macros [html]]))
+            [uix.core.alpha :refer-macros [html]]
+            [cljs.spec.alpha :as s]))
 
 (def >el js/React.createElement)
 
 (defn button [p]
   (>el "button" #js {:children p}))
+
+(s/fdef button-c
+  :args (s/cat :text string?))
 
 (defn button-int [text]
   [:button text])
