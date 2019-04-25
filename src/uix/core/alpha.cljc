@@ -126,4 +126,5 @@
 #?(:clj
    (defmacro defui [sym args & body]
      `(defn ~sym ~args
-        ~@(mapv uixr/compile-html body))))
+        ~@(for [expr body]
+            `(html ~expr)))))
