@@ -1,7 +1,7 @@
 (ns ^:figwheel-hooks uix.example
   (:require-macros [uix.core.alpha :refer [require-lazy]]
                    [uix.hooks.alpha :refer [with-effect]])
-  (:require [uix.core.alpha :as uix :refer-macros [html]]
+  (:require [uix.core.alpha :as uix :refer-macros [defui]]
             [uix.hooks.alpha :as hooks]
             [cljs.spec.alpha :as s]
             [cljs.spec.test.alpha :as stest]))
@@ -11,14 +11,13 @@
           :attrs map?
           :text string?))
 
-(defn button [{:keys [on-click]} text]
-  (html [:button {:on-click on-click}
-         text]))
+(defui button [{:keys [on-click]} text]
+  [:button {:on-click on-click}
+   text])
 
-(defn app []
-  (html
-    (let [attrs {:on-click js/console.log}]
-      [button attrs "text"])))
+(defui app []
+  (let [attrs {:on-click js/console.log}]
+    [button attrs "text"]))
 
 
 

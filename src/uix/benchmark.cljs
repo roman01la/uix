@@ -2,7 +2,7 @@
   (:require-macros [uix.benchmark :refer [bench]])
   (:require [reagent.core :as r]
             [uix.compiler.alpha :as uix]
-            [uix.core.alpha :refer-macros [html]]
+            [uix.core.alpha :refer-macros [html defui]]
             [cljs.spec.alpha :as s]))
 
 (def >el js/React.createElement)
@@ -16,8 +16,8 @@
 (defn button-int [text]
   [:button text])
 
-(defn button-c [text]
-  (html [:button text]))
+(defui button-c [text]
+  [:button text])
 
 (defn react [{:keys [title body items]}]
   (>el "div" #js {:className "card"}
