@@ -20,7 +20,7 @@
    (normalize-element v 1))
   ([v n]
    (let [tag (nth v (dec n))
-         attrs (nth v n)
+         attrs (nth v n nil)
          children (drop (inc n) v)
          attrs? (or (nil? attrs) (map? attrs))
          children (if attrs? children (cons attrs children))
@@ -263,7 +263,11 @@
       (= :-> tag) :portal
       (= :> tag) :interop
       (keyword? tag) :element
+      (vector? tag) :seq
       :else :component)))
+
+(defmethod compile-element :seq [v]
+  (seq (mapv compile-html v)))
 
 (defmethod compile-element :element [v]
   (let [[tag attrs children] (normalize-element v)
@@ -284,7 +288,8 @@
         attrs (cond-> {}
                       (:key m) (assoc :key (:key m))
                       (:ref m) (assoc :ref `(uix.compiler.alpha/unwrap-ref ~(:ref m))))
-        attrs (to-js (compile-attrs attrs))]
+        attrs (to-js (compile-attrs attrs))
+        args (mapv compile-html args)]
     `(component-element ~tag ~attrs [~@args])))
 
 (defmethod compile-element :fragment [v]
@@ -339,4 +344,8 @@
     ^{:key 1} [:div "j"])
 
   (compile-html
-    [:<> 2]))
+    '[A {:foo "bar"}
+      [:span  a]])
+
+  (compile-html
+    '[:> A a b]))
