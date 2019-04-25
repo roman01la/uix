@@ -254,6 +254,16 @@
 
 (defmethod compile-form :default [expr] expr)
 
+(defn check-attrs [attrs children expr]
+  (if (and (nil? attrs) (symbol? (first children)))
+    `(let [m# ~(first children)]
+       (assert (map? m#)
+               (str "Looks like you've passed a dynamic map of props " m#
+                    " into React element. "
+                    "This is not supported in UIx's pre-compilation mode. "
+                    "Make sure to declare props explicitly as map literal."))
+       ~expr)
+    expr))
 
 (defmulti compile-element
   (fn [[tag]]
@@ -278,9 +288,10 @@
                 :always (set-id-class id-class)
                 (:key m) (assoc :key (:key m))
                 (:ref m) (assoc :ref `(uix.compiler.alpha/unwrap-ref ~(:ref m))))
-        attrs (to-js (compile-attrs attrs))
+        js-attrs (to-js (compile-attrs attrs))
         children (mapv compile-html children)]
-    `(>el ~tag ~attrs ~@children)))
+    (check-attrs attrs children
+      `(>el ~tag ~js-attrs ~@children))))
 
 (defmethod compile-element :component [v]
   (let [[tag & args] v
@@ -344,8 +355,7 @@
     ^{:key 1} [:div "j"])
 
   (compile-html
-    '[A {:foo "bar"}
-      [:span  a]])
+    '[:span a])
 
   (compile-html
     '[:> A a b]))
