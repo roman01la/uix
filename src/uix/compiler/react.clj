@@ -83,7 +83,7 @@
 (defmulti compile-config-kv (fn [name value] name))
 
 (defmethod compile-config-kv :ref [_ value]
-  `(uix.compiler.reagent/unwrap-ref ~value))
+  `(uix.compiler.alpha/unwrap-ref ~value))
 
 (defmethod compile-config-kv :class [name value]
   (cond
@@ -186,7 +186,7 @@
                  (.push out-arr# ~(compile-html body))
                  out-arr#)
                (cljs.core/array) ~coll))
-    (list 'uix.compiler.reagent/array-from
+    (list 'uix.compiler.alpha/array-from
           `(for ~bindings ~(compile-html body)))))
 
 (defmethod compile-form "if"
@@ -273,7 +273,7 @@
         attrs (cond-> attrs
                 :always (set-id-class id-class)
                 (:key m) (assoc :key (:key m))
-                (:ref m) (assoc :ref `(uix.compiler.reagent/unwrap-ref ~(:ref m))))
+                (:ref m) (assoc :ref `(uix.compiler.alpha/unwrap-ref ~(:ref m))))
         attrs (to-js (compile-attrs attrs))
         children (mapv compile-html children)]
     `(>el ~tag ~attrs ~@children)))
@@ -283,7 +283,7 @@
         m (meta v)
         attrs (cond-> {}
                       (:key m) (assoc :key (:key m))
-                      (:ref m) (assoc :ref `(uix.compiler.reagent/unwrap-ref ~(:ref m))))
+                      (:ref m) (assoc :ref `(uix.compiler.alpha/unwrap-ref ~(:ref m))))
         attrs (to-js (compile-attrs attrs))]
     `(component-element ~tag ~attrs [~@args])))
 
@@ -294,7 +294,7 @@
                       (:key m) (assoc :key (:key m)))
         attrs (to-js (compile-attrs attrs))
         children (mapv compile-html children)]
-    `(>el js/React.Fragment ~attrs ~@children)))
+    `(>el fragment ~attrs ~@children)))
 
 (defmethod compile-element :suspense [v]
   (let [[_ attrs children] (normalize-element v)
@@ -304,18 +304,18 @@
                       (:key m) (assoc :key (:key m)))
         attrs (to-js (compile-attrs attrs))
         children (mapv compile-html children)]
-    `(>el js/React.Suspense ~attrs ~@children)))
+    `(>el suspense ~attrs ~@children)))
 
 (defmethod compile-element :portal [v]
   (let [[_ child node] v]
-    `(js/ReactDOM.createPortal ~(compile-html child) ~node)))
+    `(>portal ~(compile-html child) ~node)))
 
 (defmethod compile-element :interop [v]
   (let [[tag attrs children] (normalize-element v 2)
         m (meta v)
         attrs (cond-> attrs
                       (:key m) (assoc :key (:key m))
-                      (:ref m) (assoc :ref `(uix.compiler.reagent/unwrap-ref ~(:ref m))))
+                      (:ref m) (assoc :ref `(uix.compiler.alpha/unwrap-ref ~(:ref m))))
         attrs (to-js (compile-attrs attrs))
         children (mapv compile-html children)]
     `(>el ~tag ~attrs ~@children)))
@@ -326,10 +326,6 @@
     (vector? expr) (compile-element expr)
     (literal? expr) expr
     :else (compile-form expr)))
-
-
-(defmacro html [expr]
-  (compile-html expr))
 
 
 (comment

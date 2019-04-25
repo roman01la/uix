@@ -8,4 +8,4 @@ I'm developing it as a part of [video series](https://www.youtube.com/user/roman
 
 `clojure -m figwheel.main -O advanced -bo dev:prod`
 
-`clojure -m figwheel.main -O advanced -bo benchmark`
+`clojure -A:benchmark -m figwheel.main -O advanced -bo benchmark`

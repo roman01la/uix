@@ -1,8 +1,12 @@
 (ns uix.compiler.react
   (:require [react :as react]
-            [uix.compiler.reagent :as r]))
+            [react-dom :as rdom]
+            [uix.compiler.alpha :as r]))
 
 (def >el react/createElement)
+(def suspense react/Suspense)
+(def fragment react/React.Fragment)
+(def >portal rdom/createPortal)
 
 (defn fn-to-react-fn [f]
   (if (when f (.hasOwnProperty f "$$typeof"))

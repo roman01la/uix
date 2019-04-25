@@ -1,4 +1,4 @@
-(ns uix.compiler.reagent
+(ns uix.compiler.alpha
   (:require [react :as react]
             [react-dom :as rdom]
             [goog.object :as gobj]

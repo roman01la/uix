@@ -6,7 +6,8 @@
             #?(:cljs [react-dom :as rdom])
             #?(:cljs ["react-dom/server" :as rdoms])
             #?(:cljs [cljs.loader])
-            #?(:cljs [uix.compiler.reagent :as compiler])
+            #?(:cljs [uix.compiler.alpha :as compiler])
+            [uix.compiler.react :as uixr]
             [uix.specs.alpha]))
 
 ;; React's top-level API
@@ -117,3 +118,7 @@
 #?(:clj (defn set-loaded! [module])
    :cljs (defn set-loaded! [module]
            (cljs.loader/set-loaded! module)))
+
+#?(:clj
+   (defmacro html [expr]
+     (uixr/compile-html expr)))

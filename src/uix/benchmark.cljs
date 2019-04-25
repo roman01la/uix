@@ -1,8 +1,8 @@
 (ns uix.benchmark
   (:require-macros [uix.benchmark :refer [bench]])
   (:require [reagent.core :as r]
-            [uix.compiler.reagent :as uix]
-            [uix.compiler.react :refer-macros [html]]))
+            [uix.compiler.alpha :as uix]
+            [uix.core.alpha :refer-macros [html]]))
 
 (def >el js/React.createElement)
 
