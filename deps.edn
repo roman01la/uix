@@ -5,4 +5,5 @@
         com.bhauman/figwheel-main {:mvn/version "0.2.1-SNAPSHOT"}
 
         reagent {:mvn/version "0.9.0-SNAPSHOT"}}
- :paths ["dev" "src" "resources"]}
+ :paths ["dev" "src" "resources"]
+ :aliases {:test {:extra-paths ["test"]}}}
