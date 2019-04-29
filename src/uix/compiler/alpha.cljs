@@ -285,7 +285,7 @@
     :else x))
 
 (defn expand-seq [s]
-  (map as-element s))
+  (seq (map as-element s)))
 
 (defn make-element [argv component js-props first-child]
   (case (- (count argv) first-child)
