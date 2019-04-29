@@ -12,8 +12,7 @@
 (s/fdef button
   :args (s/cat
           :attrs map?
-          :icon js-obj?
-          :text string?))
+          :icon js-obj?))
 
 (defn button [{:keys [on-click]} icon]
   (let [text "Send"]
