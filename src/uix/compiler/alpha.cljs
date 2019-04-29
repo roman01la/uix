@@ -31,8 +31,6 @@
 (declare expand-seq)
 (declare convert-prop-value)
 
-(def re-tag #"([^\s\.#]+)(?:#([^\s\.#]+))?(?:\.([^\s#]+))?")
-
 (def prop-name-cache #js {:class   "className"
                           :for     "htmlFor"
                           :charset "charSet"})
@@ -42,8 +40,6 @@
 (defn cache-get [o k]
   (when ^boolean (.hasOwnProperty o k)
     (gobj/get o k)))
-
-(def dont-camel-case #{"aria" "data"})
 
 (defn ^string capitalize [^string s]
   (if (< (count s) 2)
@@ -55,7 +51,7 @@
     dashed
     (let [name-str (name dashed)
           [^string start & parts] (.split name-str #"-")]
-      (if (contains? dont-camel-case start)
+      (if (or (= start "aria") (= start "data"))
         name-str
         (str start (string/join (map capitalize parts)))))))
 
@@ -121,16 +117,17 @@
   "Takes the id and class from tag keyword, and adds them to the
   other props. Parsed tag is JS object with :id and :class properties."
   [props id-class]
-  (let [id (second id-class)
-        class (last id-class)]
+  (let [id (nth id-class 1)
+        classes (nth id-class 2)
+        classes (array-seq classes)]
     (cond-> props
             ;; Only use ID from tag keyword if no :id in props already
             (and (some? id) (nil? (get props :id)))
             (assoc :id id)
 
             ;; Merge classes
-            class
-            (assoc :class (class-names class (get props :class))))))
+            (seq classes)
+            (assoc :class (class-names classes (get props :class))))))
 
 (defn convert-props [props id-class]
   (let [class (get props :class)
@@ -139,11 +136,19 @@
                   (set-id-class id-class))]
     (convert-prop-value props)))
 
-(defn parse-tag [hiccup-tag]
-  (let [[tag id class-name] (->> hiccup-tag name (re-matches re-tag) next)
-        class-name (when-not (nil? class-name)
-                     (string/replace class-name #"\." " "))]
-    (list tag id class-name)))
+(def re-tag #"[#.]?[^#.]+")
+
+(defn parse-tag [tag]
+  (loop [matches (re-seq re-tag tag)
+         tag     "div"
+         id      nil
+         classes #js []]
+    (if-let [val (first matches)]
+      (case (aget val 0)
+        "#" (recur (next matches) tag (.slice val 1) classes)
+        "." (recur (next matches) tag id (.concat classes #js [(.slice val 1)]))
+        (recur (next matches) val id classes))
+      #js [tag id classes])))
 
 (defn cached-parse [x]
   (if-some [s (cache-get tag-name-cache x)]
@@ -158,7 +163,7 @@
     (get-key (nth v 1 nil))))
 
 (defn native-element [parsed argv first-el]
-  (let [component (first parsed)
+  (let [component (nth parsed 0)
         props (nth argv first-el nil)
         props? (or (nil? props) (map? props))
         js-props (or (convert-props (when props? props) parsed)
