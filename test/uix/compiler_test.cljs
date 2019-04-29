@@ -2,7 +2,8 @@
   (:require [clojure.test :refer [deftest is testing run-tests]]
             [uix.compiler.alpha :as uixc]
             [goog.object :as gobj]
-            ["react-dom/server" :as rserver]))
+            ["react-dom/server" :as rserver]
+            [react-dom :as rdom]))
 
 (enable-console-print!)
 
@@ -12,6 +13,9 @@
 
 (defn js-equal? [a b]
   (gobj/equals a b))
+
+(defn symbol-for [s]
+  (js-invoke js/Symbol "for" s))
 
 (defn with-error [f]
   (let [msgs (atom [])
@@ -201,6 +205,20 @@
                      [:div "2"]])])]
       (is (= "<div><div>hello</div><div>world</div><div>foo</div><div>1</div><div>2</div></div>"
              (as-string [comp]))))))
+
+(deftest test-suspense
+  (is (.-type (uixc/as-element [:# {:fallback 1} 2]))
+      (symbol-for "react.suspense")))
+
+(deftest test-interop
+  (is (.-type (uixc/as-element [:> inc]))
+      inc))
+
+(deftest test-portal
+  (try
+    (uixc/as-element [:-> 1 2])
+    (catch :default e
+      (is "Target container is not a DOM element." (.-message e)))))
 
 (defn -main []
   (run-tests))
