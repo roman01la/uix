@@ -35,6 +35,8 @@
                           :for     "htmlFor"
                           :charset "charSet"})
 
+(def custom-prop-name-cache #js {})
+
 (def tag-name-cache #js {})
 
 (defn cache-get [o k]
@@ -64,10 +66,25 @@
         v))
     k))
 
+(defn cached-custom-prop-name [k]
+  (if (named? k)
+    (if-some [k' (cache-get custom-prop-name-cache (name k))]
+      k'
+      (let [v (dash-to-camel k)]
+        (gobj/set custom-prop-name-cache (name k))
+        v))
+    k))
+
 (defn kv-conv [o k v]
   (if (keyword-identical? k :ref)
     (gobj/set o (cached-prop-name k) (unwrap-ref v))
     (gobj/set o (cached-prop-name k) (convert-prop-value v)))
+  o)
+
+(defn custom-kv-conv [o k v]
+  (if (keyword-identical? k :ref)
+    (gobj/set o (cached-custom-prop-name k) (unwrap-ref v))
+    (gobj/set o (cached-custom-prop-name k) (convert-prop-value v)))
   o)
 
 (defn try-get-key [x]
@@ -85,6 +102,15 @@
     (js-val? x) x
     (named? x) (name x)
     (map? x) (reduce-kv kv-conv #js {} x)
+    (coll? x) (clj->js x)
+    (ifn? x) #(.apply x nil (array-from %&))
+    :else (clj->js x)))
+
+(defn convert-custom-prop-value [x]
+  (cond
+    (js-val? x) x
+    (named? x) (name x)
+    (map? x) (reduce-kv custom-kv-conv #js {} x)
     (coll? x) (clj->js x)
     (ifn? x) #(.apply x nil (array-from %&))
     :else (clj->js x)))
@@ -117,9 +143,9 @@
   "Takes the id and class from tag keyword, and adds them to the
   other props. Parsed tag is JS object with :id and :class properties."
   [props id-class]
-  (let [id (nth id-class 1)
-        classes (nth id-class 2)
-        classes (array-seq classes)]
+  (let [id (nth id-class 1 nil)
+        classes (when-let [classes (nth id-class 2 nil)]
+                  (array-seq classes))]
     (cond-> props
             ;; Only use ID from tag keyword if no :id in props already
             (and (some? id) (nil? (get props :id)))
@@ -134,7 +160,9 @@
         props (-> props
                   (cond-> class (assoc :class (class-names class)))
                   (set-id-class id-class))]
-    (convert-prop-value props)))
+    (if ^boolean (nth id-class 3 false)
+      (convert-custom-prop-value props)
+      (convert-prop-value props))))
 
 (def re-tag #"[#.]?[^#.]+")
 
@@ -148,7 +176,7 @@
         "#" (recur (next matches) tag (.slice val 1) classes)
         "." (recur (next matches) tag id (.concat classes #js [(.slice val 1)]))
         (recur (next matches) val id classes))
-      #js [tag id classes])))
+      #js [tag id classes (.test #"-" tag)])))
 
 (defn cached-parse [x]
   (if-some [s (cache-get tag-name-cache x)]
@@ -208,7 +236,7 @@
 
 (defn interop-element [argv]
   (let [tag (nth argv 1 nil)
-        parsed (list tag nil nil)]
+        parsed #js [tag nil nil]]
     (native-element parsed argv 2)))
 
 (defn cached-react-fn [f]
