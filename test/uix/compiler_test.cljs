@@ -13,6 +13,13 @@
 (defn js-equal? [a b]
   (gobj/equals a b))
 
+(defn with-error [f]
+  (let [msgs (atom [])
+        cc js/console.error]
+    (set! js/console.error #(swap! msgs conj %))
+    (f)
+    (set! js/console.error cc)
+    (is (empty? @msgs))))
 
 
 (deftest cached-prop-name
@@ -113,6 +120,15 @@
          (as-string [:p {:class "a b c"}])))
   (is (= (as-string [:p {:class #{"a" "b" "c"}}])
          (as-string [:p {:class "a b c"}]))))
+
+(deftest test-keys
+  (let [c (fn key-tester []
+            [:div
+             (for [i (range 3)]
+                ^{:key i} [:p i])
+             (for [i (range 3)]
+               [:p {:key i} i])])]
+    (with-error #(as-string [c]))))
 
 (deftest class-different-types
   (testing "named values are supported"
