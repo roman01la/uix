@@ -320,6 +320,7 @@
       (= :> tag) :interop
       (keyword? tag) :element
       (vector? tag) :seq
+      (seq? tag) :seq
       :else :component)))
 
 (defmethod compile-element :seq [v]
