@@ -202,4 +202,5 @@
       (is (= "<div><div>hello</div><div>world</div><div>foo</div><div>1</div><div>2</div></div>"
              (as-string [comp]))))))
 
-(run-tests)
+(defn -main []
+  (run-tests))

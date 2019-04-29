@@ -26,6 +26,17 @@ React.isValidElement = function() {}
 React.version = ""
 React.unstable_ConcurrentMode = function() {}
 React.unstable_Profiler = function() {}
+React.unstable_scheduleCallback = function() {}
+React.unstable_cancelCallback = function() {}
+React.unstable_now = function() {}
+React.unstable_shouldYield = function() {}
+React.unstable_runWithPriority = function() {}
+React.unstable_getCurrentPriorityLevel = function() {}
+React.unstable_ImmediatePriority = function() {}
+React.unstable_UserBlockingPriority = function() {}
+React.unstable_NormalPriority = function() {}
+React.unstable_LowPriority = function() {}
+React.unstable_IdlePriority = function() {}
 React.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED = {}
 
 ReactDOM.createPortal = function() {}
