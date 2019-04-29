@@ -2,7 +2,7 @@
   (:require-macros [uix.benchmark :refer [bench]])
   (:require [reagent.core :as r]
             [uix.compiler.alpha :as uix]
-            [uix.core.alpha :refer-macros [html defui]]
+            [uix.core.alpha :refer-macros [html]]
             [cljs.spec.alpha :as s]))
 
 (def >el js/React.createElement)
@@ -16,8 +16,9 @@
 (defn button-int [text]
   [:button text])
 
-(defui button-c [text]
-  [:button text])
+(defn button-c [text]
+  (html
+    [:button text]))
 
 (defn react [{:keys [title body items]}]
   (>el "div" #js {:className "card"}
@@ -70,19 +71,19 @@
        [button-c "ok"]
        [button-c "cancel"]]]]))
 
-(let [data {:title "hello world"
-            :body "body"
-            :items (shuffle (range 10))}]
+#_(let [data {:title "hello world"
+              :body "body"
+              :items (shuffle (range 10))}]
 
-  (bench :react 10000 (react data))
-  (bench :react 10000 (react data))
+    (bench :react 10000 (react data))
+    (bench :react 10000 (react data))
 
-  (bench :uix-compile 10000 (uix-compile data))
-  (bench :uix-compile 10000 (uix-compile data))
+    (bench :uix-compile 10000 (uix-compile data))
+    (bench :uix-compile 10000 (uix-compile data))
 
-  (bench :uix-interpret 10000 (uix-interpret data))
-  (bench :uix-interpret 10000 (uix-interpret data))
+    (bench :uix-interpret 10000 (uix-interpret data))
+    (bench :uix-interpret 10000 (uix-interpret data))
 
-  (bench :reagent-interpret 10000 (reagent-interpret data))
-  (bench :reagent-interpret 10000 (reagent-interpret data)))
+    (bench :reagent-interpret 10000 (reagent-interpret data))
+    (bench :reagent-interpret 10000 (reagent-interpret data)))
 

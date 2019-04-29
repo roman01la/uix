@@ -5,6 +5,7 @@
 
 (def ^:dynamic *skip-check?*)
 (def ^:dynamic *cljs-env*)
+(def ^:dynamic *form-env*)
 
 (def inlineable-types #{'number 'string 'clj-nil})
 
@@ -394,4 +395,5 @@
 
 (defn compile-html [expr env]
   (binding [*cljs-env* env]
-    (compile-html* expr)))
+    (binding [*form-env* (ana/no-warn (ana/analyze *cljs-env* expr))]
+      (compile-html* expr))))

@@ -122,9 +122,3 @@
 #?(:clj
    (defmacro html [expr]
      (uixr/compile-html expr &env)))
-
-#?(:clj
-   (defmacro defui [sym args & body]
-     `(defn ~sym ~args
-        ~@(for [expr body]
-            `(html ~expr)))))
