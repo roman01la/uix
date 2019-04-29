@@ -1,4 +1,4 @@
-^{:watch-dirs ["src"]}
+^{:watch-dirs ["src" "dev"]}
 {:output-dir "resources/public/out"
  :asset-path "out"
  :modules    {:example
