@@ -51,9 +51,16 @@
    :clj
    (defn state [value]))
 
+(defprotocol IRef
+  (unwrap [this]))
+
 ;; == Ref hook
 #?(:cljs
    (deftype RefHook [rref]
+     IRef
+     (unwrap [this]
+       rref)
+
      Object
      (equiv [this other]
        (-equiv this other))

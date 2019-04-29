@@ -11,8 +11,8 @@
     coll))
 
 (defn unwrap-ref [-ref]
-  (if (satisfies? IDeref -ref)
-    (.-rref -ref)
+  (if (satisfies? hooks/IRef -ref)
+    (hooks/unwrap -ref)
     -ref))
 
 (defn ^boolean js-val? [x]

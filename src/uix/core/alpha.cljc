@@ -65,9 +65,9 @@
   #?(:cljs (rdom/createPortal child node)
      :clj nil))
 
-#?(:clj (deftype ReactRef [-ref])
+#?(:clj (deftype ReactRef [current])
    :cljs
-   (deftype ReactRef [rref]
+   (deftype ReactRef [current]
      Object
      (equiv [this other]
        (-equiv this other))
@@ -77,7 +77,7 @@
 
      IDeref
      (-deref [o]
-       (.-current rref))
+       current)
 
      IPrintWithWriter
      (-pr-writer [o writer opts]
@@ -85,9 +85,12 @@
        (pr-writer {:val (-deref o)} writer opts)
        (-write writer "]"))))
 
-(defn ref []
-  #?(:cljs (ReactRef. (r/createRef))
-     :clj nil))
+(defn ref
+  ([]
+   (ref nil))
+  ([v]
+   #?(:cljs (ReactRef. v)
+      :clj nil)))
 
 #?(:cljs
    (defn load-module [module get-var]
