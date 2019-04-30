@@ -1,6 +1,7 @@
 (ns uix.hooks.alpha
   (:refer-clojure :exclude [ref])
-  #?(:cljs (:require [react :as r])))
+  #?(:cljs (:require [react :as r]
+                     [goog.object :as gobj])))
 
 ;; == State hook ==
 #?(:cljs
@@ -70,11 +71,11 @@
 
      IDeref
      (-deref [o]
-       (.-current rref))
+       (gobj/get rref "current"))
 
      IReset
      (-reset! [o new-value]
-       (set! (.-current rref) new-value)
+       (gobj/set rref "current" new-value)
        new-value)
 
      ISwap

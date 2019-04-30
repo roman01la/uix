@@ -198,9 +198,9 @@
                      #js {})
         first-child (+ first-el (if props? 1 0))]
     (when-some [key (get-key (meta argv))]
-      (set! (.-key js-props) key))
+      (gobj/set js-props "key" key))
     (when-some [-ref (unwrap-ref (:ref (meta argv)))]
-      (set! (.-ref js-props) -ref))
+      (gobj/set js-props "ref" -ref))
     (make-element argv component js-props first-child)))
 
 (defn fragment-element [argv]
@@ -210,7 +210,7 @@
                      #js {})
         first-child (+ 1 (if props? 1 0))]
     (when-some [key (key-from-vec argv)]
-      (set! (.-key js-props) key))
+      (gobj/set js-props "key" key))
     (make-element argv react/Fragment js-props first-child)))
 
 (defn suspense-element [argv]
@@ -224,9 +224,9 @@
                      #js {})
         first-child (+ 1 (if props? 1 0))]
     (when fallback
-      (set! (.-fallback js-props) fallback))
+      (gobj/set js-props "fallback" fallback))
     (when-some [key (key-from-vec argv)]
-      (set! (.-key js-props) key))
+      (gobj/set js-props "key" key))
     (make-element argv react/Suspense js-props first-child)))
 
 (defn portal-element [argv]
@@ -287,9 +287,9 @@
         el (as-component tag)]
     (set! (.-argv js-props) v)
     (when-some [key (key-from-vec v)]
-      (set! (.-key js-props) key))
+      (gobj/set js-props "key" key))
     (when-some [-ref (unwrap-ref (:ref (meta v)))]
-      (set! (.-ref js-props) -ref))
+      (gobj/set js-props "ref" -ref))
     (react/createElement el js-props)))
 
 (defn vec-to-elem [v]
