@@ -2,7 +2,11 @@
   (:require [uix.core.alpha :as uix :refer-macros [html require-lazy]]
             [cljs.spec.alpha :as s]
             [cljs.spec.test.alpha :as stest]
-            [clojure.string :as string]))
+            [clojure.string :as string]
+            [uix.state.alpha :as st]))
+
+(require-lazy '[uix.components :refer [ui-list]])
+
 
 (s/def :button/disabled? boolean?)
 (s/def :button/on-click fn?)
@@ -22,11 +26,27 @@
   :args (s/cat :uname string?))
 
 
-(require-lazy '[uix.components :refer [ui-list]])
+(defmethod st/handle-fx :fx/http [_ {:keys [url on-success]}]
+  (-> (js/fetch url)
+      (.then #(.json %))
+      (.then #(st/dispatch [on-success (js->clj % :keywordize-keys true)]))))
 
+(defmethod st/handle-event :db/init [db _]
+  {:db (assoc db :repos []
+                 :uname ""
+                 :loading? false)})
 
-(defn js-obj? [x]
-  (identical? "object" (goog/typeOf x)))
+(defmethod st/handle-event :repos/fetch [db [_ uname]]
+  {:db (assoc db :loading? true)
+   :fx/http {:url (str "https://api.github.com/users/" uname "/repos")
+             :on-success :repos/fetch-ok}})
+
+(defmethod st/handle-event :repos/fetch-ok [db [_ repos]]
+  {:db (assoc db :repos repos :loading? false)})
+
+(defmethod st/handle-event :repos/uname [db [_ uname]]
+  {:db (assoc db :uname uname)})
+
 
 (defn button [{:keys [on-click disabled?]} text]
   [:button {:on-click on-click
@@ -51,16 +71,8 @@
                    :border-radius "3px"
                    :outline "none"}}])
 
-(defn fetch-repos [uname]
-  (-> (js/fetch (str "https://api.github.com/users/" uname "/repos"))
-      (.then #(.json %))
-      (.then #(js->clj % :keywordize-keys true))))
-
 (defn app []
-  (let [state (uix/state {:uname ""
-                          :repos []
-                          :loading? false})
-        {:keys [uname repos loading?]} @state]
+  (let [{:keys [uname repos loading?]} (st/subscribe identity)]
     [:div {:style {:display "flex"
                    :flex-direction "column"
                    :align-items "center"
@@ -68,13 +80,9 @@
      [:form {:style {:display "flex"}
              :on-submit (fn [e]
                           (.preventDefault e)
-                          (swap! state assoc :loading? true)
-                          (-> (fetch-repos uname)
-                              (.then #(swap! state assoc
-                                             :loading? false
-                                             :repos %))))}
+                          (st/dispatch [:repos/fetch uname]))}
       [input {:value uname
-              :on-change #(swap! state assoc :uname %)}]
+              :on-change #(st/dispatch [:repos/uname %])}]
       [:div {:style {:margin "0 0 0 8px"}}
        [button {:disabled? (string/blank? uname)}
         "Submit"]]]
@@ -100,5 +108,7 @@
   (renderApp))
 
 (stest/instrument)
+
+(st/dispatch [:db/init])
 
 (uix/set-loaded! :example)
