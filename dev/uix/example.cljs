@@ -3,7 +3,18 @@
             [cljs.spec.alpha :as s]
             [cljs.spec.test.alpha :as stest]
             [clojure.string :as string]
-            [uix.state.alpha :as st]))
+            [uix.state.alpha :as st]
+            [cljsjs.emotion]))
+
+(defn emo-css [m]
+  (js/emotion.css (clj->js m)))
+
+(uix/add-attr-transformer :css
+  (fn [attrs v]
+    (let [^string classes (:class attrs)
+          ^string emo-class (emo-css (reduce-kv uix.compiler.alpha/kv-conv #js {} v))]
+      [:class (uix.compiler.alpha/class-names [classes emo-class])])))
+
 
 (require-lazy '[uix.components :refer [ui-list]])
 
@@ -51,51 +62,51 @@
 (defn button [{:keys [on-click disabled?]} text]
   [:button {:on-click on-click
             :disabled disabled?
-            :style {:padding "10px 24px"
-                    :font-size "15px"
-                    :border "none"
-                    :border-radius "3px"
-                    :background "blue"
-                    :color "white"
-                    :font-weight 500
-                    :text-transform "uppercase"}}
+            :css {:padding "10px 24px"
+                  :font-size "15px"
+                  :border "none"
+                  :border-radius "3px"
+                  :background "blue"
+                  :color "white"
+                  :font-weight "500"
+                  :text-transform "uppercase"}}
    text])
 
 (defn input [{:keys [value on-change]}]
   [:input {:value value
            :on-change #(on-change (.. % -target -value))
-           :style {:padding 8
-                   :font-size "15px"
-                   :border "1px solid #eee"
-                   :color "#000"
-                   :border-radius "3px"
-                   :outline "none"}}])
+           :css {:padding 8
+                 :font-size "15px"
+                 :border "1px solid #eee"
+                 :color "#000"
+                 :border-radius "3px"
+                 :outline "none"}}])
 
 (defn app []
   (let [{:keys [uname repos loading?]} (st/subscribe identity)]
-    [:div {:style {:display "flex"
-                   :flex-direction "column"
-                   :align-items "center"
-                   :padding "16px 0"}}
-     [:form {:style {:display "flex"}
+    [:div {:css {:display "flex"
+                 :flex-direction "column"
+                 :align-items "center"
+                 :padding "16px 0"}}
+     [:form {:css {:display "flex"}
              :on-submit (fn [e]
                           (.preventDefault e)
                           (st/dispatch [:repos/fetch uname]))}
       [input {:value uname
               :on-change #(st/dispatch [:repos/uname %])}]
-      [:div {:style {:margin "0 0 0 8px"}}
+      [:div {:css {:margin "0 0 0 8px"}}
        [button {:disabled? (string/blank? uname)}
         "Submit"]]]
      (when loading?
-       [:div {:style {:padding 16}}
+       [:div {:css {:padding 16}}
         "Loading..."])
      [:# {:fallback "loading"}
       (when (seq repos)
         [ui-list {:items repos}
          (fn [{:keys [name]}]
            ^{:key name}
-           [:li {:style {:padding 4
-                         :border-bottom "1px solid #000"}}
+           [:li {:css {:padding 4
+                       :border-bottom "1px solid #000"}}
             name])])]]))
 
 (defonce root

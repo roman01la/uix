@@ -130,3 +130,6 @@
 #?(:clj
    (defmacro html [expr]
      (uixr/compile-html expr &env)))
+
+#?(:cljs
+   (def add-attr-transformer compiler/add-attr-transformer))

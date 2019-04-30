@@ -39,6 +39,11 @@
 
 (def tag-name-cache #js {})
 
+(def attr-transformers #js {:ref #(vector :ref (unwrap-ref %2))})
+
+(defn add-attr-transformer [attr f]
+  (gobj/set attr-transformers (name attr) f))
+
 (defn cache-get [o k]
   (when ^boolean (.hasOwnProperty o k)
     (gobj/get o k)))
@@ -76,8 +81,9 @@
     k))
 
 (defn kv-conv [o k v]
-  (if (keyword-identical? k :ref)
-    (gobj/set o (cached-prop-name k) (unwrap-ref v))
+  (if-let [t (gobj/get attr-transformers (name k))]
+    (let [[k v] (t o v)]
+      (gobj/set o (cached-prop-name k) v))
     (gobj/set o (cached-prop-name k) (convert-prop-value v)))
   o)
 
