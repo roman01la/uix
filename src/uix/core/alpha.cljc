@@ -1,14 +1,14 @@
 (ns uix.core.alpha
   (:refer-clojure :exclude [ref])
   (:require #?(:clj [clojure.spec.alpha :as s])
-            #?(:cljs [cljs.spec.alpha :as s])
+            #?(:clj [uix.specs.alpha])
             #?(:cljs [react :as r])
             #?(:cljs [react-dom :as rdom])
             #?(:cljs ["react-dom/server" :as rdoms])
             #?(:cljs [cljs.loader])
             #?(:cljs [uix.compiler.alpha :as compiler])
             [uix.compiler.react :as uixr]
-            [uix.specs.alpha]))
+            [uix.hooks.alpha :as hooks]))
 
 ;; React's top-level API
 (defn render [element node]
@@ -85,12 +85,17 @@
        (pr-writer {:val (-deref o)} writer opts)
        (-write writer "]"))))
 
-(defn ref
+(defn create-ref
   ([]
-   (ref nil))
+   (create-ref nil))
   ([v]
    #?(:cljs (ReactRef. v)
       :clj nil)))
+
+(def state hooks/state)
+(def effect hooks/effect)
+(def memo hooks/memo)
+(def ref hooks/ref)
 
 #?(:cljs
    (defn load-module [module get-var]

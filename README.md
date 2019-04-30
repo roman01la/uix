@@ -2,7 +2,7 @@
 
 _Experimental ClojureScript wrapper for modern React.js_
 
-## Build
+## Example
 `clojure -A:dev -m figwheel.main -O advanced -bo dev:prod`
 
 ## Benchmark

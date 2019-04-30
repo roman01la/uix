@@ -104,7 +104,7 @@
       :clj nil)))
 
 ;; == Effect hook ==
-(defn use-effect [setup-fn deps]
+(defn effect [setup-fn deps]
   #?(:cljs (let [prev-deps* (ref deps)]
              (when (not= @prev-deps* deps)
                (reset! prev-deps* deps))
@@ -119,9 +119,9 @@
      (let [[deps setup-fn] (if (vector? deps)
                              [deps setup-fn]
                              [nil (cons deps setup-fn)])]
-       `(use-effect #(do ~@setup-fn) ~deps))))
+       `(effect #(do ~@setup-fn) ~deps))))
 
 ;; == Memo hook ==
-(defn use-memo [f deps]
+(defn memo [f deps]
   #?(:cljs (r/useMemo f deps)
      :clj f))

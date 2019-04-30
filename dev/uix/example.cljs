@@ -1,6 +1,5 @@
 (ns ^:figwheel-hooks uix.example
   (:require [uix.core.alpha :as uix :refer-macros [html require-lazy]]
-            [uix.hooks.alpha :as hooks]
             [cljs.spec.alpha :as s]
             [cljs.spec.test.alpha :as stest]
             [clojure.string :as string]))
@@ -58,9 +57,9 @@
       (.then #(js->clj % :keywordize-keys true))))
 
 (defn app []
-  (let [state (hooks/state {:uname ""
-                            :repos []
-                            :loading? false})
+  (let [state (uix/state {:uname ""
+                          :repos []
+                          :loading? false})
         {:keys [uname repos loading?]} @state]
     [:div {:style {:display "flex"
                    :flex-direction "column"
