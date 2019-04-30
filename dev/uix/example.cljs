@@ -4,6 +4,7 @@
             [cljs.spec.test.alpha :as stest]
             [clojure.string :as string]
             [uix.state.alpha :as st]
+            [uix.elements.alpha :as els]
             [cljsjs.emotion]))
 
 (defn emo-css [m]
@@ -84,21 +85,19 @@
 
 (defn app []
   (let [{:keys [uname repos loading?]} (st/subscribe identity)]
-    [:div {:css {:display "flex"
-                 :flex-direction "column"
-                 :align-items "center"
-                 :padding "16px 0"}}
+    [els/column {:align-x "center"
+                 :padding 16}
      [:form {:css {:display "flex"}
              :on-submit (fn [e]
                           (.preventDefault e)
                           (st/dispatch [:repos/fetch uname]))}
-      [input {:value uname
-              :on-change #(st/dispatch [:repos/uname %])}]
-      [:div {:css {:margin "0 0 0 8px"}}
+      [els/spacing {:x 8}
+       [input {:value uname
+               :on-change #(st/dispatch [:repos/uname %])}]
        [button {:disabled? (string/blank? uname)}
         "Submit"]]]
      (when loading?
-       [:div {:css {:padding 16}}
+       [els/row {:padding 16}
         "Loading..."])
      [:# {:fallback "loading"}
       (when (seq repos)
