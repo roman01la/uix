@@ -8,7 +8,7 @@
             [cljsjs.emotion]))
 
 (defn emo-css [m]
-  (js/emotion.css (clj->js m)))
+  (js/emotion.css m))
 
 (uix/add-attr-transformer :css
   (fn [attrs v]
