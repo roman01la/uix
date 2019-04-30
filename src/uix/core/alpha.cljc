@@ -111,7 +111,7 @@
 #?(:clj
    (defmacro require-lazy [form]
      (let [m (s/conform :lazy/libspec form)]
-       (when (not= m ::s/invalid)
+       (when (not= m :clojure.spec.alpha/invalid)
          (let [{:keys [lib refer]} (:libspec m)
                module (->> (str lib)
                            (re-find #"\.([a-z0-9-]+)")
