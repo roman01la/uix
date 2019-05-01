@@ -44,20 +44,20 @@
       (.then #(st/dispatch [on-success (js->clj % :keywordize-keys true)]))))
 
 (defmethod st/handle-event :db/init [db _]
-  {:db (assoc db :repos []
-                 :uname ""
-                 :loading? false)})
+  {:db (assoc db :repos {:items []
+                         :loading? false}
+                 :search-form {:uname ""})})
 
 (defmethod st/handle-event :repos/fetch [db [_ uname]]
-  {:db (assoc db :loading? true)
+  {:db (assoc-in db [:repos :loading?] true)
    :fx/http {:url (str "https://api.github.com/users/" uname "/repos")
              :on-success :repos/fetch-ok}})
 
 (defmethod st/handle-event :repos/fetch-ok [db [_ repos]]
-  {:db (assoc db :repos repos :loading? false)})
+  {:db (assoc db :repos {:items repos :loading? false})})
 
 (defmethod st/handle-event :repos/uname [db [_ uname]]
-  {:db (assoc db :uname uname)})
+  {:db (assoc-in db [:search-form :uname] uname)})
 
 
 (defn button [{:keys [on-click disabled?]} text]
@@ -83,8 +83,25 @@
                  :border-radius "3px"
                  :outline "none"}}])
 
+(def repos* (st/db-cell :repos))
+(def items* (st/cell repos* :items))
+(def items?* (st/cell items* seq))
+(def loading?* (st/cell repos* :loading?))
+(def search-form* (st/db-cell :search-form))
+
+(defn repos-list []
+  (let [items (st/use-cell items*)]
+    [ui-list {:items items}
+     (fn [{:keys [name]}]
+       ^{:key name}
+       [:li {:css {:padding 4
+                   :border-bottom "1px solid #000"}}
+        name])]))
+
 (defn app []
-  (let [{:keys [uname repos loading?]} (st/subscribe identity)]
+  (let [items? (st/use-cell items?*)
+        loading? (st/use-cell loading?*)
+        {:keys [uname]} (st/use-cell search-form*)]
     [els/column {:align-x "center"
                  :padding 16}
      [:form {:css {:display "flex"}
@@ -100,13 +117,8 @@
        [els/row {:padding 16}
         "Loading..."])
      [:# {:fallback "loading"}
-      (when (seq repos)
-        [ui-list {:items repos}
-         (fn [{:keys [name]}]
-           ^{:key name}
-           [:li {:css {:padding 4
-                       :border-bottom "1px solid #000"}}
-            name])])]]))
+      (when (seq items?)
+        [repos-list])]]))
 
 (defonce root
   (uix/create-root js/root))

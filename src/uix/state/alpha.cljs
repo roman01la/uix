@@ -4,18 +4,36 @@
 (defonce db (atom {}))
 
 
+(deftype Cell [ref f state]
+  IDeref
+  (-deref [o]
+    (f (-deref ref)))
 
-(defn subscribe [f]
-  (let [[state force-update] (react/useState (f @db))]
+  IWatchable
+  (-add-watch [o key f*]
+    (-add-watch ref key (fn [_ _ _ n]
+                          (let [nf (f n)]
+                            (when (not= state nf)
+                              (set! (.-state o) nf)
+                              (f* key o state nf))))))
+  (-remove-watch [o key]
+    (-remove-watch ref key)))
+
+(defn cell [ref f]
+  (Cell. ref f (f @ref)))
+
+(defn db-cell [f]
+  (Cell. db f (f @db)))
+
+
+(defn use-cell [cell*]
+  (let [[state force-update] (react/useState @cell*)]
     (react/useLayoutEffect
       (fn []
         (let [id (random-uuid)]
-          (add-watch db id (fn [_ _ o n]
-                             (let [of (f o)
-                                   nf (f n)]
-                               (when (not= of nf)
-                                 (force-update nf)))))
-          #(remove-watch db id)))
+          (add-watch cell* id (fn [_ _ _ n]
+                                (force-update n)))
+          #(remove-watch cell* id)))
       #js [state])
     state))
 
