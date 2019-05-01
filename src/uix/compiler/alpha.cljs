@@ -39,10 +39,10 @@
 
 (def tag-name-cache #js {})
 
-(def attr-transformers #js {:ref #(vector :ref (unwrap-ref %2))})
+(def transform-fns (atom #{}))
 
-(defn add-attr-transformer [attr f]
-  (gobj/set attr-transformers (name attr) f))
+(defn add-transform-fn [f]
+  (swap! transform-fns conj f))
 
 (defn cache-get [o k]
   (when ^boolean (.hasOwnProperty o k)
@@ -81,16 +81,11 @@
     k))
 
 (defn kv-conv [o k v]
-  (if-let [t (gobj/get attr-transformers (name k))]
-    (let [[k v] (t o v)]
-      (gobj/set o (cached-prop-name k) v))
-    (gobj/set o (cached-prop-name k) (convert-prop-value v)))
+  (gobj/set o (cached-prop-name k) (convert-prop-value v))
   o)
 
 (defn custom-kv-conv [o k v]
-  (if (keyword-identical? k :ref)
-    (gobj/set o (cached-custom-prop-name k) (unwrap-ref v))
-    (gobj/set o (cached-custom-prop-name k) (convert-prop-value v)))
+  (gobj/set o (cached-custom-prop-name k) (convert-prop-value v))
   o)
 
 (defn try-get-key [x]
@@ -200,6 +195,9 @@
   (let [component (nth parsed 0)
         props (nth argv first-el nil)
         props? (or (nil? props) (map? props))
+        props (if props?
+                (reduce (fn [p f] (f p)) props @transform-fns)
+                props)
         js-props (or (convert-props (when props? props) parsed)
                      #js {})
         first-child (+ first-el (if props? 1 0))]

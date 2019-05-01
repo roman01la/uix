@@ -10,11 +10,16 @@
 (defn emo-css [m]
   (js/emotion.css m))
 
-(uix/add-attr-transformer :css
-  (fn [attrs v]
-    (let [^string classes (:class attrs)
-          ^string emo-class (emo-css (reduce-kv uix.compiler.alpha/kv-conv #js {} v))]
-      [:class (uix.compiler.alpha/class-names [classes emo-class])])))
+(uix/add-transform-fn
+  (fn [attrs]
+    (if-not (contains? attrs :css)
+      attrs
+      (let [^string classes (:class attrs)
+            ^string emo-class (emo-css (reduce-kv uix.compiler.alpha/kv-conv #js {} (:css attrs)))
+            class (uix.compiler.alpha/class-names [classes emo-class])]
+        (-> attrs
+            (dissoc :css)
+            (assoc :class class))))))
 
 
 (require-lazy '[uix.components :refer [ui-list]])

@@ -132,4 +132,4 @@
      (uixr/compile-html expr &env)))
 
 #?(:cljs
-   (def add-attr-transformer compiler/add-attr-transformer))
+   (def add-transform-fn compiler/add-transform-fn))
