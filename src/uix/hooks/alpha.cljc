@@ -116,10 +116,10 @@
      :clj (identity setup-fn)))
 
 #?(:clj
-   (defmacro with-effect [deps & setup-fn]
+   (defmacro with-effect [deps body]
      (let [[deps setup-fn] (if (vector? deps)
-                             [deps setup-fn]
-                             [nil (cons deps setup-fn)])]
+                             [deps body]
+                             [nil (cons deps body)])]
        `(effect #(do ~@setup-fn) ~deps))))
 
 ;; == Memo hook ==

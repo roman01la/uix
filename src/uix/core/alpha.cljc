@@ -11,7 +11,9 @@
             [uix.hooks.alpha :as hooks]))
 
 ;; React's top-level API
-(defn render [element node]
+(defn render
+  "Renders element into DOM node. The first argument is Hiccup or React element."
+  [element node]
   #?(:cljs
       (-> (compiler/as-element element)
           (rdom/render node))
@@ -25,11 +27,15 @@
   #?(:cljs (.render root (compiler/as-element element))
      :clj nil))
 
-(defn render-to-string [element]
+(defn render-to-string
+  "Takes Hiccup or React element and returns HTML string."
+  [element]
   #?(:cljs (rdoms/renderToString (compiler/as-element element))
      :clj nil))
 
-(defn hydrate [element node]
+(defn hydrate
+  "Hydrates server rendered document at `node` with `element`."
+  [element node]
   #?(:cljs (rdom/hydrate element node)
      :clj nil))
 
@@ -86,19 +92,37 @@
        (-write writer "]"))))
 
 (defn create-ref
+  "Creates React's ref type object."
   ([]
    (create-ref nil))
   ([v]
    #?(:cljs (ReactRef. v)
       :clj nil)))
 
-(def state hooks/state)
-(def effect hooks/effect)
-(def memo hooks/memo)
-(def ref hooks/ref)
+(def state
+  "Returns React's state hook wrapped in atom-like type."
+  hooks/state)
+
+(def effect
+  "React's effect hook. Takes callback and deps."
+  hooks/effect)
+
+(def memo
+  "React's memo hook. Takes callback and deps."
+  hooks/memo)
+
+(def ref
+  "Returns React's ref hook wrapped in atom-like type. Takes optional initial value."
+  hooks/ref)
+
+#?(:clj
+   (defmacro with-effect
+     "Convenience macro for effect hook."
+     [deps & body]
+     `(hooks/with-effect ~deps ~body)))
 
 #?(:cljs
-   (defn load-module [module get-var]
+   (defn- load-module [module get-var]
      (js/Promise.
        (fn [ok fail]
          (cljs.loader/load module
@@ -109,7 +133,15 @@
      :cljs (r/lazy #(load-module module get-var))))
 
 #?(:clj
-   (defmacro require-lazy [form]
+   (s/fdef require-lazy
+     :args (s/cat :form :lazy/libspec)))
+
+#?(:clj
+   (defmacro require-lazy
+     "require-like macro, creates lazy-loaded React components.
+
+     (require-lazy '[my.ns.components :refer [c1 c2]])"
+     [form]
      (let [m (s/conform :lazy/libspec form)]
        (when (not= m :clojure.spec.alpha/invalid)
          (let [{:keys [lib refer]} (:libspec m)
@@ -124,12 +156,23 @@
                        (require-lazy* ~module #(resolve '~qualified-sym)))))))))))
 
 #?(:clj (defn set-loaded! [module])
-   :cljs (defn set-loaded! [module]
+   :cljs (defn set-loaded!
+           "Wrapper for cljs.loader/set-loaded!"
+           [module]
            (cljs.loader/set-loaded! module)))
 
 #?(:clj
-   (defmacro html [expr]
+   (defmacro html
+     "Compiles Hiccup into React elements at compile-time."
+     [expr]
      (uixr/compile-html expr &env)))
 
 #?(:cljs
-   (def add-transform-fn compiler/add-transform-fn))
+   (def as-element
+     "Compiles Hiccup into React elements at run-time."
+     compiler/as-element))
+
+#?(:cljs
+   (def add-transform-fn
+     "Injects attributes transforming function for Hiccup elements pre-transformations"
+     compiler/add-transform-fn))
