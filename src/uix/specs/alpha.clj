@@ -1,6 +1,5 @@
 (ns uix.specs.alpha
-  (:require #?(:clj [clojure.spec.alpha :as s])
-            #?(:cljs [cljs.spec.alpha :as s])
+  (:require [clojure.spec.alpha :as s]
             [cljs.core.specs.alpha :as core.specs]))
 
 (s/def :lazy/libspec

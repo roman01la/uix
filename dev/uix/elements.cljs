@@ -1,4 +1,4 @@
-(ns uix.elements.alpha)
+(ns uix.elements)
 
 (defn row [attrs & children]
   (let [{:keys [align-x align-y]} attrs

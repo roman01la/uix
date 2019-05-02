@@ -1,4 +1,4 @@
-(ns uix.state.alpha
+(ns uix.state
   (:require [react :as react]))
 
 (defonce db (atom {}))

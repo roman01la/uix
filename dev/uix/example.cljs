@@ -3,8 +3,8 @@
             [cljs.spec.alpha :as s]
             [cljs.spec.test.alpha :as stest]
             [clojure.string :as string]
-            [uix.state.alpha :as st]
-            [uix.elements.alpha :as els]
+            [uix.state :as st]
+            [uix.elements :as els]
             [cljsjs.emotion]))
 
 (defn emo-css [m]
