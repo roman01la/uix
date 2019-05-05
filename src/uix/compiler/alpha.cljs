@@ -203,6 +203,8 @@
         first-child (+ first-el (if props? 1 0))]
     (when-some [key (get-key (meta argv))]
       (gobj/set js-props "key" key))
+    (when-some [-ref (unwrap-ref (:ref props))]
+      (gobj/set js-props "ref" -ref))
     (when-some [-ref (unwrap-ref (:ref (meta argv)))]
       (gobj/set js-props "ref" -ref))
     (make-element argv component js-props first-child)))
