@@ -103,9 +103,9 @@
   "Returns React's state hook wrapped in atom-like type."
   hooks/state)
 
-(def effect
+(def effect!
   "React's effect hook. Takes callback and deps."
-  hooks/effect)
+  hooks/effect!)
 
 (def layout-effect!
   "React's layout effect hook. Takes callback and deps."
