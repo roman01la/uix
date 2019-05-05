@@ -129,6 +129,12 @@
      [deps & body]
      `(hooks/with-effect ~deps ~body)))
 
+#?(:clj
+   (defmacro with-layout-effect
+     "Convenience macro for layout effect hook."
+     [deps & body]
+     `(hooks/with-layout-effect ~deps ~body)))
+
 #?(:cljs
    (defn- load-module [module get-var]
      (js/Promise.

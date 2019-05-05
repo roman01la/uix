@@ -138,6 +138,13 @@
    #?(:cljs (r/useLayoutEffect (maybe-ret-fn setup-fn) (maybe-deps deps))
       :clj (identity setup-fn))))
 
+#?(:clj
+   (defmacro with-layout-effect [deps body]
+     (let [[deps setup-fn] (if (vector? deps)
+                             [deps body]
+                             [nil (cons deps body)])]
+       `(layout-effect! #(do ~@setup-fn) (maybe-deps ~deps)))))
+
 ;; == Callback hook ==
 (defn callback
   ([f]
