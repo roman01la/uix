@@ -121,6 +121,23 @@
                              [deps body]
                              [nil (cons deps body)])]
        `(effect #(do ~@setup-fn) ~deps))))
+;; == Layout effect hook ==
+(defn layout-effect!
+  ([setup-fn]
+   #?(:cljs (layout-effect! setup-fn js/undefined)
+      :clj (layout-effect! setup-fn nil)))
+  ([setup-fn deps]
+   #?(:cljs (r/useLayoutEffect (maybe-ret-fn setup-fn) (maybe-deps deps))
+      :clj (identity setup-fn))))
+
+;; == Callback hook ==
+(defn callback
+  ([f]
+   #?(:cljs (callback f js/undefined)
+      :clj (callback f nil)))
+  ([f deps]
+   #?(:cljs (r/useCallback f (maybe-deps deps))
+      :clj (identity f))))
 
 ;; == Memo hook ==
 (defn memo [f deps]

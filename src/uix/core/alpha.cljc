@@ -107,6 +107,10 @@
   "React's effect hook. Takes callback and deps."
   hooks/effect)
 
+(def layout-effect!
+  "React's layout effect hook. Takes callback and deps."
+  hooks/layout-effect!)
+
 (def memo
   "React's memo hook. Takes callback and deps."
   hooks/memo)
@@ -114,6 +118,10 @@
 (def ref
   "Returns React's ref hook wrapped in atom-like type. Takes optional initial value."
   hooks/ref)
+
+(def callback
+  "React's callback hook. Takes callback and deps."
+  hooks/callback)
 
 #?(:clj
    (defmacro with-effect
