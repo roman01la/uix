@@ -1,6 +1,6 @@
 (ns uix.hooks.alpha
   (:refer-clojure :exclude [ref])
-  #?(:cljs (:require-macros [uix.hooks.alpha :refer [maybe-deps maybe-ret-fn]]))
+  #?(:cljs (:require-macros [uix.hooks.alpha :refer [maybe-deps maybe-js-deps maybe-ret-fn with-deps-check]]))
   #?(:cljs (:require [react :as r]
                      [goog.object :as gobj])))
 
@@ -106,12 +106,23 @@
       :clj nil)))
 
 #?(:clj
-   (defmacro maybe-deps [deps]
+   (defmacro maybe-js-deps [deps]
      `(if ~deps (into-array ~deps) js/undefined)))
+
+#?(:clj
+   (defmacro maybe-deps [deps]
+     `(or ~deps js/undefined)))
 
 #?(:clj
    (defmacro maybe-ret-fn [f]
      `(fn [] (or (~f) js/undefined))))
+
+#?(:clj
+   (defmacro with-deps-check [[prev-deps] f deps]
+     `(let [~prev-deps (ref ~deps)]
+        (when (not= @~prev-deps ~deps)
+          (reset! ~prev-deps ~deps))
+        ~f)))
 
 ;; == Effect hook ==
 (defn effect!
@@ -119,7 +130,14 @@
    #?(:cljs (effect! setup-fn js/undefined)
       :clj (effect! setup-fn nil)))
   ([setup-fn deps]
-   #?(:cljs (r/useEffect (maybe-ret-fn setup-fn) (maybe-deps deps))
+   #?(:cljs (with-deps-check [prev-deps*]
+              (r/useEffect
+                (fn []
+                  (reset! prev-deps* deps)
+                  (let [ret (setup-fn)]
+                    (if (fn? ret) ret js/undefined)))
+                (maybe-deps @prev-deps*))
+              deps)
       :clj (identity setup-fn))))
 
 #?(:clj
@@ -127,7 +145,7 @@
      (let [[deps setup-fn] (if (vector? deps)
                              [deps body]
                              [nil (cons deps body)])]
-       `(effect! #(do ~@setup-fn) (maybe-deps ~deps)))))
+       `(effect! #(do ~@setup-fn) (maybe-js-deps ~deps)))))
 
 ;; == Layout effect hook ==
 (defn layout-effect!
@@ -135,7 +153,14 @@
    #?(:cljs (layout-effect! setup-fn js/undefined)
       :clj (layout-effect! setup-fn nil)))
   ([setup-fn deps]
-   #?(:cljs (r/useLayoutEffect (maybe-ret-fn setup-fn) (maybe-deps deps))
+   #?(:cljs (with-deps-check [prev-deps*]
+              (r/useLayoutEffect
+                (fn []
+                  (reset! prev-deps* deps)
+                  (let [ret (setup-fn)]
+                    (if (fn? ret) ret js/undefined)))
+                (maybe-deps @prev-deps*))
+              deps)
       :clj (identity setup-fn))))
 
 #?(:clj
@@ -143,7 +168,7 @@
      (let [[deps setup-fn] (if (vector? deps)
                              [deps body]
                              [nil (cons deps body)])]
-       `(layout-effect! #(do ~@setup-fn) (maybe-deps ~deps)))))
+       `(layout-effect! #(do ~@setup-fn) (maybe-js-deps ~deps)))))
 
 ;; == Callback hook ==
 (defn callback
@@ -151,10 +176,10 @@
    #?(:cljs (callback f js/undefined)
       :clj (callback f nil)))
   ([f deps]
-   #?(:cljs (r/useCallback f (maybe-deps deps))
+   #?(:cljs (r/useCallback f (maybe-js-deps deps))
       :clj (identity f))))
 
 ;; == Memo hook ==
 (defn memo [f deps]
-  #?(:cljs (r/useMemo f (maybe-deps deps))
+  #?(:cljs (r/useMemo f (maybe-js-deps deps))
      :clj f))
