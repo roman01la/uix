@@ -4,7 +4,6 @@
             #?(:clj [uix.specs.alpha])
             #?(:cljs [react :as r])
             #?(:cljs [react-dom :as rdom])
-            #?(:cljs ["react-dom/server" :as rdoms])
             #?(:cljs [cljs.loader])
             #?(:cljs [uix.compiler.alpha :as compiler])
             [uix.compiler.react :as uixr]
@@ -25,12 +24,6 @@
 
 (defn render-root [element root]
   #?(:cljs (.render root (compiler/as-element element))
-     :clj nil))
-
-(defn render-to-string
-  "Takes Hiccup or React element and returns HTML string."
-  [element]
-  #?(:cljs (rdoms/renderToString (compiler/as-element element))
      :clj nil))
 
 (defn hydrate
