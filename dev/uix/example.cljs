@@ -1,5 +1,5 @@
 (ns ^:figwheel-hooks uix.example
-  (:require [uix.core.alpha :as uix :refer-macros [html require-lazy]]
+  (:require [uix.core.alpha :as uix :refer-macros [defui html require-lazy]]
             [cljs.spec.alpha :as s]
             [cljs.spec.test.alpha :as stest]
             [clojure.string :as string]
@@ -64,18 +64,17 @@
 (defmethod st/handle-event :repos/uname [db [_ uname]]
   {:db (assoc-in db [:search-form :uname] uname)})
 
-
-(defn button [{:keys [on-click disabled?]} text]
+(defui button [{:keys [on-click disabled?]} text]
   [:button {:on-click on-click
             :disabled disabled?
-            :css {:padding "10px 24px"
-                  :font-size "15px"
-                  :border "none"
-                  :border-radius "3px"
-                  :background "blue"
-                  :color "white"
-                  :font-weight "500"
-                  :text-transform "uppercase"}}
+            :style {:padding "10px 24px"
+                    :font-size "15px"
+                    :border "none"
+                    :border-radius "3px"
+                    :background "blue"
+                    :color "white"
+                    :font-weight "500"
+                    :text-transform "uppercase"}}
    text])
 
 (defn input [{:keys [value on-change]}]

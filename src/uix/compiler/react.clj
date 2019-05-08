@@ -3,9 +3,10 @@
             [cljs.analyzer :as ana]
             [cljs.spec.alpha :as s]))
 
-(def ^:dynamic *skip-check?*)
-(def ^:dynamic *cljs-env*)
-(def ^:dynamic *form-env*)
+(def ^:dynamic *skip-check?*) ;; skips type check at usage place
+(def ^:dynamic *skip-fn-check?*) ;; skips type check at declaration place
+(def ^:dynamic *specked-args*) ;; arguments of a specked fn
+(def ^:dynamic *cljs-env*) ;; cljs compiler's env
 
 (def inlineable-types #{'number 'string 'clj-nil})
 
@@ -14,26 +15,22 @@
        ana/no-warn
        (ana/infer-tag env)))
 
-(defn has-spec? [expr env]
-  (->> (ana/analyze env expr)
+(defn has-spec? [sym]
+  (->> (ana/resolve-symbol sym)
        ana/no-warn
-       :name
        (contains? @s/registry-ref)))
 
-(defn specked-arg? [sym]
-  (let [spec? (-> *cljs-env* :fn-scope first :name (has-spec? *cljs-env*))
-        local (-> (:locals *cljs-env*) (get sym))
-        local? (some? local)
-        shadow? (some? (:shadow local))
-        arg? (number? (:arg-id local))]
-    (and spec? local? arg? (if arg? true (not shadow?)))))
+(defn maybe-check [x]
+  (if (contains? *specked-args* x)
+    x
+    `(maybe-interpret ~x)))
 
 (defmacro maybe-interpret [expr]
   (let [tag (infer-type expr &env)]
     (if (contains? inlineable-types tag)
       expr
       (binding [*out* *err*]
-        (println "WARNING: interpreting by default, please specify ^:inline or ^:interpret")
+        (println "WARNING: Interpreting by default, please specify ^:inline or ^:interpret")
         (prn expr)
         (println "Inferred tag was:" tag)
         (let [{:keys [line file]} (meta expr)]
@@ -293,10 +290,10 @@
 
 (defmethod compile-form :default [expr]
   (cond
+    (and *skip-fn-check?* (symbol? expr)) (maybe-check expr)
+    *skip-check?* expr
     (-> expr meta :inline) expr
     (-> expr meta :interpret) `(uix.compiler.alpha/as-element ~expr)
-    (true? *skip-check?*) expr
-    (and (symbol? expr) (specked-arg? expr)) expr
     :else `(maybe-interpret ~expr)))
 
 
@@ -347,7 +344,7 @@
                       (:key m) (assoc :key (:key m))
                       (:ref m) (assoc :ref `(uix.compiler.alpha/unwrap-ref ~(:ref m))))
         attrs (to-js (compile-attrs attrs))
-        args (binding [*skip-check?* (has-spec? tag *cljs-env*)]
+        args (binding [*skip-check?* (has-spec? tag)]
                (mapv compile-html* args))]
     `(component-element ~tag ~attrs [~@args])))
 
@@ -396,5 +393,9 @@
 
 (defn compile-html [expr env]
   (binding [*cljs-env* env]
-    (binding [*form-env* (ana/no-warn (ana/analyze *cljs-env* expr))]
-      (compile-html* expr))))
+    (compile-html* expr)))
+
+(defmacro compile-defui [sym body]
+  (binding [*skip-fn-check?* (has-spec? sym)
+            *specked-args* (->> &env :locals keys set)]
+    `(do ~@(mapv #(compile-html % &env) body))))

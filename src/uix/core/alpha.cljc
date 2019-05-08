@@ -174,6 +174,11 @@
      [expr]
      (uixr/compile-html expr &env)))
 
+#?(:clj
+   (defmacro defui [sym args & body]
+     `(defn ~sym ~args
+        (uixr/compile-defui ~sym ~body))))
+
 #?(:cljs
    (def as-element
      "Compiles Hiccup into React elements at run-time."
