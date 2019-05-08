@@ -42,6 +42,9 @@
 (s/fdef fetch-repos
   :args (s/cat :uname string?))
 
+(s/fdef repos-list
+  :args (s/cat))
+
 
 (defmethod st/handle-fx :fx/http [_ {:keys [url on-success]}]
   (-> (js/fetch url)
@@ -77,7 +80,7 @@
                     :text-transform "uppercase"}}
    text])
 
-(defn input [{:keys [value on-change]}]
+(defui input [{:keys [value on-change]}]
   [:input {:value value
            :on-change #(on-change (.. % -target -value))
            :css {:padding 8
@@ -93,7 +96,7 @@
 (def loading?* (st/cell repos* :loading?))
 (def search-form* (st/db-cell :search-form))
 
-(defn repos-list []
+(defui repos-list []
   (let [items (st/use-cell items*)]
     [ui-list {:items items}
      (fn [{:keys [name]}]
@@ -102,7 +105,7 @@
                    :border-bottom "1px solid #000"}}
         name])]))
 
-(defn app []
+(defui app []
   (let [items? (st/use-cell items?*)
         loading? (st/use-cell loading?*)
         {:keys [uname]} (st/use-cell search-form*)]

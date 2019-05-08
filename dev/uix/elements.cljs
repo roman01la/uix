@@ -1,4 +1,14 @@
-(ns uix.elements)
+(ns uix.elements
+  (:require [cljs.spec.alpha :as s]))
+
+(s/fdef row
+  :args (s/cat :attrs map? :children (s/* any?)))
+
+(s/fdef column
+  :args (s/cat :attrs map? :children (s/* any?)))
+
+(s/fdef spacing
+  :args (s/cat :attrs map? :children (s/* any?)))
 
 (defn row [attrs & children]
   (let [{:keys [align-x align-y]} attrs
