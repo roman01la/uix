@@ -237,7 +237,12 @@
 
 (defn portal-element [argv]
   (let [child (nth argv 1 nil)
-        node (nth argv 2 nil)]
+        target (nth argv 2 nil)
+        node (cond
+               (or (string? target) (keyword? target))
+               (.querySelector js/document (name target))
+
+               :else target)]
     (rdom/createPortal (as-element child) node)))
 
 (defn interop-element [argv]

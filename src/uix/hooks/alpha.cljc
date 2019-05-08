@@ -42,16 +42,14 @@
        (pr-writer {:val value} writer opts)
        (-write writer "]"))))
 
-#?(:clj
-   (deftype StateHook [value set-value]))
-
 #?(:cljs
    (defn state [value]
      (let [[value set-value] (r/useState value)]
        (StateHook. value set-value)))
 
    :clj
-   (defn state [value]))
+   (defn state [value]
+     (atom value)))
 
 (defprotocol IRef
   (unwrap [this]))
@@ -95,15 +93,12 @@
        (pr-writer {:val (-deref o)} writer opts)
        (-write writer "]"))))
 
-#?(:clj
-   (deftype RefHook [value set-value]))
-
 (defn ref
   ([]
    (ref nil))
   ([value]
    #?(:cljs (RefHook. (r/useRef value))
-      :clj nil)))
+      :clj (atom value))))
 
 #?(:clj
    (defmacro maybe-js-deps [deps]
@@ -138,7 +133,7 @@
                     (if (fn? ret) ret js/undefined)))
                 (maybe-deps @prev-deps*))
               deps)
-      :clj (identity setup-fn))))
+      :clj nil)))
 
 #?(:clj
    (defmacro with-effect [deps body]
@@ -161,7 +156,7 @@
                     (if (fn? ret) ret js/undefined)))
                 (maybe-deps @prev-deps*))
               deps)
-      :clj (identity setup-fn))))
+      :clj nil)))
 
 #?(:clj
    (defmacro with-layout-effect [deps body]
@@ -177,7 +172,7 @@
       :clj (callback f nil)))
   ([f deps]
    #?(:cljs (r/useCallback f (maybe-js-deps deps))
-      :clj (identity f))))
+      :clj f)))
 
 ;; == Memo hook ==
 (defn memo [f deps]

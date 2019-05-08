@@ -1,5 +1,6 @@
 (ns uix.elements
-  (:require [cljs.spec.alpha :as s]))
+  (:require #?(:cljs [cljs.spec.alpha :as s]
+               :clj [clojure.spec.alpha :as s])))
 
 (s/fdef row
   :args (s/cat :attrs map? :children (s/* any?)))

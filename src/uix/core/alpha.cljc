@@ -5,7 +5,7 @@
             #?(:cljs [react :as r])
             #?(:cljs [react-dom :as rdom])
             #?(:cljs [cljs.loader])
-            #?(:cljs [uix.compiler.alpha :as compiler])
+            [uix.compiler.alpha :as compiler]
             [uix.compiler.react :as uixr]
             [uix.hooks.alpha :as hooks]))
 
@@ -29,7 +29,7 @@
 (defn hydrate
   "Hydrates server rendered document at `node` with `element`."
   [element node]
-  #?(:cljs (rdom/hydrate element node)
+  #?(:cljs (rdom/hydrate (compiler/as-element element) node)
      :clj nil))
 
 (defn strict-mode [child]
@@ -61,11 +61,10 @@
      :clj nil))
 
 (defn create-portal [child node]
-  #?(:cljs (rdom/createPortal child node)
-     :clj nil))
+  #?(:cljs (rdom/createPortal (compiler/as-element child) node)
+     :clj [:-> child node]))
 
-#?(:clj (deftype ReactRef [current])
-   :cljs
+#?(:cljs
    (deftype ReactRef [current]
      Object
      (equiv [this other]
@@ -90,7 +89,7 @@
    (create-ref nil))
   ([v]
    #?(:cljs (ReactRef. v)
-      :clj nil)))
+      :clj (atom v))))
 
 (def state
   "Returns React's state hook wrapped in atom-like type."
@@ -149,18 +148,20 @@
 
      (require-lazy '[my.ns.components :refer [c1 c2]])"
      [form]
-     (let [m (s/conform :lazy/libspec form)]
-       (when (not= m :clojure.spec.alpha/invalid)
-         (let [{:keys [lib refer]} (:libspec m)
-               module (->> (str lib)
-                           (re-find #"\.([a-z0-9-]+)")
-                           second
-                           keyword)]
-           `(do
-              ~@(for [sym refer]
-                  (let [qualified-sym (symbol (str lib "/" sym))]
-                    `(def ~sym
-                       (require-lazy* ~module #(resolve '~qualified-sym)))))))))))
+     (if-not &env
+       `(require ~form)
+       (let [m (s/conform :lazy/libspec form)]
+         (when (not= m :clojure.spec.alpha/invalid)
+           (let [{:keys [lib refer]} (:libspec m)
+                 module (->> (str lib)
+                             (re-find #"\.([a-z0-9-]+)")
+                             second
+                             keyword)]
+             `(do
+                ~@(for [sym refer]
+                    (let [qualified-sym (symbol (str lib "/" sym))]
+                      `(def ~sym
+                         (require-lazy* ~module #(resolve '~qualified-sym))))))))))))
 
 #?(:clj (defn set-loaded! [module])
    :cljs (defn set-loaded!
@@ -176,8 +177,10 @@
 
 #?(:clj
    (defmacro defui [sym args & body]
-     `(defn ~sym ~args
-        (uixr/compile-defui ~sym ~body))))
+     (if-not &env
+       `(defn ~sym ~args ~@body)
+       `(defn ~sym ~args
+          (uixr/compile-defui ~sym ~body)))))
 
 #?(:cljs
    (def as-element
@@ -188,3 +191,13 @@
    (def add-transform-fn
      "Injects attributes transforming function for Hiccup elements pre-transformations"
      compiler/add-transform-fn))
+
+#?(:clj
+   (def render-to-string
+     "Renders to HTML string to be used with React"
+     compiler/render-to-string))
+
+#?(:clj
+   (def render-to-static-markup
+     "Renders to HTML string"
+     compiler/render-to-static-markup))

@@ -1,6 +1,7 @@
 (ns uix.components
   (:require [uix.core.alpha :as uix]
-            [cljs.spec.alpha :as s]))
+            #?(:cljs [cljs.spec.alpha :as s]
+               :clj [clojure.spec.alpha :as s])))
 
 (s/def :ui-list/item
   any?)
@@ -16,4 +17,5 @@
   [:ul {:style {:list-style "none"}}
    (map render-item items)])
 
-(uix/set-loaded! :components)
+#?(:cljs
+    (uix/set-loaded! :components))
