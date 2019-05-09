@@ -7,7 +7,9 @@
  :paths ["src" "resources"]
  :aliases {:dev {:extra-paths ["dev"]
                  :extra-deps {com.bhauman/figwheel-main {:mvn/version "0.2.1-SNAPSHOT"}
-                              cljsjs/emotion {:mvn/version "10.0.6-0"}}}
+                              cljsjs/emotion {:mvn/version "10.0.6-0"}
+                              codox {:mvn/version "0.10.6"}
+                              codox-theme-rdash {:mvn/version "0.1.2"}}}
            :benchmark {:extra-paths ["benchmark"]
                        :extra-deps {reagent {:mvn/version "0.9.0-SNAPSHOT"}}}
            :test {:extra-paths ["test"]
