@@ -5,7 +5,6 @@
 
 
 (def ^:dynamic *select-value*)
-(def ^:dynamic *portals*)
 (def ^:dynamic *transform-fn*)
 
 (defn append!
@@ -489,11 +488,10 @@
 
 (defn render-to-string
   ([src] (render-to-string src nil))
-  ([src {:keys [state transform-fn portals]}]
+  ([src {:keys [state transform-fn]}]
    (let [sb (StringBuilder.)
          state (or state (volatile! :state/root))]
-     (binding [*transform-fn* transform-fn
-               *portals* portals]
+     (binding [*transform-fn* transform-fn]
        (-render-html src state sb)
        (str sb)))))
 
