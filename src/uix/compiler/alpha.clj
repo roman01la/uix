@@ -488,9 +488,9 @@
 
 (defn render-to-string
   ([src] (render-to-string src nil))
-  ([src {:keys [state transform-fn]}]
+  ([src {:keys [transform-fn]}]
    (let [sb (StringBuilder.)
-         state (or state (volatile! :state/root))]
+         state (volatile! :state/root)]
      (binding [*transform-fn* transform-fn]
        (-render-html src state sb)
        (str sb)))))
