@@ -1,5 +1,6 @@
 (ns uix.compiler.alpha
-  "Based on https://github.com/tonsky/rum/blob/gh-pages/src/rum/server_render.clj"
+  "Server-side rendering on JVM.
+  Based on https://github.com/tonsky/rum/blob/gh-pages/src/rum/server_render.clj"
   (:require [clojure.string :as str])
   (:import [clojure.lang IPersistentVector ISeq Ratio Keyword IAtom]))
 

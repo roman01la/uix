@@ -1,4 +1,5 @@
 (ns uix.compiler.react
+  "Hiccup compiler that translates Hiccup into React.js at compile-time."
   (:require [clojure.string :as str]
             [cljs.analyzer :as ana]
             [cljs.spec.alpha :as s]))
@@ -10,22 +11,31 @@
 
 (def inlineable-types #{'number 'string 'clj-nil})
 
-(defn infer-type [expr env]
+(defn infer-type
+  "Infers type of expr"
+  [expr env]
   (->> (ana/analyze env expr)
        ana/no-warn
        (ana/infer-tag env)))
 
-(defn has-spec? [sym]
+(defn has-spec?
+  "Checks if there's a spec defined for sym"
+  [sym]
   (->> (ana/resolve-symbol sym)
        ana/no-warn
        (contains? @s/registry-ref)))
 
-(defn maybe-check [x]
+(defn maybe-check
+  "Wraps x with interpret call when x is not an argument of a specked function"
+  [x]
   (if (contains? *specked-args* x)
     x
     `(maybe-interpret ~x)))
 
-(defmacro maybe-interpret [expr]
+(defmacro maybe-interpret
+  "Infers type of expr and wraps expr with interpret call if the type is not one of the inlineable-types,
+  otherwise returns expr"
+  [expr]
   (let [tag (infer-type expr &env)]
     (if (contains? inlineable-types tag)
       expr
@@ -53,6 +63,8 @@
                 (not (keyword? (first x)))))))
 
 (defn normalize-element
+  "Takes Hiccup element and optional index specifying position of attributes
+  and returns a normalized element [tag attrs children]"
   ([v]
    (normalize-element v 1))
   ([v n]
@@ -66,6 +78,7 @@
 
 
 (defn join-classes-js
+  "Emits runtime class string concatenation expression"
   ([] "")
   ([& xs]
    (let [strs (->> (repeat (count xs) "~{}")
@@ -73,21 +86,29 @@
                    (apply str))]
      (list* 'js* (str "[" strs "].join(' ')") xs))))
 
-(defn join-classes [classes]
+(defn join-classes
+  "Joins class names into a single string"
+  [classes]
   (->> (map #(if (string? %) % (seq %)) classes)
        flatten
        (remove nil?)
        (str/join " ")))
 
-(def re-tag #"([^\s\.#]+)(?:#([^\s\.#]+))?(?:\.([^\s#]+))?")
+(def re-tag
+  "Hiccup tag pattern :div :.class#id etc."
+  #"([^\s\.#]+)(?:#([^\s\.#]+))?(?:\.([^\s#]+))?")
 
-(defn parse-tag [hiccup-tag]
+(defn parse-tag
+  "Takes Hiccup tag (:div.class#id) and returns parsed tag, id and class fields"
+  [hiccup-tag]
   (let [[tag id class-name] (->> hiccup-tag name (re-matches re-tag) next)
         class-name (when-not (nil? class-name)
                      (str/replace class-name #"\." " "))]
     (list tag id class-name)))
 
-(defn set-id-class [props [_ id class]]
+(defn set-id-class
+  "Takes attributes map and parsed tag, and returns attributes merged with class names and id"
+  [props [_ id class]]
   (cond-> props
           ;; Only use ID from tag keyword if no :id in props already
           (and (some? id) (nil? (get props :id)))
@@ -97,7 +118,9 @@
           class
           (assoc :class (join-classes [class (get props :class)]))))
 
-(defn camel-case [k]
+(defn camel-case
+  "Turns kebab-case keyword into camel-case keyword"
+  [k]
   (if (keyword? k)
     (let [[first-word & words] (str/split (name k) #"-")]
       (if (or (empty? words)
@@ -110,7 +133,9 @@
             keyword)))
     k))
 
-(defn camel-case-keys [m]
+(defn camel-case-keys
+  "Takes map of attributes and returns same map with camel-cased keys"
+  [m]
   (if (map? m)
     (reduce-kv #(assoc %1 (camel-case %2) %3) {} m)
     m))
@@ -144,7 +169,9 @@
 
 
 
-(defn compile-attrs [attrs]
+(defn compile-attrs
+  "Takes map of attributes and returns same map with keys translated from Hiccup to React naming conventions"
+  [attrs]
   (if (map? attrs)
     (reduce-kv
       #(assoc %1
@@ -391,11 +418,15 @@
     (literal? expr) expr
     :else (compile-form expr)))
 
-(defn compile-html [expr env]
+(defn compile-html
+  "Compiles Hiccup expr into React.js calls"
+  [expr env]
   (binding [*cljs-env* env]
     (compile-html* expr)))
 
-(defmacro compile-defui [sym body]
+(defmacro compile-defui
+  "Compiles Hiccup component defined with defui macro into React component"
+  [sym body]
   (binding [*skip-fn-check?* (has-spec? sym)
             *specked-args* (->> &env :locals keys set)]
     `(do ~@(mapv #(compile-html % &env) body))))

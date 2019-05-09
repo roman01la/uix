@@ -1,4 +1,5 @@
 (ns uix.core.alpha
+  "Public API"
   (:refer-clojure :exclude [ref])
   (:require #?(:clj [clojure.spec.alpha :as s])
             #?(:clj [uix.specs.alpha])
@@ -52,15 +53,21 @@
    (defmacro flush-controlled [& body]
      `(flush-controlled* (fn [] ~@body))))
 
-(defn unmount-at-node [node]
+(defn unmount-at-node
+  "Unmounts React component rendered into DOM node"
+  [node]
   #?(:cljs (rdom/unmountComponentAtNode node)
      :clj nil))
 
-(defn find-dom-node [component]
+(defn find-dom-node
+  "Returns top-level DOM node associated with component"
+  [component]
   #?(:cljs (rdom/findDOMNode component)
      :clj nil))
 
-(defn create-portal [child node]
+(defn create-portal
+  "Renders Hiccup element into DOM node"
+  [child node]
   #?(:cljs (rdom/createPortal (compiler/as-element child) node)
      :clj [:-> child node]))
 
@@ -144,7 +151,7 @@
 
 #?(:clj
    (defmacro require-lazy
-     "require-like macro, creates lazy-loaded React components.
+     "require-like macro, returns lazy-loaded React components.
 
      (require-lazy '[my.ns.components :refer [c1 c2]])"
      [form]
@@ -163,7 +170,9 @@
                       `(def ~sym
                          (require-lazy* ~module #(resolve '~qualified-sym))))))))))))
 
-#?(:clj (defn set-loaded! [module])
+#?(:clj (defn set-loaded!
+          "no-op"
+          [module])
    :cljs (defn set-loaded!
            "Wrapper for cljs.loader/set-loaded!"
            [module]
@@ -176,7 +185,9 @@
      (uixr/compile-html expr &env)))
 
 #?(:clj
-   (defmacro defui [sym args & body]
+   (defmacro defui
+     "Compiles UIx component into React component at compile-time."
+     [sym args & body]
      (if-not &env
        `(defn ~sym ~args ~@body)
        `(defn ~sym ~args

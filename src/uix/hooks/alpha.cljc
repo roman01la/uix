@@ -1,4 +1,5 @@
 (ns uix.hooks.alpha
+  "Wrappers for React.js Hooks"
   (:refer-clojure :exclude [ref])
   #?(:cljs (:require-macros [uix.hooks.alpha :refer [maybe-deps maybe-js-deps maybe-ret-fn with-deps-check]]))
   #?(:cljs (:require [react :as r]
@@ -43,7 +44,13 @@
        (-write writer "]"))))
 
 #?(:cljs
-   (defn state [value]
+   (defn state
+     "Takes initial value and returns an instance of StateHook.
+
+     (let [state (uix/state 0)]
+       (swap! state inc)
+       @state) ; 1"
+     [value]
      (let [[value set-value] (r/useState value)]
        (StateHook. value set-value)))
 
@@ -94,6 +101,7 @@
        (-write writer "]"))))
 
 (defn ref
+  "Takes optional initial value and returns an instance of RefHook."
   ([]
    (ref nil))
   ([value]
@@ -121,6 +129,9 @@
 
 ;; == Effect hook ==
 (defn effect!
+  "Takes a function to be executed in an effect and optional vector of dependencies.
+
+  See: https://reactjs.org/docs/hooks-reference.html#useeffect"
   ([setup-fn]
    #?(:cljs (effect! setup-fn js/undefined)
       :clj (effect! setup-fn nil)))
@@ -136,7 +147,9 @@
       :clj nil)))
 
 #?(:clj
-   (defmacro with-effect [deps body]
+   (defmacro with-effect
+     "Takes optional vector of dependencies and body to be executed in an effect."
+     [deps body]
      (let [[deps setup-fn] (if (vector? deps)
                              [deps body]
                              [nil (cons deps body)])]
@@ -144,6 +157,9 @@
 
 ;; == Layout effect hook ==
 (defn layout-effect!
+  "Takes a function to be executed in a layout effect and optional vector of dependencies.
+
+  See: https://reactjs.org/docs/hooks-reference.html#uselayouteffect"
   ([setup-fn]
    #?(:cljs (layout-effect! setup-fn js/undefined)
       :clj (layout-effect! setup-fn nil)))
@@ -159,7 +175,9 @@
       :clj nil)))
 
 #?(:clj
-   (defmacro with-layout-effect [deps body]
+   (defmacro with-layout-effect
+     "Takes optional vector of dependencies and body to be executed in a layout effect."
+     [deps body]
      (let [[deps setup-fn] (if (vector? deps)
                              [deps body]
                              [nil (cons deps body)])]
@@ -167,6 +185,7 @@
 
 ;; == Callback hook ==
 (defn callback
+  "Takes function f and optional vector of dependencies, and returns f."
   ([f]
    #?(:cljs (callback f js/undefined)
       :clj (callback f nil)))
@@ -176,5 +195,10 @@
 
 ;; == Memo hook ==
 (defn memo [f deps]
-  #?(:cljs (r/useMemo f (maybe-js-deps deps))
-     :clj f))
+  "Takes function f and optional vector of dependencies, and returns memoized f."
+  ([f]
+   #?(:cljs (memo f js/undefined)
+      :clj (memo f nil)))
+  ([f deps]
+   #?(:cljs (r/useMemo f (maybe-js-deps deps))
+      :clj f)))

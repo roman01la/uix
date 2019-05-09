@@ -1,4 +1,5 @@
 (ns uix.compiler.react
+  "Runtime helpers for Hiccup compiled into React.js"
   (:require [react :as react]
             [react-dom :as rdom]
             [uix.compiler.alpha :as r]))
