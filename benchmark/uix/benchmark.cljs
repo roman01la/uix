@@ -1,10 +1,11 @@
 (ns uix.benchmark
   (:require-macros [uix.benchmark :refer [bench]])
   (:require [reagent.core :as r]
+            [react :as react]
             [uix.compiler.alpha :as uixc]
             [uix.core.alpha :as uix :refer-macros [html]]))
 
-(def >el js/React.createElement)
+(def >el react/createElement)
 
 (def links
   [["https://news.ycombinator.com/newest" "new"]
