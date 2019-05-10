@@ -85,6 +85,10 @@
   (gobj/set o (cached-prop-name k) (convert-prop-value v))
   o)
 
+(defn kv-conv-shallow [o k v]
+  (gobj/set o (cached-prop-name k) v)
+  o)
+
 (defn custom-kv-conv [o k v]
   (gobj/set o (cached-custom-prop-name k) (convert-prop-value v))
   o)
@@ -107,6 +111,9 @@
     (coll? x) (clj->js x)
     (ifn? x) #(.apply x nil (array-from %&))
     :else (clj->js x)))
+
+(defn convert-prop-value-shallow [x]
+  (reduce-kv kv-conv-shallow #js {} x))
 
 (defn convert-custom-prop-value [x]
   (cond
@@ -157,14 +164,19 @@
             (seq classes)
             (assoc :class (class-names classes (get props :class))))))
 
-(defn convert-props [props id-class]
+(defn convert-props [props id-class & {:keys [shallow?]}]
   (let [class (get props :class)
         props (-> props
                   (cond-> class (assoc :class (class-names class)))
                   (set-id-class id-class))]
-    (if ^boolean (nth id-class 3 false)
+    (cond
+      ^boolean (nth id-class 3 false)
       (convert-custom-prop-value props)
-      (convert-prop-value props))))
+
+      ^boolean shallow?
+      (convert-prop-value-shallow props)
+
+      :else (convert-prop-value props))))
 
 (def re-tag #"[#.]?[^#.]+")
 
@@ -248,8 +260,24 @@
 
 (defn interop-element [argv]
   (let [tag (nth argv 1 nil)
-        parsed #js [tag nil nil]]
-    (native-element parsed argv 2)))
+        parsed #js [tag nil nil]
+        component (nth parsed 0)
+        first-el 2
+        props (nth argv first-el nil)
+        props? (or (nil? props) (map? props))
+        props (if props?
+                (reduce (fn [p f] (f p)) props @transform-fns)
+                props)
+        js-props (or (convert-props (when props? props) parsed :shallow? true)
+                     #js {})
+        first-child (+ first-el (if props? 1 0))]
+    (when-some [key (get-key (meta argv))]
+      (gobj/set js-props "key" key))
+    (when-some [-ref (unwrap-ref (:ref props))]
+      (gobj/set js-props "ref" -ref))
+    (when-some [-ref (unwrap-ref (:ref (meta argv)))]
+      (gobj/set js-props "ref" -ref))
+    (make-element argv component js-props first-child)))
 
 (defn cached-react-fn [f]
   (.-cljsReact f))
