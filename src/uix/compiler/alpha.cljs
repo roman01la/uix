@@ -355,17 +355,41 @@
 (defn expand-seq [s]
   (seq (map as-element s)))
 
+(defn inline-children [argv component js-props first-child]
+  (if ^boolean goog.DEBUG
+    (.apply react/createElement nil
+      (reduce-kv (fn [a k v]
+                   (when (>= k first-child)
+                     (.push a (as-element v)))
+                   a)
+                 #js [component js-props]
+                 argv))
+    (let [children (reduce-kv (fn [a k v]
+                                (when (>= k first-child)
+                                  (.push a (as-element v)))
+                                a)
+                              #js []
+                              argv)]
+      (cond
+        (= 1 (.-length children))
+        (set! (.-children js-props) (aget children 0))
+
+        (pos? (.-length children))
+        (set! (.-children js-props) children))
+
+      (react/createElement component js-props))))
+
+(defn inline-children-1 [argv component js-props first-child]
+  (if ^boolean goog.DEBUG
+    (do
+      (->> (as-element (nth argv first-child nil))
+           (set! (.-children js-props)))
+      (react/createElement component js-props))
+    (->> (as-element (nth argv first-child nil))
+         (react/createElement component js-props))))
+
 (defn make-element [argv component js-props first-child]
   (case (- (count argv) first-child)
     0 (react/createElement component js-props)
-
-    1 (react/createElement component js-props
-                           (as-element (nth argv first-child nil)))
-
-    (.apply react/createElement nil
-            (reduce-kv (fn [a k v]
-                         (when (>= k first-child)
-                           (.push a (as-element v)))
-                         a)
-                       #js [component js-props]
-                       argv))))
+    1 (inline-children-1 argv component js-props first-child)
+    (inline-children argv component js-props first-child)))
