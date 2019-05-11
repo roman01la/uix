@@ -4,14 +4,15 @@
             [react-dom :as rdom]
             [goog.object :as gobj]
             [clojure.string :as string]
-            [uix.hooks.alpha :as hooks]))
+            [uix.hooks.alpha :as hooks]
+            [clojure.string :as str]))
 
 (defn array-from [coll]
   (if (seq coll)
     (js/Array.from coll)
     coll))
 
-(defn unwrap-ref [-ref]
+(defn unwrap-ref [^hooks/IRef -ref]
   (if (satisfies? hooks/IRef -ref)
     (hooks/unwrap -ref)
     -ref))
@@ -32,8 +33,8 @@
 (declare expand-seq)
 (declare convert-prop-value)
 
-(def prop-name-cache #js {:class   "className"
-                          :for     "htmlFor"
+(def prop-name-cache #js {:class "className"
+                          :for "htmlFor"
                           :charset "charSet"})
 
 (def custom-prop-name-cache #js {})
@@ -45,7 +46,7 @@
 (defn add-transform-fn [f]
   (swap! transform-fns conj f))
 
-(defn cache-get [o k]
+(defn cache-get [^js o k]
   (when ^boolean (.hasOwnProperty o k)
     (gobj/get o k)))
 
@@ -109,7 +110,7 @@
     (named? x) (name x)
     (map? x) (reduce-kv kv-conv #js {} x)
     (coll? x) (clj->js x)
-    (ifn? x) #(.apply x nil (array-from %&))
+    (ifn? x) #(.apply ^js x nil (array-from %&))
     :else (clj->js x)))
 
 (defn convert-prop-value-shallow [x]
@@ -121,7 +122,7 @@
     (named? x) (name x)
     (map? x) (reduce-kv custom-kv-conv #js {} x)
     (coll? x) (clj->js x)
-    (ifn? x) #(.apply x nil (array-from %&))
+    (ifn? x) #(.apply ^js x nil (array-from %&))
     :else (clj->js x)))
 
 (defn ^string class-names
@@ -182,15 +183,15 @@
 
 (defn parse-tag [tag]
   (loop [matches (re-seq re-tag tag)
-         tag     "div"
-         id      nil
-         classes #js []]
-    (if-let [val (first matches)]
+         ^string tag "div"
+         id nil
+         ^js/Array classes #js []]
+    (if-let [^js val (first matches)]
       (case (aget val 0)
         "#" (recur (next matches) tag (.slice val 1) classes)
         "." (recur (next matches) tag id (.concat classes #js [(.slice val 1)]))
         (recur (next matches) val id classes))
-      #js [tag id classes (.test #"-" tag)])))
+      #js [tag id classes (str/includes? tag "-")])))
 
 (defn cached-parse [x]
   (if-some [s (cache-get tag-name-cache x)]
@@ -286,18 +287,18 @@
   (set! (.-cljsReact f) rf))
 
 (defn ^string format-display-name [^string s]
-  (let [parts (.split s #"\$")
-        ns-parts (.slice parts 0 (dec (count parts)))
-        name-part (.slice parts (dec (count parts)))]
+  (let [^js parts (.split s #"\$")
+        ^js ns-parts (.slice parts 0 (dec (count parts)))
+        ^string name-part (.slice parts (dec (count parts)))]
     (str (.join ns-parts ".") "/" name-part)))
 
-(defn with-name [f rf rf-memo]
+(defn with-name [^js f ^js rf rf-memo]
   (when (string? (.-name f))
     (let [display-name (format-display-name (.-name f))]
       (set! (.-displayName rf) display-name)
       (set! (.-displayName rf-memo) (str "memo(" display-name ")")))))
 
-(defn fn-to-react-fn [f]
+(defn fn-to-react-fn [^js f]
   (if (when f (.hasOwnProperty f "$$typeof"))
     f
     (let [rf #(let [[tag & args] (.-argv %)]
@@ -355,21 +356,39 @@
 (defn expand-seq [s]
   (seq (map as-element s)))
 
-(defn inline-children [argv component js-props first-child]
+(defn inline-element [^js component ^js js-props]
+  (let [js-props (if ^boolean (.hasOwnProperty component "defaultProps")
+                   (js/Object.assign #js {} (gobj/get component "defaultProps") js-props)
+                   js-props)
+        key (when-some [key (gobj/get js-props "key")]
+              (js-delete js-props "key")
+              (str key))
+        ref (when-some [ref (gobj/get js-props "ref")]
+              (js-delete js-props "ref")
+              ref)]
+    #js {"$$typeof" (js-invoke js/Symbol "for" "react.element")
+         :type component
+         :ref ref
+         :key key
+         :props js-props
+         :_owner nil}))
+
+(defn inline-children [argv component ^js js-props first-child]
   (if ^boolean goog.DEBUG
     (.apply react/createElement nil
-      (reduce-kv (fn [a k v]
-                   (when (>= k first-child)
-                     (.push a (as-element v)))
-                   a)
-                 #js [component js-props]
-                 argv))
-    (let [children (reduce-kv (fn [a k v]
-                                (when (>= k first-child)
-                                  (.push a (as-element v)))
-                                a)
-                              #js []
-                              argv)]
+            (reduce-kv (fn [^js/Array a k v]
+                         (when (>= k first-child)
+                           (.push a (as-element v)))
+                         a)
+                       #js [component js-props]
+                       argv))
+    (let [^js/Array children
+          (reduce-kv (fn [^js/Array a k v]
+                       (when (>= k first-child)
+                         (.push a (as-element v)))
+                       a)
+                     #js []
+                     argv)]
       (cond
         (= 1 (.-length children))
         (set! (.-children js-props) (aget children 0))
@@ -377,16 +396,16 @@
         (pos? (.-length children))
         (set! (.-children js-props) children))
 
-      (react/createElement component js-props))))
+      (inline-element component js-props))))
 
-(defn inline-children-1 [argv component js-props first-child]
+(defn inline-children-1 [argv component ^js js-props first-child]
   (if ^boolean goog.DEBUG
+    (->> (as-element (nth argv first-child nil))
+         (react/createElement component js-props))
     (do
       (->> (as-element (nth argv first-child nil))
            (set! (.-children js-props)))
-      (react/createElement component js-props))
-    (->> (as-element (nth argv first-child nil))
-         (react/createElement component js-props))))
+      (inline-element component js-props))))
 
 (defn make-element [argv component js-props first-child]
   (case (- (count argv) first-child)

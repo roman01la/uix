@@ -41,11 +41,7 @@
 
 #?(:cljs
    (defn state
-     "Takes initial value and returns an instance of StateHook.
-
-     (let [state (uix/state 0)]
-       (swap! state inc)
-       @state) ; 1"
+     "Takes initial value and returns an instance of StateHook."
      [value]
      (let [[value set-value] (r/useState value)]
        (StateHook. value set-value)))
