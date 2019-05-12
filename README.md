@@ -28,4 +28,4 @@ _Experimental ClojureScript wrapper for modern React.js_
 `clojure -A:dev:benchmark -m figwheel.main -O advanced -bo benchmark`
 
 ## Tests
-`clj -A:test -m cljs.main -re node -m uix.compiler-test`
+`clj -A:dev:test -m cljs.main -re node -m uix.compiler-test`

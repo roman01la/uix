@@ -28,7 +28,8 @@
 (defn maybe-check
   "Wraps x with interpret call when x is not an argument of a specked function"
   [x]
-  (if (contains? *specked-args* x)
+  (if (and (bound? #'*specked-args*)
+           (contains? *specked-args* x))
     x
     `(maybe-interpret ~x)))
 

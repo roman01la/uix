@@ -2,6 +2,7 @@
   (:require-macros [uix.benchmark :refer [bench]])
   (:require [reagent.core :as r]
             [react :as react]
+            ["react-dom/server" :as rserver]
             [uix.compiler.alpha :as uixc]
             [uix.core.alpha :as uix :refer-macros [html]]))
 
@@ -128,7 +129,7 @@
          [:a#logout {:href "logout"} "logout"]]]]]]))
 
 (defn render [el]
-  (js/ReactDOMServer.renderToString el))
+  (rserver/renderToString el))
 
 (do
 
