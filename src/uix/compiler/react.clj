@@ -336,6 +336,52 @@
        ~expr)
     expr))
 
+(def empty-js-obj
+  (vary-meta
+    (list 'js* "{}")
+    assoc :tag 'object))
+
+(defn inline-element [type attrs]
+  (let [{:keys [key ref]} attrs
+        attrs (dissoc attrs :key :ref)
+        js-attrs (or (to-js attrs) empty-js-obj)
+        props-sym (gensym "props")
+        react-sym `(cljs.core/js-invoke ~'js/Symbol "for" "react.element")
+        react-key (cond
+                    (string? key) key
+                    (nil? key) nil
+                    :else `(str ~key))]
+    (if (string? type)
+      (to-js
+        {"$$typeof" react-sym
+         :type type
+         :ref ref
+         :key react-key
+         :props js-attrs
+         :_owner nil})
+      `(let [~props-sym ~js-attrs]
+         (when (.hasOwnProperty ~type "defaultProps")
+           (~'js/Object.assign ~(to-js {}) (aget ~type "defaultProps") ~props-sym))
+         ~(to-js
+            {"$$typeof" react-sym
+             :type type
+             :ref ref
+             :key react-key
+             :props props-sym
+             :_owner nil})))))
+
+(defn inline-children [type attrs children]
+  (->>
+    (cond
+      (= 1 (count children))
+      (->> (first children)
+           (assoc attrs :children))
+
+      (pos? (count children))
+      (->> children
+           (assoc attrs :children)))
+    (inline-element type)))
+
 (defmulti compile-element
   (fn [[tag]]
     (cond
@@ -360,10 +406,10 @@
                 :always (set-id-class id-class)
                 (:key m) (assoc :key (:key m))
                 (:ref m) (assoc :ref `(uix.compiler.alpha/unwrap-ref ~(:ref m))))
-        js-attrs (to-js (compile-attrs attrs))
+        js-attrs (compile-attrs attrs)
         children (mapv compile-html* children)]
     (check-attrs (keyword tag) v attrs children
-      `(>el ~tag ~js-attrs ~@children))))
+      (inline-children tag js-attrs children))))
 
 (defmethod compile-element :component [v]
   (let [[tag & args] v
@@ -384,7 +430,7 @@
         attrs (to-js (compile-attrs attrs))
         children (mapv compile-html* children)]
     (check-attrs ":<> (React.Fragment)" v attrs children
-      `(>el fragment ~attrs ~@children))))
+      (inline-children `fragment attrs children))))
 
 (defmethod compile-element :suspense [v]
   (let [[_ attrs children] (normalize-element v)
@@ -395,7 +441,7 @@
         attrs (to-js (compile-attrs attrs))
         children (mapv compile-html* children)]
     (check-attrs ":# (React.Suspense)" v attrs children
-      `(>el suspense ~attrs ~@children))))
+      `(>el suspense ~attrs ~children))))
 
 (defmethod compile-element :portal [v]
   (let [[_ child node] v]
@@ -410,7 +456,7 @@
         attrs (to-js (compile-attrs attrs))
         children (mapv compile-html* children)]
     (check-attrs `(.-name ~tag) v attrs children
-      `(>el ~tag ~attrs ~@children))))
+      `(>el ~tag ~attrs ~children))))
 
 
 (defn compile-html* [expr]

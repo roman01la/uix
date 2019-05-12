@@ -1,3 +1,4 @@
+var React = {}
 React.Children = {}
 React.createRef = function() {}
 React.Component = function() {}
@@ -39,6 +40,7 @@ React.unstable_LowPriority = function() {}
 React.unstable_IdlePriority = function() {}
 React.__SECRET_INTERNALS_DO_NOT_USE_OR_YOU_WILL_BE_FIRED = {}
 
+var ReactDOM = {}
 ReactDOM.createPortal = function() {}
 ReactDOM.findDOMNode = function() {}
 ReactDOM.hydrate = function() {}
