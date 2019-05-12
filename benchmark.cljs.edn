@@ -5,5 +5,4 @@
  :static-fns       true
  :fn-invoke-direct true
  :closure-defines  {goog.DEBUG false}
- :externs ["resources/externs.js"]
- :parallel-build true}
+ :externs ["resources/externs.js"]}

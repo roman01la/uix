@@ -318,10 +318,10 @@
 
 (defmethod compile-form :default [expr]
   (cond
-    (and *skip-fn-check?* (symbol? expr)) (maybe-check expr)
-    *skip-check?* expr
     (-> expr meta :inline) expr
     (-> expr meta :interpret) `(uix.compiler.alpha/as-element ~expr)
+    (and *skip-fn-check?* (symbol? expr)) (maybe-check expr)
+    *skip-check?* expr
     :else `(maybe-interpret ~expr)))
 
 
