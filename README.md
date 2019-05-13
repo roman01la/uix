@@ -96,9 +96,6 @@ Compiler will try to inline as much as possible based on type information provid
   [:button {:on-click on-click} child])
 ```
 
-### Production optimizations
-When built with `goog.DEBUG` set to `false`, at runtime Hiccup elements skip `React.createElement` calls by directly emitting React elements.  
-
 ### Lazy loading components
 Loading React components on-demand as Closure modules. See [code splitting](https://clojurescript.org/guides/code-splitting) guide and how lazy loading is used in React with Suspense: [guide](https://reactjs.org/docs/code-splitting.html).
 ```clj

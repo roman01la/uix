@@ -7,15 +7,11 @@
             [uix.hooks.alpha :as hooks]
             [clojure.string :as str]))
 
-(defn array-from [coll]
-  (if (seq coll)
-    (js/Array.from coll)
-    coll))
-
 (defn unwrap-ref [^hooks/IRef -ref]
-  (if (satisfies? hooks/IRef -ref)
-    (hooks/unwrap -ref)
-    -ref))
+  (cond
+    (nil? -ref) -ref
+    (satisfies? hooks/IRef -ref) (hooks/unwrap -ref)
+    :else -ref))
 
 (defn ^boolean js-val? [x]
   (not (identical? "object" (goog/typeOf x))))
@@ -47,8 +43,7 @@
   (swap! transform-fns conj f))
 
 (defn cache-get [^js o k]
-  (when ^boolean (.hasOwnProperty o k)
-    (gobj/get o k)))
+  (gobj/get o k))
 
 (defn ^string capitalize [^string s]
   (if (< (count s) 2)
@@ -110,7 +105,7 @@
     (named? x) (name x)
     (map? x) (reduce-kv kv-conv #js {} x)
     (coll? x) (clj->js x)
-    (ifn? x) #(.apply ^js x nil (array-from %&))
+    (ifn? x) #(apply x %&)
     :else (clj->js x)))
 
 (defn convert-prop-value-shallow [x]
@@ -122,7 +117,7 @@
     (named? x) (name x)
     (map? x) (reduce-kv custom-kv-conv #js {} x)
     (coll? x) (clj->js x)
-    (ifn? x) #(.apply ^js x nil (array-from %&))
+    (ifn? x) #(apply x %&)
     :else (clj->js x)))
 
 (defn ^string class-names
@@ -299,22 +294,22 @@
       (set! (.-displayName rf-memo) (str "memo(" display-name ")")))))
 
 (defn fn-to-react-fn [^js f]
-  (if (when f (.hasOwnProperty f "$$typeof"))
-    f
-    (let [rf #(let [[tag & args] (.-argv %)]
-                (as-element (.apply tag nil (array-from args))))
-          rf-memo (react/memo rf #(= (.-argv %1) (.-argv %2)))]
-      (with-name f rf rf-memo)
-      (cache-react-fn f rf-memo)
-      rf-memo)))
+  (let [rf #(let [[tag & args] (.-argv %)]
+              (as-element (apply tag args)))
+        rf-memo (react/memo rf #(= (.-argv %1) (.-argv %2)))]
+    (when ^boolean goog.DEBUG
+      (with-name f rf rf-memo))
+    (cache-react-fn f rf-memo)
+    rf-memo))
 
 (defn as-lazy-component [f]
   (if-some [cached-fn (cached-react-fn f)]
     cached-fn
     (let [rf #(let [[_ & args] (.-argv %)]
-                (as-element (.apply f nil (array-from args))))
+                (as-element (apply f args)))
           rf-memo (react/memo rf #(= (.-argv %1) (.-argv %2)))]
-      (with-name f rf rf-memo)
+      (when ^boolean goog.DEBUG
+        (with-name f rf rf-memo))
       (cache-react-fn f rf-memo)
       rf-memo)))
 
@@ -356,59 +351,15 @@
 (defn expand-seq [s]
   (seq (map as-element s)))
 
-(defn inline-element [^js component ^js js-props]
-  (let [js-props (if ^boolean (.hasOwnProperty component "defaultProps")
-                   (js/Object.assign #js {} (gobj/get component "defaultProps") js-props)
-                   js-props)
-        key (when-some [key (gobj/get js-props "key")]
-              (js-delete js-props "key")
-              (str key))
-        ref (when-some [ref (gobj/get js-props "ref")]
-              (js-delete js-props "ref")
-              ref)]
-    #js {"$$typeof" (js-invoke js/Symbol "for" "react.element")
-         :type component
-         :ref ref
-         :key key
-         :props js-props
-         :_owner nil}))
-
-(defn inline-children [argv component ^js js-props first-child]
-  (if ^boolean goog.DEBUG
+(defn make-element [argv component js-props first-child]
+  (case (- (count argv) first-child)
+    0 (react/createElement component js-props)
+    1 (->> (as-element (nth argv first-child nil))
+           (react/createElement component js-props))
     (.apply react/createElement nil
             (reduce-kv (fn [^js/Array a k v]
                          (when (>= k first-child)
                            (.push a (as-element v)))
                          a)
                        #js [component js-props]
-                       argv))
-    (let [^js/Array children
-          (reduce-kv (fn [^js/Array a k v]
-                       (when (>= k first-child)
-                         (.push a (as-element v)))
-                       a)
-                     #js []
-                     argv)]
-      (cond
-        (= 1 (.-length children))
-        (set! (.-children js-props) (aget children 0))
-
-        (pos? (.-length children))
-        (set! (.-children js-props) children))
-
-      (inline-element component js-props))))
-
-(defn inline-children-1 [argv component ^js js-props first-child]
-  (if ^boolean goog.DEBUG
-    (->> (as-element (nth argv first-child nil))
-         (react/createElement component js-props))
-    (do
-      (->> (as-element (nth argv first-child nil))
-           (set! (.-children js-props)))
-      (inline-element component js-props))))
-
-(defn make-element [argv component js-props first-child]
-  (case (- (count argv) first-child)
-    0 (react/createElement component js-props)
-    1 (inline-children-1 argv component js-props first-child)
-    (inline-children argv component js-props first-child)))
+                       argv))))

@@ -10,14 +10,12 @@
 (def >portal rdom/createPortal)
 
 (defn fn-to-react-fn [f]
-  (if (when f (.hasOwnProperty f "$$typeof"))
-    f
-    (let [rf #(let [args (.-argv %)]
-                (.apply f nil (r/array-from args)))
-          rf-memo (react/memo rf #(= (.-argv %1) (.-argv %2)))]
-      (r/with-name f rf rf-memo)
-      (r/cache-react-fn f rf-memo)
-      rf-memo)))
+  (let [rf #(apply f (.-argv %))
+        rf-memo (react/memo rf #(= (.-argv %1) (.-argv %2)))]
+    (when ^boolean goog.DEBUG
+      (r/with-name f rf rf-memo))
+    (r/cache-react-fn f rf-memo)
+    rf-memo))
 
 (defn as-component [tag]
   (if-some [cached-fn (r/cached-react-fn tag)]

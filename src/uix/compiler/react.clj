@@ -353,7 +353,7 @@
                     :else `(str ~key))]
     (if (string? type)
       (to-js
-        {"$$typeof" react-sym
+        {:$$typeof react-sym
          :type type
          :ref ref
          :key react-key
@@ -363,7 +363,7 @@
          (when (.hasOwnProperty ~type "defaultProps")
            (~'js/Object.assign ~(to-js {}) (aget ~type "defaultProps") ~props-sym))
          ~(to-js
-            {"$$typeof" react-sym
+            {:$$typeof react-sym
              :type type
              :ref ref
              :key react-key
