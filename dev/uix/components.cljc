@@ -7,7 +7,7 @@
   any?)
 
 (s/def :ui-list/items
-  (s/coll-of :ui-list/item :min-count 0))
+  (s/coll-of :ui-list/item))
 
 (s/fdef ui-list
   :args (s/cat :props (s/keys :req-un [:ui-list/items])
@@ -17,5 +17,4 @@
   [:ul {:style {:list-style "none"}}
    (map render-item items)])
 
-#?(:cljs
-    (uix/set-loaded! :components))
+(uix/set-loaded! :components)
