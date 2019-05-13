@@ -212,3 +212,11 @@
    (def render-to-static-markup
      "Renders to HTML string"
      compiler/render-to-static-markup))
+
+(defn as-hiccup [f]
+  #?(:cljs (compiler/as-hiccup f)
+     :clj f))
+
+(defn as-react [f]
+  #?(:cljs (compiler/as-react f)
+     :clj f))

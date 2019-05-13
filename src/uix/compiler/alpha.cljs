@@ -319,7 +319,6 @@
       (cache-react-fn f rf-memo)
       rf-memo)))
 
-
 (defn as-lazy-component [f]
   (if-some [cached-fn (cached-react-fn f)]
     cached-fn
@@ -335,6 +334,12 @@
   (if-some [cached-fn (cached-react-fn tag)]
     cached-fn
     (fn-to-react-fn tag)))
+
+(defn as-hiccup [f]
+  #(f (clj->js %)))
+
+(defn as-react [f]
+  #(as-element (f (js->clj % :keywordize-keys true))))
 
 (defn component-element [tag v]
   (let [js-props #js {}
