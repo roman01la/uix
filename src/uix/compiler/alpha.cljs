@@ -281,6 +281,21 @@
 (defn cache-react-fn [f rf]
   (set! (.-cljsReact f) rf))
 
+(defn symbol-for [s]
+  (js-invoke js/Symbol "for" s))
+
+(def lazy-sym (symbol-for "react.lazy"))
+(def memo-sym (symbol-for "react.memo"))
+
+(defn lazy? [t]
+  (identical? lazy-sym (gobj/get t "$$typeof")))
+
+(defn memo? [t]
+  (identical? memo-sym (gobj/get t "$$typeof")))
+
+(defn react-type? [t]
+  (or (lazy? t) (memo? t)))
+
 (defn ^string format-display-name [^string s]
   (let [^js parts (.split s #"\$")
         ^js ns-parts (.slice parts 0 (dec (count parts)))
@@ -294,13 +309,16 @@
       (set! (.-displayName rf-memo) (str "memo(" display-name ")")))))
 
 (defn fn-to-react-fn [^js f]
-  (let [rf #(let [[tag & args] (.-argv %)]
-              (as-element (apply tag args)))
-        rf-memo (react/memo rf #(= (.-argv %1) (.-argv %2)))]
-    (when ^boolean goog.DEBUG
-      (with-name f rf rf-memo))
-    (cache-react-fn f rf-memo)
-    rf-memo))
+  (if (react-type? f)
+    f
+    (let [rf #(let [[tag & args] (.-argv %)]
+                (as-element (apply tag args)))
+          rf-memo (react/memo rf #(= (.-argv %1) (.-argv %2)))]
+      (when ^boolean goog.DEBUG
+        (with-name f rf rf-memo))
+      (cache-react-fn f rf-memo)
+      rf-memo)))
+
 
 (defn as-lazy-component [f]
   (if-some [cached-fn (cached-react-fn f)]
