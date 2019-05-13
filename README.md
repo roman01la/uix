@@ -109,6 +109,12 @@ Loading React components on-demand as Closure modules. See [code splitting](http
     [ui-list])]
 ```
 
+### Server-side rendering (JVM)
+```clj
+(uix/render-to-string element) ;; see https://reactjs.org/docs/react-dom-server.html#rendertostring
+(uix/render-to-static-markup element) ;; see https://reactjs.org/docs/react-dom-server.html#rendertostaticmarkup
+``` 
+
 ## Benchmark
 ```
 react x 23981 ops/s, elapsed 417ms
