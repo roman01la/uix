@@ -488,16 +488,21 @@
     :nop))
 
 (defn render-to-string
-  ([src] (render-to-string src nil))
+  ([src]
+   (render-to-string src nil))
   ([src {:keys [transform-fn]}]
    (let [sb (StringBuilder.)
          state (volatile! :state/root)]
-     (binding [*transform-fn* transform-fn]
+     (binding [*transform-fn* (or transform-fn identity)]
        (-render-html src state sb)
        (str sb)))))
 
 
-(defn render-to-static-markup [src]
-  (let [sb (StringBuilder.)]
-    (-render-html src (volatile! :state/static) sb)
-    (str sb)))
+(defn render-to-static-markup
+  ([src]
+   (render-to-static-markup src nil))
+  ([src {:keys [transform-fn]}]
+   (binding [*transform-fn* (or transform-fn identity)]
+     (let [sb (StringBuilder.)]
+       (-render-html src (volatile! :state/static) sb)
+       (str sb)))))
