@@ -26,7 +26,7 @@ _Experimental ClojureScript wrapper for modern React.js_
 ### Hiccup syntax extension
 - `[:div#id.class]` or `[:#id.class]`
 - `[:> js/Component attrs & children]` - interop with JS components
-- `[:<> attrs & children]` - React.Fragment
+- `[:<> attrs & children]` - `React.Fragment`
 - `[:-> element :#selector]` or `[:-> element dom-node]` - `React.createPortal`
 - `[:# {:fallback element} & children]` - `React.Suspense`
 
