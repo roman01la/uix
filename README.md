@@ -114,10 +114,10 @@ Loading React components on-demand as Closure modules. See [code splitting](http
 
 ## Benchmark
 ```
-react x 23981 ops/s, elapsed 417ms
-uix-compile x 23474 ops/s, elapsed 426ms
-uix-interpret x 7849 ops/s, elapsed 1274ms
-reagent-interpret x 7179 ops/s, elapsed 1393ms
+react x 23810 ops/s, elapsed 420ms
+uix-compile x 22124 ops/s, elapsed 452ms
+uix-interpret x 9488 ops/s, elapsed 1054ms
+reagent-interpret x 7315 ops/s, elapsed 1367ms
 ```
 
 ## Building
