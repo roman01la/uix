@@ -32,6 +32,7 @@
   #?(:cljs
       (-> (js/fetch (str "https://api.github.com/users/" uname "/repos"))
           (.then #(.json %))
+          (.then #(js->clj % :keywordize-keys true))
           (.then on-done))))
 
 (defn button [{:keys [on-click disabled?]} text]
@@ -64,7 +65,8 @@
         {:keys [loading? repos uname]} @state]
     [:<>
      [:div {:style {:display :flex
-                    :justify-content :center
+                    :flex-direction :column
+                    :align-items :center
                     :padding 16}}
       [:form {:style {:display :flex}
               :on-submit (fn [e]
