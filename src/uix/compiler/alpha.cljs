@@ -335,9 +335,6 @@
     cached-fn
     (fn-to-react-fn tag)))
 
-(defn as-hiccup [f]
-  #(f (clj->js %)))
-
 (defn as-react [f]
   #(as-element (f (js->clj % :keywordize-keys true))))
 
