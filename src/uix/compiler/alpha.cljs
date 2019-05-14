@@ -303,13 +303,13 @@
 (def lazy-sym (symbol-for "react.lazy"))
 (def memo-sym (symbol-for "react.memo"))
 
-(defn lazy? [t]
+(defn ^boolean lazy? [t]
   (identical? lazy-sym (gobj/get t "$$typeof")))
 
-(defn memo? [t]
+(defn ^boolean memo? [t]
   (identical? memo-sym (gobj/get t "$$typeof")))
 
-(defn react-type? [t]
+(defn ^boolean react-type? [t]
   (or (lazy? t) (memo? t)))
 
 (defn ^string format-display-name [^string s]
