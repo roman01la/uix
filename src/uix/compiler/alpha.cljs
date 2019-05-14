@@ -98,10 +98,6 @@
   (gobj/set o (cached-custom-prop-name k) (convert-prop-value v))
   o)
 
-(defn js-kv-conv-shallow [o k v]
-  (gobj/set o (js-cached-prop-name k) v)
-  o)
-
 (defn try-get-key [x]
   ;; try catch to avoid ClojureScript peculiarity with
   ;; sorted-maps with keys that are numbers
@@ -125,7 +121,11 @@
   (reduce-kv kv-conv-shallow #js {} x))
 
 (defn convert-js-prop-value-shallow [x]
-  (reduce-kv js-kv-conv-shallow #js {} x))
+  (->> (js-keys x)
+       (reduce
+         #(assoc! %1 (js-cached-prop-name %2) (gobj/get x %2))
+         (transient {}))
+       persistent!))
 
 (defn convert-custom-prop-value [x]
   (cond

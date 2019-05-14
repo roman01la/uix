@@ -3,6 +3,7 @@
             [uix.compiler.alpha :as uixc]
             [goog.object :as gobj]
             ["react-dom/server" :as rserver]
+            [react :as react]
             [react-dom :as rdom]))
 
 (enable-console-print!)
@@ -211,14 +212,31 @@
       (symbol-for "react.suspense")))
 
 (deftest test-interop
-  (is (.-type (uixc/as-element [:> inc]))
-      inc))
+  (testing "Interop element type"
+    (is (.-type (uixc/as-element [:> inc]))
+        inc))
+  (testing "Shallowly converted props"
+    (let [el (uixc/as-element [:> inc {:a 1 :b {:c 2}} :child])
+          props (.-props el)]
+      (is (.-a props) 1)
+      (is (.-b props) {:c 2})
+      (is (.-children props) :child))))
 
 (deftest test-portal
   (try
     (uixc/as-element [:-> 1 2])
     (catch :default e
       (is "Target container is not a DOM element." (.-message e)))))
+
+(deftest test-as-react
+  (let [h1 (uixc/as-react #(do
+                             (is (map? %) true)
+                             (is "TEXT" (:text %))
+                             [:h1 (:text %)]))
+        el (h1 #js {:text "TEXT"})
+        props (.-props el)]
+    (is (.-type el) "h1")
+    (is (.-children props) "TEXT")))
 
 (defn -main []
   (run-tests))
