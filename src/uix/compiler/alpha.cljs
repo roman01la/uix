@@ -336,7 +336,7 @@
     (fn-to-react-fn tag)))
 
 (defn as-react [f]
-  #(as-element (f (js->clj % :keywordize-keys true))))
+  #(as-element (f (convert-prop-value-shallow %))))
 
 (defn component-element [tag v]
   (let [js-props #js {}
