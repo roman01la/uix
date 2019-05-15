@@ -213,6 +213,10 @@
      "Renders to HTML string"
      compiler/render-to-static-markup))
 
+#?(:clj
+   (def render-to-stream
+     compiler/render-to-stream))
+
 (defn as-react [f]
   #?(:cljs (compiler/as-react f)
      :clj f))

@@ -2,32 +2,60 @@
   "Server-side rendering on JVM.
   Based on https://github.com/tonsky/rum/blob/gh-pages/src/rum/server_render.clj"
   (:require [clojure.string :as str])
-  (:import [clojure.lang IPersistentVector ISeq Ratio Keyword IAtom]))
+  (:import [clojure.lang IPersistentVector ISeq Ratio Keyword]))
 
 
 (def ^:dynamic *select-value*)
 (def ^:dynamic *transform-fn*)
 
-(defn append!
-  ([^StringBuilder sb s0] (.append sb s0))
-  ([^StringBuilder sb s0 s1]
-   (.append sb s0)
-   (.append sb s1))
-  ([^StringBuilder sb s0 s1 s2]
-   (.append sb s0)
-   (.append sb s1)
-   (.append sb s2))
-  ([^StringBuilder sb s0 s1 s2 s3]
-   (.append sb s0)
-   (.append sb s1)
-   (.append sb s2)
-   (.append sb s3))
-  ([^StringBuilder sb s0 s1 s2 s3 s4]
-   (.append sb s0)
-   (.append sb s1)
-   (.append sb s2)
-   (.append sb s3)
-   (.append sb s4)))
+(defprotocol IStringBuilder
+  (append! [sb s0] [sb s0 s1] [sb s0 s1 s2] [sb s0 s1 s2 s3] [sb s0 s1 s2 s3 s4]))
+
+(deftype StreamStringBuilder [on-chunk]
+  IStringBuilder
+  (append! [sb s0]
+    (on-chunk s0))
+  (append! [sb s0 s1]
+    (on-chunk s0)
+    (on-chunk s1))
+  (append! [sb s0 s1 s2]
+    (on-chunk s0)
+    (on-chunk s1)
+    (on-chunk s2))
+  (append! [sb s0 s1 s2 s3]
+    (on-chunk s0)
+    (on-chunk s1)
+    (on-chunk s2)
+    (on-chunk s3))
+  (append! [sb s0 s1 s2 s3 s4]
+    (on-chunk s0)
+    (on-chunk s1)
+    (on-chunk s2)
+    (on-chunk s3)
+    (on-chunk s4)))
+
+(extend-type StringBuilder
+  IStringBuilder
+  (append! [sb s0]
+    (.append sb s0))
+  (append! [sb s0 s1]
+    (.append sb s0)
+    (.append sb s1))
+  (append! [sb s0 s1 s2]
+    (.append sb s0)
+    (.append sb s1)
+    (.append sb s2))
+  (append! [sb s0 s1 s2 s3]
+    (.append sb s0)
+    (.append sb s1)
+    (.append sb s2)
+    (.append sb s3))
+  (append! [sb s0 s1 s2 s3 s4]
+    (.append sb s0)
+    (.append sb s1)
+    (.append sb s2)
+    (.append sb s3)
+    (.append sb s4)))
 
 
 (defprotocol ToString
@@ -506,3 +534,12 @@
      (let [sb (StringBuilder.)]
        (-render-html src (volatile! :state/static) sb)
        (str sb)))))
+
+(defn render-to-stream
+  ([src]
+   (render-to-stream src nil))
+  ([src {:keys [on-chunk transform-fn]}]
+   (let [sb (StreamStringBuilder. on-chunk)
+         state (volatile! :state/root)]
+     (binding [*transform-fn* (or transform-fn identity)]
+       (-render-html src state sb)))))
