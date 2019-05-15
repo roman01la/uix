@@ -19,7 +19,7 @@ jobs:
             - v1-dependencies- # fallback if cache not found
 
       - run: clojure -Spath
-      - run: clj -A:dev:test -m cljs.main -re node -m uix.compiler-test
+      - run: clojure -A:dev:test -m cljs.main -re node -m uix.compiler-test
 
       - persist_to_workspace:
           root: .
@@ -37,6 +37,6 @@ jobs:
 
 workflows:
   version: 2
-  build-and-deploy:
+  test:
     jobs:
       - build
