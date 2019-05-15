@@ -2,6 +2,8 @@
 
 _Experimental ClojureScript wrapper for modern React.js_
 
+Bug reports, feature requests and PRs are welcome 👌
+
 [API Documentation](https://roman01la.github.io/uix/)
 
 ```clj
@@ -69,7 +71,11 @@ Injects provided function into attributes transformation stage. Could be used fo
     (my-transform-attrs attrs)))
 ```
 
-### Hiccup pre-compilation
+### Hiccup pre-compilation (advanced)
+
+_NOTE: UIx interpreter is already super fast (2x faster than Reagent and only 1.5x slower than vanilla React).
+Use pre-compilation ONLY if you are hitting performance problems._
+
 Optionally compiles Hiccup into inlined React elements at compile-time
 ```clj
 (uix/html
