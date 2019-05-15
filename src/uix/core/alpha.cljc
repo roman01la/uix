@@ -193,9 +193,9 @@
        `(defn ~sym ~args
           (uixr/compile-defui ~sym ~body)))))
 
-(def as-element
+(defn as-element [x]
   "Compiles Hiccup into React elements at run-time."
-  #?(:cljs compiler/as-element
+  #?(:cljs (compiler/as-element x)
      :clj x))
 
 (defn as-react [f]
