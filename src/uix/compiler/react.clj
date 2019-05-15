@@ -79,7 +79,6 @@
          attrs (reduce (fn [a f] (f a)) attrs @compiler/transform-fns)]
      [tag attrs children])))
 
-
 (defn join-classes-js
   "Emits runtime class string concatenation expression"
   ([] "")
@@ -114,12 +113,12 @@
   [props [_ id class]]
   (cond-> props
           ;; Only use ID from tag keyword if no :id in props already
-          (and (some? id) (nil? (get props :id)))
-          (assoc :id id)
+    (and (some? id) (nil? (get props :id)))
+    (assoc :id id)
 
           ;; Merge classes
-          class
-          (assoc :class (join-classes [class (get props :class)]))))
+    class
+    (assoc :class (join-classes [class (get props :class)]))))
 
 (defn camel-case
   "Turns kebab-case keyword into camel-case keyword"
@@ -142,8 +141,6 @@
   (if (map? m)
     (reduce-kv #(assoc %1 (camel-case %2) %3) {} m)
     m))
-
-
 
 (defmulti compile-config-kv (fn [name value] name))
 
@@ -170,31 +167,28 @@
 (defmethod compile-config-kv :default [name value]
   value)
 
-
-
 (defn compile-attrs
   "Takes map of attributes and returns same map with keys translated from Hiccup to React naming conventions"
   [attrs]
   (if (map? attrs)
     (reduce-kv
-      #(assoc %1
-         (case %2
-           :class :className
-           :for :htmlFor
-           (camel-case %2))
-         (compile-config-kv %2 %3))
-      {}
-      attrs)
+     #(assoc %1
+             (case %2
+               :class :className
+               :for :htmlFor
+               (camel-case %2))
+             (compile-config-kv %2 %3))
+     {}
+     attrs)
     attrs))
 
-
 (defmulti to-js
-          (fn [x]
-            (cond
-              (map? x) :map
-              (vector? x) :vector
-              (keyword? x) :keyword
-              :else (class x))))
+  (fn [x]
+    (cond
+      (map? x) :map
+      (vector? x) :vector
+      (keyword? x) :keyword
+      :else (class x))))
 
 (defn to-js-map [m]
   (when (seq m)
@@ -207,8 +201,8 @@
                        (interpose ",")
                        (apply str))]
       (vary-meta
-        (list* 'js* (str "{" kvs-str "}") (mapv to-js (vals m)))
-        assoc :tag 'object))))
+       (list* 'js* (str "{" kvs-str "}") (mapv to-js (vals m)))
+       assoc :tag 'object))))
 
 (defmethod to-js :keyword [x] (name x))
 
@@ -296,27 +290,27 @@
   [[_ v & cases]]
   `(case ~v
      ~@(doall (mapcat
-                (fn [[test hiccup]]
-                  (if hiccup
-                    [test (compile-html* hiccup)]
-                    [(compile-html* test)]))
-                (partition-all 2 cases)))))
+               (fn [[test hiccup]]
+                 (if hiccup
+                   [test (compile-html* hiccup)]
+                   [(compile-html* test)]))
+               (partition-all 2 cases)))))
 
 (defmethod compile-form "condp"
   [[_ f v & cases]]
   `(condp ~f ~v
      ~@(doall (mapcat
-                (fn [[test hiccup]]
-                  (if hiccup
-                    [test (compile-html* hiccup)]
-                    [(compile-html* test)]))
-                (partition-all 2 cases)))))
+               (fn [[test hiccup]]
+                 (if hiccup
+                   [test (compile-html* hiccup)]
+                   [(compile-html* test)]))
+               (partition-all 2 cases)))))
 
 (defmethod compile-form "cond"
   [[_ & clauses]]
   `(cond ~@(mapcat
-             (fn [[check expr]] [check (compile-html* expr)])
-             (partition 2 clauses))))
+            (fn [[check expr]] [check (compile-html* expr)])
+            (partition 2 clauses))))
 
 (defmethod compile-form :default [expr]
   (cond
@@ -325,7 +319,6 @@
     (and (true? *skip-fn-check?*) (symbol? expr)) (maybe-check expr)
     (true? *skip-check?*) expr
     :else `(maybe-interpret ~expr)))
-
 
 (defn check-attrs [tag v attrs children expr]
   (if (and (nil? attrs) (symbol? (first children)))
@@ -340,8 +333,8 @@
 
 (def empty-js-obj
   (vary-meta
-    (list 'js* "{}")
-    assoc :tag 'object))
+   (list 'js* "{}")
+   assoc :tag 'object))
 
 (defn inline-element [type attrs]
   (let [{:keys [key ref]} attrs
@@ -355,34 +348,34 @@
                     :else `(str ~key))]
     (if (string? type)
       (to-js
-        {:$$typeof react-sym
-         :type type
-         :ref ref
-         :key react-key
-         :props js-attrs
-         :_owner nil})
+       {:$$typeof react-sym
+        :type type
+        :ref ref
+        :key react-key
+        :props js-attrs
+        :_owner nil})
       `(let [~props-sym ~js-attrs]
          (when (.hasOwnProperty ~type "defaultProps")
            (~'js/Object.assign ~(to-js {}) (aget ~type "defaultProps") ~props-sym))
          ~(to-js
-            {:$$typeof react-sym
-             :type type
-             :ref ref
-             :key react-key
-             :props props-sym
-             :_owner nil})))))
+           {:$$typeof react-sym
+            :type type
+            :ref ref
+            :key react-key
+            :props props-sym
+            :_owner nil})))))
 
 (defn inline-children [type attrs children]
   (->>
-    (cond
-      (= 1 (count children))
-      (->> (first children)
-           (assoc attrs :children))
+   (cond
+     (= 1 (count children))
+     (->> (first children)
+          (assoc attrs :children))
 
-      (pos? (count children))
-      (->> children
-           (assoc attrs :children)))
-    (inline-element type)))
+     (pos? (count children))
+     (->> children
+          (assoc attrs :children)))
+   (inline-element type)))
 
 (defmulti compile-element
   (fn [[tag]]
@@ -411,14 +404,14 @@
         js-attrs (compile-attrs attrs)
         children (mapv compile-html* children)]
     (check-attrs (keyword tag) v attrs children
-      (inline-children tag js-attrs children))))
+                 (inline-children tag js-attrs children))))
 
 (defmethod compile-element :component [v]
   (let [[tag & args] v
         m (meta v)
         attrs (cond-> {}
-                      (:key m) (assoc :key (:key m))
-                      (:ref m) (assoc :ref `(uix.compiler.alpha/unwrap-ref ~(:ref m))))
+                (:key m) (assoc :key (:key m))
+                (:ref m) (assoc :ref `(uix.compiler.alpha/unwrap-ref ~(:ref m))))
         attrs (to-js (compile-attrs attrs))
         args (binding [*skip-check?* (has-spec? tag)]
                (mapv compile-html* args))]
@@ -428,22 +421,22 @@
   (let [[_ attrs children] (normalize-element v)
         m (meta v)
         attrs (cond-> attrs
-                      (:key m) (assoc :key (:key m)))
+                (:key m) (assoc :key (:key m)))
         attrs (to-js (compile-attrs attrs))
         children (mapv compile-html* children)]
     (check-attrs ":<> (React.Fragment)" v attrs children
-      (inline-children `fragment attrs children))))
+                 (inline-children `fragment attrs children))))
 
 (defmethod compile-element :suspense [v]
   (let [[_ attrs children] (normalize-element v)
         m (meta v)
         attrs (cond-> attrs
-                      (:fallback attrs) (update :fallback compile-html*)
-                      (:key m) (assoc :key (:key m)))
+                (:fallback attrs) (update :fallback compile-html*)
+                (:key m) (assoc :key (:key m)))
         attrs (to-js (compile-attrs attrs))
         children (mapv compile-html* children)]
     (check-attrs ":# (React.Suspense)" v attrs children
-      `(>el suspense ~attrs ~children))))
+                 `(>el suspense ~attrs ~children))))
 
 (defmethod compile-element :portal [v]
   (let [[_ child node] v]
@@ -453,13 +446,12 @@
   (let [[tag attrs children] (normalize-element v 2)
         m (meta v)
         attrs (cond-> attrs
-                      (:key m) (assoc :key (:key m))
-                      (:ref m) (assoc :ref `(uix.compiler.alpha/unwrap-ref ~(:ref m))))
+                (:key m) (assoc :key (:key m))
+                (:ref m) (assoc :ref `(uix.compiler.alpha/unwrap-ref ~(:ref m))))
         attrs (to-js (compile-attrs attrs))
         children (mapv compile-html* children)]
     (check-attrs `(.-name ~tag) v attrs children
-      `(>el ~tag ~attrs ~children))))
-
+                 `(>el ~tag ~attrs ~children))))
 
 (defn compile-html* [expr]
   (cond

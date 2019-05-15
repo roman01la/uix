@@ -15,8 +15,8 @@
   "Renders element into DOM node. The first argument is Hiccup or React element."
   [element node]
   #?(:cljs
-      (-> (compiler/as-element element)
-          (rdom/render node))
+     (-> (compiler/as-element element)
+         (rdom/render node))
      :clj nil))
 
 (defn create-root [node]
@@ -137,9 +137,9 @@
 #?(:cljs
    (defn- load-module [module get-var]
      (js/Promise.
-       (fn [ok fail]
-         (cljs.loader/load module
-           #(ok #js {:default (compiler/as-lazy-component @(get-var))}))))))
+      (fn [ok fail]
+        (cljs.loader/load module
+                          #(ok #js {:default (compiler/as-lazy-component @(get-var))}))))))
 
 (defn require-lazy* [module get-var]
   #?(:clj nil

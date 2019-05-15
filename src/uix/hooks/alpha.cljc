@@ -130,11 +130,11 @@
   ([setup-fn deps]
    #?(:cljs (with-deps-check [prev-deps*]
               (r/useEffect
-                (fn []
-                  (reset! prev-deps* deps)
-                  (let [ret (setup-fn)]
-                    (if (fn? ret) ret js/undefined)))
-                (maybe-deps @prev-deps*))
+               (fn []
+                 (reset! prev-deps* deps)
+                 (let [ret (setup-fn)]
+                   (if (fn? ret) ret js/undefined)))
+               (maybe-deps @prev-deps*))
               deps)
       :clj nil)))
 
@@ -158,11 +158,11 @@
   ([setup-fn deps]
    #?(:cljs (with-deps-check [prev-deps*]
               (r/useLayoutEffect
-                (fn []
-                  (reset! prev-deps* deps)
-                  (let [ret (setup-fn)]
-                    (if (fn? ret) ret js/undefined)))
-                (maybe-deps @prev-deps*))
+               (fn []
+                 (reset! prev-deps* deps)
+                 (let [ret (setup-fn)]
+                   (if (fn? ret) ret js/undefined)))
+               (maybe-deps @prev-deps*))
               deps)
       :clj nil)))
 

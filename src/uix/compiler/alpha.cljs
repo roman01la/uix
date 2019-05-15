@@ -123,8 +123,8 @@
 (defn convert-js-prop-value-shallow [x]
   (->> (js-keys x)
        (reduce
-         #(assoc! %1 (js-cached-prop-name %2) (gobj/get x %2))
-         (transient {}))
+        #(assoc! %1 (js-cached-prop-name %2) (gobj/get x %2))
+        (transient {}))
        persistent!))
 
 (defn convert-custom-prop-value [x]
@@ -141,9 +141,9 @@
   ([class]
    (if (coll? class)
      (let [classes (keep
-                     #(when %
-                        (if (named? %) (name %) %))
-                     class)]
+                    #(when %
+                       (if (named? %) (name %) %))
+                    class)]
        (if (seq classes)
          (string/join " " classes)))
      (if (named? class)
@@ -169,12 +169,12 @@
                   (array-seq classes))]
     (cond-> props
             ;; Only use ID from tag keyword if no :id in props already
-            (and (some? id) (nil? (get props :id)))
-            (assoc :id id)
+      (and (some? id) (nil? (get props :id)))
+      (assoc :id id)
 
             ;; Merge classes
-            (seq classes)
-            (assoc :class (class-names classes (get props :class))))))
+      (seq classes)
+      (assoc :class (class-names classes (get props :class))))))
 
 (defn convert-props [props id-class & {:keys [shallow?]}]
   (let [class (get props :class)

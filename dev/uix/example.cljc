@@ -9,7 +9,6 @@
 
 (require-lazy '[uix.components :refer [ui-list]])
 
-
 (s/def :button/disabled? boolean?)
 (s/def :button/on-click fn?)
 
@@ -27,13 +26,12 @@
 (s/fdef fetch-repos
   :args (s/cat :uname string? :on-done fn?))
 
-
 (defn fetch-repos [uname on-done]
   #?(:cljs
-      (-> (js/fetch (str "https://api.github.com/users/" uname "/repos"))
-          (.then #(.json %))
-          (.then #(js->clj % :keywordize-keys true))
-          (.then on-done))))
+     (-> (js/fetch (str "https://api.github.com/users/" uname "/repos"))
+         (.then #(.json %))
+         (.then #(js->clj % :keywordize-keys true))
+         (.then on-done))))
 
 (defn button [{:keys [on-click disabled?]} text]
   [:button {:on-click on-click
@@ -88,21 +86,20 @@
                           :border-bottom "1px solid #000"}}
              name])])]]]))
 
+#?(:cljs
+   (defn ^:export renderApp []
+     (uix/hydrate [app] js/root)))
 
 #?(:cljs
-    (defn ^:export renderApp []
-      (uix/hydrate [app] js/root)))
-
-#?(:cljs
-    (defn ^:after-load -render []
-      (renderApp)))
+   (defn ^:after-load -render []
+     (renderApp)))
 
 (stest/instrument)
 
 (uix/set-loaded! :example)
 
 #?(:clj
-    (let [html (uix/render-to-string [app])
-          html (-> (slurp "resources/public/tmpl.html")
-                   (string/replace "{{root}}" html))]
-      (spit "resources/public/index.html" html)))
+   (let [html (uix/render-to-string [app])
+         html (-> (slurp "resources/public/tmpl.html")
+                  (string/replace "{{root}}" html))]
+     (spit "resources/public/index.html" html)))
