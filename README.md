@@ -2,6 +2,8 @@
 
 _Experimental ClojureScript wrapper for modern React.js_
 
+Bug reports, feature requests and PRs are welcome 👌
+
 [API Documentation](https://roman01la.github.io/uix/)
 
 ```clj
