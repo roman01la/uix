@@ -21,11 +21,6 @@ jobs:
       - run: clojure -Spath
       - run: clojure -A:dev:test -m cljs.main -re node -m uix.compiler-test
 
-      - persist_to_workspace:
-          root: .
-          paths:
-            - target
-
       - save_cache:
           paths:
             - ~/.m2
