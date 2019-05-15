@@ -4,6 +4,8 @@ _Experimental ClojureScript wrapper for modern React.js_
 
 Bug reports, feature requests and PRs are welcome 👌
 
+[![CircleCI](https://circleci.com/gh/roman01la/uix.svg?style=svg)](https://circleci.com/gh/roman01la/uix)
+
 [API Documentation](https://roman01la.github.io/uix/)
 
 ```clj
