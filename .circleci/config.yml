@@ -1,9 +1,42 @@
 version: 2.1
 
-orbs:
-  welcome: circleci/welcome-orb@0.3.1
+jobs:
+  build:
+    docker:
+      - image: circleci/clojure:tools-deps-1.10.0.442-node
+        command: "/bin/bash"
+
+    working_directory: ~/repo
+
+    steps:
+      - checkout
+
+      - restore_cache:
+          keys:
+            - v1-npm-dependencies-{{ checksum "package-lock.json" }}
+            - v1-npm-dependencies- # fallback if cache not found
+            - v1-dependencies-{{ checksum "deps.edn" }}
+            - v1-dependencies- # fallback if cache not found
+
+      - run: clojure -Spath
+      - run: clj -A:dev:test -m cljs.main -re node -m uix.compiler-test
+
+      - persist_to_workspace:
+          root: .
+          paths:
+            - target
+
+      - save_cache:
+          paths:
+            - ~/.m2
+          key: v1-dependencies-{{ checksum "deps.edn" }}
+      - save_cache:
+          paths:
+            - ./node_modules
+          key: v1-npm-dependencies-{{ checksum "package-lock.json" }}
 
 workflows:
-  Welcome:
+  version: 2
+  build-and-deploy:
     jobs:
-      - welcome/run
+      - build
