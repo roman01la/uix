@@ -193,15 +193,18 @@
        `(defn ~sym ~args
           (uixr/compile-defui ~sym ~body)))))
 
-#?(:cljs
-   (def as-element
-     "Compiles Hiccup into React elements at run-time."
-     compiler/as-element))
+(def as-element
+  "Compiles Hiccup into React elements at run-time."
+  #?(:cljs compiler/as-element
+     :clj x))
 
-#?(:cljs
-   (def add-transform-fn
-     "Injects attributes transforming function for Hiccup elements pre-transformations"
-     compiler/add-transform-fn))
+(defn as-react [f]
+  #?(:cljs (compiler/as-react f)
+     :clj f))
+
+(def add-transform-fn
+  "Injects attributes transforming function for Hiccup elements pre-transformations"
+  compiler/add-transform-fn)
 
 #?(:clj
    (def render-to-string
@@ -215,8 +218,14 @@
 
 #?(:clj
    (def render-to-stream
+     "Like render-to-string, but pushes HTML in chunks as they are being rendered
+
+     (render-to-stream [element] {:on-chunk f})"
      compiler/render-to-stream))
 
-(defn as-react [f]
-  #?(:cljs (compiler/as-react f)
-     :clj f))
+#?(:clj
+   (def render-to-static-stream
+     "Like render-to-static-markup, but pushes HTML in chunks as they are being rendered
+
+     (render-to-static-stream [element] {:on-chunk f})"
+     compiler/render-to-static-stream))

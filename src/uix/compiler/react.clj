@@ -2,7 +2,8 @@
   "Hiccup compiler that translates Hiccup into React.js at compile-time."
   (:require [clojure.string :as str]
             [cljs.analyzer :as ana]
-            [cljs.spec.alpha :as s]))
+            [cljs.spec.alpha :as s]
+            [uix.compiler.alpha :as compiler]))
 
 (def ^:dynamic *skip-check?*) ;; skips type check at usage place
 (def ^:dynamic *skip-fn-check?*) ;; skips type check at declaration place
@@ -74,7 +75,8 @@
          children (drop (inc n) v)
          attrs? (or (nil? attrs) (map? attrs))
          children (if attrs? children (cons attrs children))
-         attrs (if attrs? attrs nil)]
+         attrs (if attrs? attrs nil)
+         attrs (reduce (fn [a f] (f a)) attrs @compiler/transform-fns)]
      [tag attrs children])))
 
 

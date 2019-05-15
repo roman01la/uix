@@ -4,14 +4,17 @@
   (:require [clojure.string :as str])
   (:import [clojure.lang IPersistentVector ISeq Ratio Keyword]))
 
+(def transform-fns (atom #{}))
+
+(defn add-transform-fn [f]
+  (swap! transform-fns conj f))
 
 (def ^:dynamic *select-value*)
-(def ^:dynamic *transform-fn*)
 
 (defprotocol IStringBuilder
   (append! [sb s0] [sb s0 s1] [sb s0 s1 s2] [sb s0 s1 s2 s3] [sb s0 s1 s2 s3 s4]))
 
-(deftype StreamStringBuilder [on-chunk]
+(deftype StreamBuilder [on-chunk]
   IStringBuilder
   (append! [sb s0]
     (on-chunk s0))
@@ -34,28 +37,34 @@
     (on-chunk s3)
     (on-chunk s4)))
 
-(extend-type StringBuilder
+(defn make-stream-builder [on-chunk]
+  (StreamBuilder. on-chunk))
+
+(deftype StaticBuilder [sb]
   IStringBuilder
-  (append! [sb s0]
+  (append! [o s0]
     (.append sb s0))
-  (append! [sb s0 s1]
+  (append! [o s0 s1]
     (.append sb s0)
     (.append sb s1))
-  (append! [sb s0 s1 s2]
+  (append! [o s0 s1 s2]
     (.append sb s0)
     (.append sb s1)
     (.append sb s2))
-  (append! [sb s0 s1 s2 s3]
+  (append! [o s0 s1 s2 s3]
     (.append sb s0)
     (.append sb s1)
     (.append sb s2)
     (.append sb s3))
-  (append! [sb s0 s1 s2 s3 s4]
+  (append! [o s0 s1 s2 s3 s4]
     (.append sb s0)
     (.append sb s1)
     (.append sb s2)
     (.append sb s3)
     (.append sb s4)))
+
+(defn make-static-builder []
+  (StaticBuilder. (StringBuilder.)))
 
 
 (defprotocol ToString
@@ -274,7 +283,7 @@
                                  (nil? second))
                            [second rest]
                            [nil (cons second rest)])
-        attrs (*transform-fn* attrs)
+        attrs (reduce (fn [a f] (f a)) attrs @transform-fns)
         attrs-classes (:class attrs)
         classes (if (and tag-classes attrs-classes)
                   [tag-classes attrs-classes]
@@ -515,31 +524,23 @@
   (-render-html [this *state sb]
     :nop))
 
-(defn render-to-string
-  ([src]
-   (render-to-string src nil))
-  ([src {:keys [transform-fn]}]
-   (let [sb (StringBuilder.)
-         state (volatile! :state/root)]
-     (binding [*transform-fn* (or transform-fn identity)]
-       (-render-html src state sb)
-       (str sb)))))
+(defn render-to-string [src]
+  (let [sb (make-static-builder)
+        state (volatile! :state/root)]
+    (-render-html src state sb)
+    (str (.sb sb))))
 
+(defn render-to-static-markup [src]
+  (let [sb (make-static-builder)]
+    (-render-html src (volatile! :state/static) sb)
+    (str (.sb sb))))
 
-(defn render-to-static-markup
-  ([src]
-   (render-to-static-markup src nil))
-  ([src {:keys [transform-fn]}]
-   (binding [*transform-fn* (or transform-fn identity)]
-     (let [sb (StringBuilder.)]
-       (-render-html src (volatile! :state/static) sb)
-       (str sb)))))
+(defn render-to-stream [src {:keys [on-chunk]}]
+  (let [sb (make-stream-builder on-chunk)
+        state (volatile! :state/root)]
+    (-render-html src state sb)))
 
-(defn render-to-stream
-  ([src]
-   (render-to-stream src nil))
-  ([src {:keys [on-chunk transform-fn]}]
-   (let [sb (StreamStringBuilder. on-chunk)
-         state (volatile! :state/root)]
-     (binding [*transform-fn* (or transform-fn identity)]
-       (-render-html src state sb)))))
+(defn render-to-static-stream [src {:keys [on-chunk]}]
+  (let [sb (make-stream-builder on-chunk)
+        state (volatile! :state/static)]
+    (-render-html src state sb)))

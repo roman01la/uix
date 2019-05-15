@@ -107,10 +107,15 @@ Loading React components on-demand as Closure modules. See [code splitting](http
 ```
 
 ### Server-side rendering (JVM)
+See an example in server.clj
 ```clj
 (uix/render-to-string element) ;; see https://reactjs.org/docs/react-dom-server.html#rendertostring
 (uix/render-to-static-markup element) ;; see https://reactjs.org/docs/react-dom-server.html#rendertostaticmarkup
-``` 
+
+;; Streaming HTML
+(uix/render-to-stream element {:on-chunk f}) ;; see https://reactjs.org/docs/react-dom-server.html#rendertonodestream
+(uix/render-to-static-stream element {:on-chunk f}) ;; see https://reactjs.org/docs/react-dom-server.html#rendertostaticnodestream
+```
 
 ## Benchmark
 ```
