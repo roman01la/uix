@@ -4,8 +4,8 @@
                       :exclusions [cljsjs/react-dom-server]}
         cljsjs/react-dom {:mvn/version "16.8.3-0"
                           :exclusions [cljsjs/react-dom-server]}}
- :paths ["src" "resources"]
- :aliases {:dev {:extra-paths ["dev"]
+ :paths ["src"]
+ :aliases {:dev {:extra-paths ["dev" "resources"]
                  :extra-deps {com.bhauman/figwheel-main {:mvn/version "0.2.1-SNAPSHOT"}
                               cljsjs/emotion {:mvn/version "10.0.6-0"}
                               cljsjs/react-dom-server {:mvn/version "16.8.3-0"}
