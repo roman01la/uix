@@ -50,7 +50,6 @@ React Hooks in idiomatic Clojure style
   @ref) ; 1
   
 ;; effect hook
-;; (executes after re-renders & before unmounting)
 (uix/effect!
   (fn []
     (prn "after update")
