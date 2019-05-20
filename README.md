@@ -65,7 +65,7 @@ React Hooks in idiomatic Clojure style
 ```
 
 ### Attributes syntax extension
-Injects provided function into attributes transformation stage. Could be used for various side effects, such as processing styles with CSS-in-JS libraries (see example.cljs).
+Injects provided function into attributes transformation stage. Could be used for various side effects, such as processing styles with CSS-in-JS libraries (see `uix.recipes.dynamic-styles`).
 ```clj
 (uix.core.alpha/add-transform-fn
   (fn [attrs]
@@ -114,7 +114,7 @@ Loading React components on-demand as Closure modules. See [code splitting](http
 ```
 
 ### Server-side rendering (JVM)
-See an example in server.clj
+See an example in `uix.recipes.server-rendering`
 ```clj
 (uix/render-to-string element) ;; see https://reactjs.org/docs/react-dom-server.html#rendertostring
 (uix/render-to-static-markup element) ;; see https://reactjs.org/docs/react-dom-server.html#rendertostaticmarkup
@@ -134,6 +134,6 @@ reagent-interpret x 7174 ops/s, elapsed 1394ms
 
 ## Building
 
-- Example `clojure -A:dev -m figwheel.main -O advanced -bo dev:prod`
+- Recipes `clojure -A:dev -m figwheel.main -O advanced -bo dev:prod`
 - Benchmark `clojure -A:dev:benchmark -m figwheel.main -O advanced -bo benchmark`
-- Tests `clj -A:dev:test -m cljs.main -re node -m uix.compiler-test`
+- Tests `clojure -A:dev:test -m cljs.main -re node -m uix.compiler-test`

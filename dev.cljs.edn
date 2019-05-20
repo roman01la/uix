@@ -1,9 +1,9 @@
 ^{:watch-dirs ["src" "dev"]}
 {:output-dir "resources/public/out"
  :asset-path "out"
- :modules    {:example
-              {:entries   #{uix.example}
-               :output-to "resources/public/out/example.js"}
+ :modules    {:recipes
+              {:entries   #{uix.recipes}
+               :output-to "resources/public/out/recipes.js"}
               :components
               {:entries   #{uix.components}
                :output-to "resources/public/out/components.js"}}}

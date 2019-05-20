@@ -1,4 +1,4 @@
-(ns uix.server
+(ns uix.recipes.server-rendering
   (:require [aleph.http :as http]
             [manifold.stream :as s]
             [uix.core.alpha :as uix]))
@@ -62,6 +62,15 @@
     {:status 404
      :headers {"content-type" "text/plain"}
      :body "404"}))
+
+(defn -main []
+  (http/start-server #'handler {:port 8080})
+  (println
+    "
+Server started at http://localhost:8080
+
+Visit http://localhost:8080 for non-chunked rendering example
+Visit http://localhost:8080/chunked for chunked rendering example"))
 
 (comment
   (def server
