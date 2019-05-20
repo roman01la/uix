@@ -25,6 +25,13 @@ Bug reports, feature requests and PRs are welcome 👌
 (uix/render [button {:on-click js/console.log} "button"])
 ```
 
+## Recipes
+- [State hook](https://github.com/roman01la/uix/blob/master/dev/uix/recipes/state_hook.cljs)
+- [Global state and effects](https://github.com/roman01la/uix/blob/master/dev/uix/recipes/global_state.cljs)
+- [Dynamic styles](https://github.com/roman01la/uix/blob/master/dev/uix/recipes/dynamic_styles.cljs)
+- [Lazy loading](https://github.com/roman01la/uix/blob/master/dev/uix/recipes/lazy_loading.cljs)
+- [Server-side rendering](https://github.com/roman01la/uix/blob/master/dev/uix/recipes/server_rendering.clj)
+
 ## Features
 
 ### Hiccup syntax extension
