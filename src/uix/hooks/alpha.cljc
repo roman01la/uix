@@ -179,18 +179,16 @@
 (defn callback
   "Takes function f and optional vector of dependencies, and returns f."
   ([f]
-   #?(:cljs (callback f js/undefined)
-      :clj (callback f nil)))
+   (callback f nil))
   ([f deps]
    #?(:cljs (r/useCallback f (maybe-js-deps deps))
       :clj f)))
 
 ;; == Memo hook ==
-(defn memo [f deps]
+(defn memo
   "Takes function f and optional vector of dependencies, and returns memoized f."
   ([f]
-   #?(:cljs (memo f js/undefined)
-      :clj (memo f nil)))
+   (memo f nil))
   ([f deps]
    #?(:cljs (r/useMemo f (maybe-js-deps deps))
       :clj f)))
