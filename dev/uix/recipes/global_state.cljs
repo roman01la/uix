@@ -1,4 +1,6 @@
 (ns uix.recipes.global-state
+  "This recipe shows how UIx apps can architect global data store
+  and effects handling using Hooks API."
   (:require [uix.core.alpha :as uix]))
 
 (defonce db (atom {}))

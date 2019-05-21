@@ -1,4 +1,10 @@
 (ns uix.recipes.dynamic-styles
+  "This recipe shows how to use UIx's API to hook into Hiccup transformation,
+  in particular here it's used to transform inline CSS with CSS-in-JS library.
+
+  `uix.core.alpha/add-transform-fn` takes a function that takes a map
+  of attributes of Hiccup form when it is being transformed and returns
+  the same map."
   (:require [uix.core.alpha :as uix]
             [cljsjs.emotion]))
 
