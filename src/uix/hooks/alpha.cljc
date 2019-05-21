@@ -25,13 +25,13 @@
 
      ISwap
      (-swap! [o f]
-       (-reset! o (f value)))
+       (set-value f))
      (-swap! [o f a]
-       (-reset! o (f value a)))
+       (set-value #(f % a)))
      (-swap! [o f a b]
-       (-reset! o (f value a b)))
+       (set-value #(f % a b)))
      (-swap! [o f a b xs]
-       (-reset! o (apply f value a b xs)))
+       (set-value #(apply f % a b xs)))
 
      IPrintWithWriter
      (-pr-writer [o writer opts]
