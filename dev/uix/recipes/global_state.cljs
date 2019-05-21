@@ -5,17 +5,21 @@
 
 (defn sub [f]
   (let [state (uix/state #(f @db))]
-    (uix/layout-effect!
+    (uix/effect!
       (fn []
-        (let [id (random-uuid)]
-          (add-watch db id (fn [_ _ o n]
-                             (let [of (f o)
-                                   nf (f n)]
-                               (when (not= of nf)
-                                 (reset! state nf)))))
-          #(remove-watch db id)))
+        (let [id (random-uuid)
+              unsub? (atom false)
+              check-updates (fn [n]
+                              (let [nf (f n)]
+                                (when (and (not ^boolean @unsub?) (not= @state nf))
+                                  (-swap! state #(if (identical? % nf) % nf)))))]
+          (add-watch db id #(check-updates %4))
+          (check-updates @db)
+          #(do
+             (reset! unsub? true)
+             (remove-watch db id))))
       #js [f])
-    (f @db)))
+    @state))
 
 (defmulti handle-event (fn [db [event]] event))
 
