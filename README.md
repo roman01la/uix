@@ -31,6 +31,8 @@ Bug reports, feature requests and PRs are welcome 👌
 - [Dynamic styles](https://github.com/roman01la/uix/blob/master/dev/uix/recipes/dynamic_styles.cljs)
 - [Lazy loading](https://github.com/roman01la/uix/blob/master/dev/uix/recipes/lazy_loading.cljs)
 - [Server-side rendering](https://github.com/roman01la/uix/blob/master/dev/uix/recipes/server_rendering.clj)
+- [Interop between UIx and JS components](https://github.com/roman01la/uix/blob/master/dev/uix/recipes/interop.cljs)
+- [Popups](https://github.com/roman01la/uix/blob/master/dev/uix/recipes/popup.cljs)
 
 ## Features
 
