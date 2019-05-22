@@ -9,7 +9,7 @@
 (defn add-transform-fn [f]
   (swap! transform-fns conj f))
 
-(def select-value* (volatile! nil))
+(def ^:dynamic *select-value*)
 
 (defprotocol IStringBuilder
   (append! [sb s0] [sb s0 s1] [sb s0 s1 s2] [sb s0 s1 s2 s3] [sb s0 s1 s2 s3 s4]))
@@ -421,7 +421,7 @@
       (append! sb " type=\"" type "\""))
 
     (when (and (= "option" tag)
-               (= (get-value attrs) @select-value*))
+               (= (get-value attrs) *select-value*))
       (append! sb " selected=\"\""))
 
     (when id
@@ -438,9 +438,8 @@
       (vreset! *state :state/tag-open))
 
     (if (= "select" tag)
-      (do (vreset! select-value* (get-value attrs))
-          (render-content! tag attrs children *state sb)
-          (vreset! select-value* nil))
+      (binding [*select-value* (get-value attrs)]
+        (render-content! tag attrs children *state sb))
       (render-content! tag attrs children *state sb))))
 
 (defn render-fragment! [[tag attrs & children] *state sb]
