@@ -9,7 +9,7 @@
 (defn add-transform-fn [f]
   (swap! transform-fns conj f))
 
-(def ^:dynamic *select-value*)
+(def select-value* (volatile! nil))
 
 (defprotocol IStringBuilder
   (append! [sb s0] [sb s0 s1] [sb s0 s1 s2] [sb s0 s1 s2 s3] [sb s0 s1 s2 s3 s4]))
@@ -40,7 +40,7 @@
 (defn make-stream-builder [on-chunk]
   (StreamBuilder. on-chunk))
 
-(deftype StaticBuilder [sb]
+(deftype StaticBuilder [^StringBuilder sb]
   IStringBuilder
   (append! [o s0]
     (.append sb s0))
@@ -421,7 +421,7 @@
       (append! sb " type=\"" type "\""))
 
     (when (and (= "option" tag)
-               (= (get-value attrs) *select-value*))
+               (= (get-value attrs) @select-value*))
       (append! sb " selected=\"\""))
 
     (when id
@@ -438,8 +438,9 @@
       (vreset! *state :state/tag-open))
 
     (if (= "select" tag)
-      (binding [*select-value* (get-value attrs)]
-        (render-content! tag attrs children *state sb))
+      (do (vreset! select-value* (get-value attrs))
+          (render-content! tag attrs children *state sb)
+          (vreset! select-value* nil))
       (render-content! tag attrs children *state sb))))
 
 (defn render-fragment! [[tag attrs & children] *state sb]
@@ -466,12 +467,12 @@
   "Render an element vector as a HTML element."
   [element *state sb]
   (when-not (empty? element)
-    (let [[tag] element]
+    (let [tag (nth element 0 nil)]
       (cond
-        (= :<> tag) (render-fragment! element *state sb)
-        (= :# tag) (render-suspense! element)
-        (= :-> tag) (render-portal! element)
-        (= :> tag) (render-interop! element)
+        (identical? :<> tag) (render-fragment! element *state sb)
+        (identical? :# tag) (render-suspense! element)
+        (identical? :-> tag) (render-portal! element)
+        (identical? :> tag) (render-interop! element)
         (fn? tag) (render-component! element *state sb)
         :else (render-html-element! element *state sb)))))
 
