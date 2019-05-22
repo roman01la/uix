@@ -14,7 +14,7 @@
               check-updates (fn [n]
                               (let [nf (f n)]
                                 (when (and (not ^boolean @unsub?) (not= @state nf))
-                                  (-swap! state #(if (identical? % nf) % nf)))))]
+                                  (-reset! state nf))))]
           (add-watch db id #(check-updates %4))
           (check-updates @db)
           #(do
