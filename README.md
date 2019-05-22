@@ -4,6 +4,8 @@ _Experimental ClojureScript wrapper for modern React.js_
 
 Bug reports, feature requests and PRs are welcome 👌
 
+There are no versioned releases yet, use `deps.edn` to depend on the code via git deps.
+
 [![CircleCI](https://circleci.com/gh/roman01la/uix.svg?style=svg)](https://circleci.com/gh/roman01la/uix)
 
 [API Documentation](https://roman01la.github.io/uix/)
