@@ -6,7 +6,7 @@
   see `dev.cljs.edn` file.
 
   Entry point of every module have to report back to modules manager runtime
-  when it's loaded using `uix.core.alpha/set-loaded!`.
+  when it's loaded using `cljs.loader/set-loaded!`.
 
   A module can require another module and refer to UIx component var in there
   using `require-lazy` macro that resembles Clojure's `require`.

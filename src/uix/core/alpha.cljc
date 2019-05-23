@@ -5,7 +5,6 @@
             #?(:clj [uix.specs.alpha])
             #?(:cljs [react :as r])
             #?(:cljs [react-dom :as rdom])
-            #?(:cljs [cljs.loader])
             [uix.compiler.alpha :as compiler]
             [uix.compiler.react :as uixr]
             [uix.hooks.alpha :as hooks]))
@@ -134,16 +133,6 @@
      [deps & body]
      `(hooks/with-layout-effect ~deps ~body)))
 
-#?(:cljs
-   (defn- load-module [module get-var]
-     (js/Promise.
-      (fn [ok fail]
-        (cljs.loader/load module
-                          #(ok #js {:default (compiler/as-lazy-component @(get-var))}))))))
-
-(defn require-lazy* [module get-var]
-  #?(:clj nil
-     :cljs (r/lazy #(load-module module get-var))))
 
 #?(:clj
    (s/fdef require-lazy
@@ -166,17 +155,11 @@
                              keyword)]
              `(do
                 ~@(for [sym refer]
-                    (let [qualified-sym (symbol (str lib "/" sym))]
-                      `(def ~sym
-                         (require-lazy* ~module #(resolve '~qualified-sym))))))))))))
-
-#?(:clj (defn set-loaded!
-          "no-op"
-          [module])
-   :cljs (defn set-loaded!
-           "Wrapper for cljs.loader/set-loaded!"
-           [module]
-           (cljs.loader/set-loaded! module)))
+                    (let [qualified-sym (symbol (str lib "/" sym))
+                          as-lazy `(uix.compiler.alpha/as-lazy-component (deref (cljs.core/resolve '~qualified-sym)))
+                          export `(cljs.core/js-obj "default" ~as-lazy)
+                          on-load `(fn [ok# fail#] (cljs.loader/load ~module #(ok# ~export)))]
+                      `(def ~sym (~'js/React.lazy (fn [] (~'js/Promise. ~on-load)))))))))))))
 
 #?(:clj
    (defmacro html

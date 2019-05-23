@@ -1,5 +1,5 @@
 (ns uix.components
-  (:require [uix.core.alpha :as uix]))
+  (:require [cljs.loader :as loader]))
 
 (defn alert [msg]
   [:ul {:style {:background "red"
@@ -7,4 +7,4 @@
                 :padding 8}}
    msg])
 
-(uix/set-loaded! :components)
+(loader/set-loaded! :components)

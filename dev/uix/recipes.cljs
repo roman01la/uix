@@ -5,7 +5,8 @@
             [uix.recipes.global-state :as global-state]
             [uix.recipes.popup :as popup]
             [uix.recipes.interop :as interop]
-            [uix.core.alpha :as uix]))
+            [uix.core.alpha :as uix]
+            [cljs.loader :as loader]))
 
 (def recipes
   {:dynamic-styles dynamic-styles/recipe
@@ -33,4 +34,4 @@
 
 (uix/render [root] js/root)
 
-(uix/set-loaded! :recipes)
+(loader/set-loaded! :recipes)
