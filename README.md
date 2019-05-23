@@ -167,7 +167,7 @@ reagent-interpret x 7174 ops/s, elapsed 1394ms
 | uix streaming | 115.7 µs | 3.4 ms | 7.6 ms  |
 | hiccup        | 205.7 µs | 6.5 ms | 16.6 ms |
 
-## TodoMVC bundle size
+### TodoMVC bundle size
 
 | lib     | size  | gzip |
 | ------- | ----- | ---- |
