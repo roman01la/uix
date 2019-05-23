@@ -16,18 +16,19 @@ There are no versioned releases yet, use `deps.edn` to depend on the code via gi
 (defn button [{:keys [on-click]} text]
   [:button.btn {:on-click on-click}
     text])
-    
+
 (defn app []
   (let [state (uix/state 0)]
     [:<>
       [button {:on-click #(swap! state dec)} "-"]
       [:span @state]
       [button {:on-click #(swap! state inc)} "+"]]))
-  
+
 (uix/render [button {:on-click js/console.log} "button"])
 ```
 
 ## Recipes
+
 - [State hook](https://github.com/roman01la/uix/blob/master/dev/uix/recipes/state_hook.cljs)
 - [Global state and effects](https://github.com/roman01la/uix/blob/master/dev/uix/recipes/global_state.cljs)
 - [Dynamic styles](https://github.com/roman01la/uix/blob/master/dev/uix/recipes/dynamic_styles.cljs)
@@ -39,6 +40,7 @@ There are no versioned releases yet, use `deps.edn` to depend on the code via gi
 ## Features
 
 ### Hiccup syntax extension
+
 - `[:div#id.class]` or `[:#id.class]`
 - `[:> js/Component attrs & children]` - interop with JS components
 - `[:<> attrs & children]` - `React.Fragment`
@@ -46,37 +48,41 @@ There are no versioned releases yet, use `deps.edn` to depend on the code via gi
 - `[:# {:fallback element} & children]` - `React.Suspense`
 
 ### Hooks
+
 React Hooks in idiomatic Clojure style
+
 ```clj
 ;; state hook
 ;; (mutable ref type, re-renders component when mutated)
 (let [state (uix/state 0)]
   (swap! state inc)
   @state) ; 1
-  
+
 ;; ref hook
 ;; (mutable ref type, doesn't cause re-renders)
 (let [ref (uix/ref 0)]
   (swap! ref inc)
   @ref) ; 1
-  
+
 ;; effect hook
 (uix/effect!
   (fn []
     (prn "after update")
     #(prn "before unmount"))
   [deps])
-  
+
 ;; convenience macro for uix.core/effect!
 (uix/with-effect [deps]
   (prn "after update")
   #(prn "before unmount"))
-  
+
 ;; more in uix.core.alpha ns
 ```
 
 ### Attributes syntax extension
+
 Injects provided function into attributes transformation stage. Could be used for various side effects, such as processing styles with CSS-in-JS libraries (see `uix.recipes.dynamic-styles`).
+
 ```clj
 (uix.core.alpha/add-transform-fn
   (fn [attrs]
@@ -89,6 +95,7 @@ _NOTE: UIx interpreter is already super fast (2x faster than Reagent and only 1.
 Use pre-compilation ONLY if you are hitting performance problems._
 
 Optionally compiles Hiccup into inlined React elements at compile-time
+
 ```clj
 (uix/html
   [:h1 "Title"])
@@ -106,16 +113,19 @@ Optionally compiles Hiccup into inlined React elements at compile-time
 Compiler will try to inline as much as possible based on type information provided by ClojureScript's compiler (inspired by [“On fast ClojureScript React templates”](https://kevinlynagh.com/notes/fast-cljs-react-templates/)). When it is unable to determine type of the value it will emit interpretation call for the value and print a warning asking to annotate a value with either `^:inline` or `^:interpret`.
 
 `uix.core.alpha/defui` does the same as `html` macro and additionally skips type checking arguments if a spec is provided.
+
 ```clj
 (s/fdef button
   :args (s/cat :attrs map? :child string?)
-  
+
 (uix/defui button [{:keys [on-click]} child]
   [:button {:on-click on-click} child])
 ```
 
 ### Lazy loading components
+
 Loading React components on-demand as Closure modules. See [code splitting](https://clojurescript.org/guides/code-splitting) guide and how lazy loading is used in React with Suspense: [guide](https://reactjs.org/docs/code-splitting.html).
+
 ```clj
 (uix/require-lazy '[uix.components :refer [ui-list]])
 
@@ -125,7 +135,9 @@ Loading React components on-demand as Closure modules. See [code splitting](http
 ```
 
 ### Server-side rendering (JVM)
+
 See an example in `uix.recipes.server-rendering`
+
 ```clj
 (uix/render-to-string element) ;; see https://reactjs.org/docs/react-dom-server.html#rendertostring
 (uix/render-to-static-markup element) ;; see https://reactjs.org/docs/react-dom-server.html#rendertostaticmarkup
@@ -136,6 +148,7 @@ See an example in `uix.recipes.server-rendering`
 ```
 
 ## Benchmark
+
 ```
 react x 23202 ops/s, elapsed 431ms
 uix-compile x 21834 ops/s, elapsed 458ms
