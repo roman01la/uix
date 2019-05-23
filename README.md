@@ -147,7 +147,9 @@ See an example in `uix.recipes.server-rendering`
 (uix/render-to-static-stream element {:on-chunk f}) ;; see https://reactjs.org/docs/react-dom-server.html#rendertostaticnodestream
 ```
 
-## Benchmark
+## Benchmarks
+
+### Hiccup interpretation
 
 ```
 react x 23202 ops/s, elapsed 431ms
@@ -155,6 +157,23 @@ uix-compile x 21834 ops/s, elapsed 458ms
 uix-interpret x 14368 ops/s, elapsed 696ms
 reagent-interpret x 7174 ops/s, elapsed 1394ms
 ```
+
+### SSR on JVM
+
+| lib           | test 1   | test 2 | test 3  |
+| ------------- | -------- | ------ | ------- |
+| rum           | 107.8 µs | 3.6 ms | 7.7 ms  |
+| uix           | 120.8 µs | 3.8 ms | 8.1 ms  |
+| uix streaming | 115.7 µs | 3.4 ms | 7.6 ms  |
+| hiccup        | 205.7 µs | 6.5 ms | 16.6 ms |
+
+## TodoMVC bundle size
+
+| lib     | size  | gzip |
+| ------- | ----- | ---- |
+| rum     | 254KB | 70KB |
+| reagent | 269KB | 74KB |
+| uix     | 234KB | 65KB |
 
 ## Building
 
