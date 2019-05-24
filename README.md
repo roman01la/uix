@@ -177,7 +177,8 @@ reagent-interpret x 7174 ops/s, elapsed 1394ms
 
 ## Building
 
-- Recipes `clojure -A:dev -m figwheel.main -O advanced -bo dev:prod`
+- Front-end recipe `clojure -A:dev:rec-front`
+- Back-end recipe `clojure -A:dev:rec-back`
 - Benchmark `clojure -A:dev:benchmark -m figwheel.main -O advanced -bo benchmark`
 - SSR Benchmark `clojure -A:dev:benchmark -m uix.benchmark`
 - Tests `clojure -A:dev:test -m cljs.main -re node -m uix.compiler-test`
