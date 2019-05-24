@@ -440,7 +440,7 @@
 
 (defmethod compile-element :portal [v]
   (let [[_ child node] v]
-    `(>portal ~(compile-html* child) ~node)))
+    `(~'js/ReactDOM.createPortal ~(compile-html* child) ~node)))
 
 (defmethod compile-element :interop [v]
   (let [[tag attrs children] (normalize-element v 2)

@@ -1,13 +1,11 @@
 (ns uix.compiler.react
   "Runtime helpers for Hiccup compiled into React.js"
   (:require [react :as react]
-            [react-dom :as rdom]
             [uix.compiler.alpha :as r]))
 
 (def >el react/createElement)
 (def suspense react/Suspense)
 (def fragment react/Fragment)
-(def >portal rdom/createPortal)
 
 (defn fn-to-react-fn [f]
   (let [rf #(apply f (.-argv %))
