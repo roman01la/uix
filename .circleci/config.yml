@@ -13,8 +13,6 @@ jobs:
 
       - restore_cache:
           keys:
-            - v1-npm-dependencies-{{ checksum "package-lock.json" }}
-            - v1-npm-dependencies- # fallback if cache not found
             - v1-dependencies-{{ checksum "deps.edn" }}
             - v1-dependencies- # fallback if cache not found
 
@@ -25,10 +23,6 @@ jobs:
           paths:
             - ~/.m2
           key: v1-dependencies-{{ checksum "deps.edn" }}
-      - save_cache:
-          paths:
-            - ./node_modules
-          key: v1-npm-dependencies-{{ checksum "package-lock.json" }}
 
 workflows:
   version: 2
