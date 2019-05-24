@@ -17,7 +17,7 @@ jobs:
             - v1-dependencies- # fallback if cache not found
 
       - run: cd core && clojure -Spath
-      - run: cd core &&clojure -A:dev:test -m cljs.main -re node -m uix.compiler-test
+      - run: cd core && clojure -A:dev:test -m cljs.main -re node -m uix.compiler-test
 
       - save_cache:
           paths:
