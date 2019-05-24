@@ -10,7 +10,7 @@
 (def ^:dynamic *specked-args*) ;; arguments of a specked fn
 (def ^:dynamic *cljs-env*) ;; cljs compiler's env
 
-(def inlineable-types #{'number 'string 'clj-nil})
+(def inlineable-types #{'number 'string 'clj-nil 'boolean})
 
 (defn infer-type
   "Infers type of expr"
