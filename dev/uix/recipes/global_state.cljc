@@ -6,22 +6,23 @@
 (defonce db (atom {}))
 
 (defn sub [f]
-  (let [state (uix/state #(f @db))]
-    (uix/effect!
-      (fn []
-        (let [id (random-uuid)
-              unsub? (atom false)
-              check-updates (fn [n]
-                              (let [nf (f n)]
-                                (when (and (not ^boolean @unsub?) (not= @state nf))
-                                  (-reset! state nf))))]
-          (add-watch db id #(check-updates %4))
-          (check-updates @db)
-          #(do
-             (reset! unsub? true)
-             (remove-watch db id))))
-      #js [f])
-    @state))
+  (let [state* (uix/state #(f @db))]
+    #?(:cljs
+        (uix/effect!
+          (fn []
+            (let [id (random-uuid)
+                  unsub? (atom false)
+                  check-updates (fn [n]
+                                  (let [nf (f n)]
+                                    (when (and (not ^boolean @unsub?) (not= @state* nf))
+                                      (-reset! state* nf))))]
+              (add-watch db id #(check-updates %4))
+              (check-updates @db)
+              #(do
+                 (reset! unsub? true)
+                 (remove-watch db id))))
+          [f]))
+    @state*))
 
 (defmulti handle-event (fn [db [event]] event))
 
@@ -60,11 +61,12 @@
   {:db (assoc db :repos [] :loading? false :error error)})
 
 (defmethod handle-fx :http [_ [_ {:keys [url on-ok on-failed]}]]
-  (-> (js/fetch url)
-      (.then #(.json %))
-      (.then #(js->clj % :keywordize-keys true))
-      (.then #(dispatch [on-ok %]))
-      (.catch #(dispatch [on-failed %]))))
+  #?(:cljs
+      (-> (js/fetch url)
+          (.then #(.json %))
+          (.then #(js->clj % :keywordize-keys true))
+          (.then #(dispatch [on-ok %]))
+          (.catch #(dispatch [on-failed %])))))
 
 (defn recipe []
   (let [uname (sub :value)

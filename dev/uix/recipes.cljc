@@ -6,7 +6,7 @@
             [uix.recipes.popup :as popup]
             [uix.recipes.interop :as interop]
             [uix.core.alpha :as uix]
-            [cljs.loader :as loader]))
+            #?(:cljs [cljs.loader :as loader])))
 
 (def recipes
   {:dynamic-styles dynamic-styles/recipe
@@ -17,21 +17,20 @@
    :interop interop/recipe})
 
 (defn root []
-  (let [current-recipe (uix/state :state-hook)]
+  (let [current-recipe* (uix/state :state-hook)]
     [:div {:style {:padding 24}}
      [:div {:style {:margin-bottom 16}}
       [:span "Select recipe: "]
-      [:select {:value @current-recipe
-                :on-change #(reset! current-recipe (keyword (.. % -target -value)))}
+      [:select {:value @current-recipe*
+                :on-change #(reset! current-recipe* (keyword (.. % -target -value)))}
        (for [[k v] recipes]
          ^{:key k}
          [:option {:value k}
-          (name k)])]
-      [:div [:small "To run server-side rendering recipe: clojure -A:dev -m uix.recipes.server-rendering"]]]
-     (when-let [recipe (get recipes @current-recipe)]
+          (name k)])]]
+     (when-let [recipe (get recipes @current-recipe*)]
        [:div
         [recipe]])]))
 
-(uix/render [root] js/root)
+#?(:cljs (uix/hydrate [root] js/root))
 
-(loader/set-loaded! :recipes)
+#?(:cljs (loader/set-loaded! :recipes))

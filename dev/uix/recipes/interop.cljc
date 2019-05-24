@@ -12,16 +12,18 @@
   using `uix.core.alpha/as-react`. It takes a function that takes
   JS props object transformed into immutable map.
   Again, values are not transformed."
-  (:require [react :as r]
+  (:require #?(:cljs [react :as r])
+            #?(:cljs [goog.object :as gobj])
             [uix.core.alpha :as uix]))
 
-(def h r/createElement)
+#?(:cljs (def h r/createElement))
 
-(defn js-list [props]
-  (let [items (.-items props)
-        item (.-itemComponent props)]
-    (h "ul" #js {}
-       (.map items #(h item #js {:key %} %)))))
+#?(:cljs
+   (defn js-list [props]
+     (let [items (gobj/get props "items")
+           item (gobj/get props "itemComponent")]
+       (h "ul" #js {}
+          (map #(h item #js {:key %} %) items)))))
 
 (defn list-item [child]
   [:li child])
@@ -30,5 +32,5 @@
   (uix/as-react #(list-item (:children %))))
 
 (defn recipe []
-  [:> js-list {:items #js [1 2 3]
-               :item-component list-item*}])
+  #?(:cljs [:> js-list {:items #js [1 2 3]
+                        :item-component list-item*}]))

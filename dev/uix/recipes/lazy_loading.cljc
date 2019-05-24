@@ -14,16 +14,17 @@
   Referenced component should be put into `[:# {:fallback element} child]` form
   as a child element. This is a special Hiccup syntax for React.Suspense which
   takes care of UI tree while loading referenced component."
-  (:require [uix.core.alpha :as uix :refer-macros [require-lazy]]))
+  (:require #?(:cljs [uix.core.alpha :as uix :refer-macros [require-lazy]])
+            #?(:clj [uix.core.alpha :as uix :refer [require-lazy]])))
 
 (require-lazy '[uix.components :refer [alert]])
 
 (defn recipe []
-  (let [open? (uix/state false)]
+  (let [open?* (uix/state false)]
     [:<>
-     [:button {:on-click #(reset! open? true)}
+     [:button {:on-click #(reset! open?* true)}
       "Show alert"]
      [:div [:small "Throttle network in DevTools Network panel to see :fallback component"]]
      [:# {:fallback [:h2 "Loading uix.components/alert..."]}
-      (when @open?
+      (when @open?*
         [alert "Lazy-loaded alert"])]]))
