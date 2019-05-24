@@ -5,7 +5,7 @@
             [criterium.core :as criterium]
             [hiccup.core :as hiccup]
             [rum.core :as rum]
-            [uix.core.alpha :as uix])
+            [uix.dom.alpha :as uix.dom])
   (:import (java.io ByteArrayInputStream)))
 
 (defmacro bench [k iters expr]
@@ -86,10 +86,10 @@
       (criterium/quick-bench (rum/render-static-markup comp))
 
       (println "\n--- UIx: testing" page "---")
-      (criterium/quick-bench (uix/render-to-static-markup comp))
+      (criterium/quick-bench (uix.dom/render-to-static-markup comp))
 
       (println "\n--- UIx streaming: testing" page "---")
-      (criterium/quick-bench (uix/render-to-static-stream comp {:on-chunk (fn [_])})))
+      (criterium/quick-bench (uix.dom/render-to-static-stream comp {:on-chunk (fn [_])})))
 
     (let [comp (binding [*convert-style?* false]
                  (convert-page path))]

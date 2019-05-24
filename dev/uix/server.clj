@@ -1,7 +1,7 @@
 (ns uix.server
   (:require [aleph.http :as http]
             [manifold.stream :as s]
-            [uix.core.alpha :as uix]
+            [uix.dom.alpha :as uix.dom]
             [uix.recipes :as recipes]
             [clojure.string :as str]))
 
@@ -26,7 +26,7 @@
   (let [res (s/stream)]
     (future
       (s/put! res head)
-      (uix/render-to-stream [recipes/root] {:on-chunk #(s/put! res %)})
+      (uix.dom/render-to-stream [recipes/root] {:on-chunk #(s/put! res %)})
       (s/put! res end)
       (s/close! res))
     {:status 200

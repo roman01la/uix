@@ -6,6 +6,7 @@
             [uix.recipes.popup :as popup]
             [uix.recipes.interop :as interop]
             [uix.core.alpha :as uix]
+            [uix.dom.alpha :as uix.dom]
             #?(:cljs [cljs.loader :as loader])))
 
 (def recipes
@@ -31,6 +32,6 @@
        [:div
         [recipe]])]))
 
-#?(:cljs (uix/hydrate [root] js/root))
+#?(:cljs (uix.dom/hydrate [root] js/root))
 
 #?(:cljs (loader/set-loaded! :recipes))
