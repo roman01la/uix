@@ -30,13 +30,13 @@ There are no versioned releases yet, use `deps.edn` to depend on the code via gi
 
 ## Recipes
 
-- [State hook](https://github.com/roman01la/uix/blob/master/dev/uix/recipes/state_hook.cljs)
-- [Global state and effects](https://github.com/roman01la/uix/blob/master/dev/uix/recipes/global_state.cljs)
-- [Dynamic styles](https://github.com/roman01la/uix/blob/master/dev/uix/recipes/dynamic_styles.cljs)
-- [Lazy loading](https://github.com/roman01la/uix/blob/master/dev/uix/recipes/lazy_loading.cljs)
-- [Server-side rendering](https://github.com/roman01la/uix/blob/master/dev/uix/recipes/server_rendering.clj)
-- [Interop between UIx and JS components](https://github.com/roman01la/uix/blob/master/dev/uix/recipes/interop.cljs)
-- [Popups](https://github.com/roman01la/uix/blob/master/dev/uix/recipes/popup.cljs)
+- [State hook](https://github.com/roman01la/uix/blob/master/core/dev/uix/recipes/state_hook.cljs)
+- [Global state and effects](https://github.com/roman01la/uix/blob/master/core/dev/uix/recipes/global_state.cljs)
+- [Dynamic styles](https://github.com/roman01la/uix/blob/master/core/dev/uix/recipes/dynamic_styles.cljs)
+- [Lazy loading](https://github.com/roman01la/uix/blob/master/core/dev/uix/recipes/lazy_loading.cljs)
+- [Server-side rendering](https://github.com/roman01la/uix/blob/master/core/dev/uix/recipes/server_rendering.clj)
+- [Interop between UIx and JS components](https://github.com/roman01la/uix/blob/master/core/dev/uix/recipes/interop.cljs)
+- [Popups](https://github.com/roman01la/uix/blob/master/core/dev/uix/recipes/popup.cljs)
 
 - Build front-end `clojure -A:dev -m figwheel.main -O advanced -bo dev:prod`
 - Run server `clojure -A:dev -m uix.server`
