@@ -154,8 +154,8 @@ See an example in `uix.recipes.server-rendering`
 
 ## Benchmarks
 
-- Hiccup interpretation `clojure -A:dev:benchmark -m figwheel.main -O advanced -bo benchmark`
-- SSR on JVM `clojure -A:dev:benchmark -m uix.benchmark`
+- Hiccup interpretation `clojure -A:dev:benchmark:bench-front`
+- SSR on JVM `clojure -A:dev:benchmark:bench-ssr`
 
 ### Hiccup interpretation
 
