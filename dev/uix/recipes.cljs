@@ -26,8 +26,7 @@
        (for [[k v] recipes]
          ^{:key k}
          [:option {:value k}
-          (name k)])]
-      [:div [:small "To run server-side rendering recipe: clojure -A:dev -m uix.recipes.server-rendering"]]]
+          (name k)])]]
      (when-let [recipe (get recipes @current-recipe)]
        [:div
         [recipe]])]))
