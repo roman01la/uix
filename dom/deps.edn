@@ -1,0 +1,6 @@
+{:deps {org.clojure/clojure {:mvn/version "1.10.0"}
+        org.clojure/clojurescript {:mvn/version "1.10.520"}
+        cljsjs/react-dom {:mvn/version "16.8.3-0"
+                          :exclusions [cljsjs/react-dom-server]}}
+ :paths ["src"]
+ :aliases {:dev {:extra-deps {uix.core {:local/root "../core"}}}}}

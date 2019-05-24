@@ -40,7 +40,7 @@ There are no versioned releases yet, use `deps.edn` to depend on the code via gi
 - Build front-end `clojure -A:dev -m figwheel.main -O advanced -bo dev:prod`
 - Run server `clojure -A:dev -m uix.server`
 - Run front-end recipes in dev `clojure -A:dev:rec-front`
-- Run SSR streaming recipe `clojure -A:dev:rec-back`
+- Run SSR streaming recipe `clojure -A:dev:rec-ssr`
 
 ## Features
 
