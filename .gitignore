@@ -1,6 +1,1 @@
 .idea
-.cpcache
-resources/public/out
-resources/public/benchmark.js
-target
-.rebel_readline_history

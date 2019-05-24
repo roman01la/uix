@@ -4,7 +4,8 @@
             [react :as react]
             ["react-dom/server" :as rserver]
             [uix.compiler.alpha :as uixc]
-            [uix.core.alpha :as uix :refer-macros [html]]))
+            [uix.core.alpha :refer-macros [html]]
+            [uix.dom.alpha :as uix.dom]))
 
 (def >el react/createElement)
 
@@ -145,5 +146,5 @@
   (bench :reagent-interpret 10000 (render (reagent-interpret)))
   (bench :reagent-interpret 10000 (render (reagent-interpret))))
 
-(uix/render [uix-interpret] js/root)
+(uix.dom/render [uix-interpret] js/root)
 
