@@ -12,19 +12,20 @@ There are no versioned releases yet, use `deps.edn` to depend on the code via gi
 
 ```clj
 (require '[uix.core.alpha :as uix])
+(require '[uix.dom.alpha :as uix.dom])
 
 (defn button [{:keys [on-click]} text]
   [:button.btn {:on-click on-click}
     text])
 
 (defn app []
-  (let [state (uix/state 0)]
+  (let [state* (uix/state 0)]
     [:<>
-      [button {:on-click #(swap! state dec)} "-"]
-      [:span @state]
-      [button {:on-click #(swap! state inc)} "+"]]))
+      [button {:on-click #(swap! state* dec)} "-"]
+      [:span @state*]
+      [button {:on-click #(swap! state* inc)} "+"]]))
 
-(uix/render [button {:on-click js/console.log} "button"])
+(uix.dom/render [button {:on-click js/console.log} "button"] js/root)
 ```
 
 ## Recipes
@@ -144,12 +145,12 @@ Loading React components on-demand as Closure modules. See [code splitting](http
 See an example in `uix.recipes.server-rendering`
 
 ```clj
-(uix/render-to-string element) ;; see https://reactjs.org/docs/react-dom-server.html#rendertostring
-(uix/render-to-static-markup element) ;; see https://reactjs.org/docs/react-dom-server.html#rendertostaticmarkup
+(uix.dom/render-to-string element) ;; see https://reactjs.org/docs/react-dom-server.html#rendertostring
+(uix.dom/render-to-static-markup element) ;; see https://reactjs.org/docs/react-dom-server.html#rendertostaticmarkup
 
 ;; Streaming HTML
-(uix/render-to-stream element {:on-chunk f}) ;; see https://reactjs.org/docs/react-dom-server.html#rendertonodestream
-(uix/render-to-static-stream element {:on-chunk f}) ;; see https://reactjs.org/docs/react-dom-server.html#rendertostaticnodestream
+(uix.dom/render-to-stream element {:on-chunk f}) ;; see https://reactjs.org/docs/react-dom-server.html#rendertonodestream
+(uix.dom/render-to-static-stream element {:on-chunk f}) ;; see https://reactjs.org/docs/react-dom-server.html#rendertostaticnodestream
 ```
 
 ## Benchmarks
