@@ -27,6 +27,7 @@
 (declare as-element)
 (declare expand-seq)
 (declare convert-prop-value)
+(declare convert-prop-value-shallow)
 
 (def prop-name-cache #js {:class "className"
                           :for "htmlFor"
@@ -85,12 +86,17 @@
         v))
     k))
 
+(defn convert-interop-prop-value [k v]
+  (cond
+    (= k :style) (convert-prop-value-shallow v)
+    :else v))
+
 (defn kv-conv [o k v]
   (gobj/set o (cached-prop-name k) (convert-prop-value v))
   o)
 
 (defn kv-conv-shallow [o k v]
-  (gobj/set o (cached-prop-name k) v)
+  (gobj/set o (cached-prop-name k) (convert-interop-prop-value k v))
   o)
 
 (defn custom-kv-conv [o k v]
