@@ -42,6 +42,9 @@ There are no versioned releases yet, use `deps.edn` to depend on the code via gi
 - Run front-end recipes in dev `clojure -A:dev:rec-front`
 - Run SSR streaming recipe `clojure -A:dev:rec-back`
 
+_Note: to ensure you're using the right Node.js version, you can use [nvm](https://github.com/nvm-sh/nvm) and run `nvm use`
+once in the directory. Otherwise the Node.js version you use is in the `.nvmrc` file. See nvm repo for more documentation._
+
 ## Features
 
 ### Hiccup syntax extension
