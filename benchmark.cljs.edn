@@ -1,3 +1,4 @@
+^{:open-url "http://localhost:[[server-port]]/benchmark.html"}
 {:output-dir "resources/public/out"
  :output-to "resources/public/out/benchmark.js"
  :asset-path "out"

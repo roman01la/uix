@@ -15,13 +15,15 @@
                               cljfmt {:mvn/version "0.6.4"}}}
            :rec-front {:extra-deps {com.bhauman/rebel-readline-cljs {:mvn/version "0.1.4"}}
                        :main-opts ["-m" "figwheel.main" "--build" "dev" "--repl" "--serve"]}
-           :rec-back  {:main-opts ["-m" "uix.recipes.server-rendering"]}
+           :rec-ssr  {:main-opts ["-m" "uix.recipes.server-rendering"]}
            :benchmark {:extra-paths ["benchmark"]
                        :extra-deps {reagent {:mvn/version "0.9.0-SNAPSHOT"}
                                     criterium {:mvn/version "0.4.5"}
                                     enlive {:mvn/version "1.1.6"}
                                     hiccup {:mvn/version "1.0.5"}
                                     rum {:mvn/version "0.11.2"}}}
+           :bench-front {:main-opts ["-m" "figwheel.main" "-O" "advanced" "--build" "benchmark" "--serve"]}
+           :bench-ssr {:main-opts ["-m" "uix.benchmark"]}
            :test {:extra-paths ["test"]}
            :ci {:extra-paths ["dev"]
                 :extra-deps {cljfmt {:mvn/version "0.6.4"}}}}}
