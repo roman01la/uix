@@ -37,6 +37,11 @@ There are no versioned releases yet, use `deps.edn` to depend on the code via gi
 - [Interop between UIx and JS components](https://github.com/roman01la/uix/blob/master/dev/uix/recipes/interop.cljs)
 - [Popups](https://github.com/roman01la/uix/blob/master/dev/uix/recipes/popup.cljs)
 
+- Build front-end `clojure -A:dev -m figwheel.main -O advanced -bo dev:prod`
+- Run server `clojure -A:dev -m uix.server`
+- Run front-end recipes in dev `clojure -A:dev:rec-front`
+- Run SSR streaming recipe `clojure -A:dev:rec-back`
+
 ## Features
 
 ### Hiccup syntax extension
@@ -149,6 +154,9 @@ See an example in `uix.recipes.server-rendering`
 
 ## Benchmarks
 
+- Hiccup interpretation `clojure -A:dev:benchmark -m figwheel.main -O advanced -bo benchmark`
+- SSR on JVM `clojure -A:dev:benchmark -m uix.benchmark`
+
 ### Hiccup interpretation
 
 ```
@@ -175,10 +183,8 @@ reagent-interpret x 7174 ops/s, elapsed 1394ms
 | reagent | 269KB | 74KB |
 | uix     | 234KB | 65KB |
 
-## Building
+## Testing
 
-- Front-end recipe `clojure -A:dev:rec-front`
-- Back-end recipe `clojure -A:dev:rec-back`
-- Benchmark `clojure -A:dev:benchmark -m figwheel.main -O advanced -bo benchmark`
-- SSR Benchmark `clojure -A:dev:benchmark -m uix.benchmark`
-- Tests `clojure -A:dev:test -m cljs.main -re node -m uix.compiler-test`
+```
+clojure -A:dev:test -m cljs.main -re node -m uix.compiler-test
+```
