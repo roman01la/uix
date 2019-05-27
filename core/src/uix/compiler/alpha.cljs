@@ -2,7 +2,6 @@
   "Hiccup and UIx components interpreter. Based on Reagent."
   (:require [react :as react]
             [goog.object :as gobj]
-            [clojure.string :as string]
             [uix.hooks.alpha :as hooks]
             [clojure.string :as str]))
 
@@ -47,17 +46,24 @@
 
 (defn ^string capitalize [^string s]
   (if (< (count s) 2)
-    (string/upper-case s)
-    (str (string/upper-case (subs s 0 1)) (subs s 1))))
+    (str/upper-case s)
+    (str (str/upper-case (subs s 0 1)) (subs s 1))))
 
 (defn ^string dash-to-camel [dashed]
   (if (string? dashed)
     dashed
     (let [name-str (name dashed)
-          [^string start & parts] (.split name-str #"-")]
+          ^js parts (.split name-str #"-")
+          ^string start (aget parts 0)
+          ^js parts (.slice parts 1)]
       (if (or (= start "aria") (= start "data"))
         name-str
-        (str start (string/join (map capitalize parts)))))))
+        (str start (.join (reduce (fn [a p]
+                                    (.push a (capitalize p))
+                                    a)
+                                  #js []
+                                  parts)
+                          ""))))))
 
 (defn cached-prop-name [k]
   (if (named? k)
@@ -151,19 +157,23 @@
 (defn ^string class-names
   ([])
   ([class]
-   (if (coll? class)
-     (let [classes (keep
-                    #(when %
-                       (if (named? %) (name %) %))
-                    class)]
-       (if (seq classes)
-         (string/join " " classes)))
-     (if (named? class)
-       (name class)
-       class)))
+   (cond
+     (coll? class)
+     (let [^js classes (reduce (fn [^js a c]
+                                 (when ^boolean c
+                                   (->> (if (named? c) (name c) c)
+                                        (.push a)))
+                                 a)
+                               #js []
+                               class)]
+       (when (pos? ^number (.-length classes))
+         (.join classes " ")))
+
+     (named? class) (name class)
+     :else class))
   ([a b]
-   (if a
-     (if b
+   (if ^boolean a
+     (if ^boolean b
        (str (class-names a) " " (class-names b))
        (class-names a))
      (class-names b)))
@@ -188,7 +198,7 @@
       (seq classes)
       (assoc :class (class-names classes (get props :class))))))
 
-(defn convert-props [props id-class & {:keys [shallow?]}]
+(defn convert-props [props id-class shallow?]
   (let [class (get props :class)
         props (-> props
                   (cond-> class (assoc :class (class-names class)))
@@ -235,7 +245,7 @@
         props (if props?
                 (reduce (fn [p f] (f p)) props @transform-fns)
                 props)
-        js-props (or (convert-props (when props? props) parsed)
+        js-props (or (convert-props (when props? props) parsed false)
                      #js {})
         first-child (+ first-el (if props? 1 0))]
     (when-some [key (get-key (meta argv))]
@@ -292,7 +302,7 @@
         props (if props?
                 (reduce (fn [p f] (f p)) props @transform-fns)
                 props)
-        js-props (or (convert-props (when props? props) parsed :shallow? true)
+        js-props (or (convert-props (when props? props) parsed true)
                      #js {})
         first-child (+ first-el (if props? 1 0))]
     (when-some [key (get-key (meta argv))]
@@ -339,7 +349,9 @@
 (defn fn-to-react-fn [^js f]
   (if (react-type? f)
     f
-    (let [rf #(let [[tag & args] (.-argv %)]
+    (let [rf #(let [argv (.-argv %)
+                    tag (nth argv 0)
+                    args (rest argv)]
                 (as-element (apply tag args)))
           rf-memo (react/memo rf #(= (.-argv %1) (.-argv %2)))]
       (when ^boolean goog.DEBUG
@@ -350,7 +362,7 @@
 (defn as-lazy-component [f]
   (if-some [cached-fn (cached-react-fn f)]
     cached-fn
-    (let [rf #(let [[_ & args] (.-argv %)]
+    (let [rf #(let [args (rest (.-argv %))]
                 (as-element (apply f args)))
           rf-memo (react/memo rf #(= (.-argv %1) (.-argv %2)))]
       (when ^boolean goog.DEBUG
