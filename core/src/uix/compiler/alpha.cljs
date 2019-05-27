@@ -88,7 +88,14 @@
 
 (defn convert-interop-prop-value [k v]
   (cond
-    (= k :style) (convert-prop-value-shallow v)
+    (= k :style) (if (vector? v)
+                   (reduce (fn [a v]
+                             (.push a (convert-prop-value-shallow v))
+                             a)
+                           #js []
+                           v)
+                   (convert-prop-value-shallow v))
+    (named? v) (name v)
     :else v))
 
 (defn kv-conv [o k v]
