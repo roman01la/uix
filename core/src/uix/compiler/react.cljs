@@ -8,12 +8,11 @@
 (def fragment react/Fragment)
 
 (defn fn-to-react-fn [f]
-  (let [rf #(apply f (.-argv %))
-        rf-memo (react/memo rf #(= (.-argv %1) (.-argv %2)))]
+  (let [rf #(apply f (.-argv %))]
     (when ^boolean goog.DEBUG
-      (r/with-name f rf rf-memo))
-    (r/cache-react-fn f rf-memo)
-    rf-memo))
+      (r/with-name f rf))
+    (r/cache-react-fn f rf)
+    rf))
 
 (defn as-component [tag]
   (if-some [cached-fn (r/cached-react-fn tag)]

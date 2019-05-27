@@ -1,6 +1,6 @@
 (ns uix.core.alpha
   "Public API"
-  (:refer-clojure :exclude [ref])
+  (:refer-clojure :exclude [ref memoize])
   (:require #?(:clj [clojure.spec.alpha :as s])
             #?(:clj [uix.specs.alpha])
             #?(:cljs [react :as r])
@@ -40,6 +40,21 @@
   ([v]
    #?(:cljs (ReactRef. v)
       :clj (atom v))))
+
+(defn default-compare-args [a b]
+  (= (.-argv a) (.-argv b)))
+
+(defn memoize
+  "Takes component `f` and comparator function `should-update?`
+  that takes previous and next props of the component.
+  Returns memoized `f`.
+
+  When `should-update?` is not provided uses default comparator
+  that compares props with clojure.core/="
+  ([f]
+   (memoize f default-compare-args))
+  ([f should-update?]
+   (react/memo f should-update?)))
 
 (def state
   "Returns React's state hook wrapped in atom-like type."

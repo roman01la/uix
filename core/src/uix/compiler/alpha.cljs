@@ -340,11 +340,10 @@
         ^string name-part (.slice parts (dec (count parts)))]
     (str (.join ns-parts ".") "/" name-part)))
 
-(defn with-name [^js f ^js rf rf-memo]
+(defn with-name [^js f ^js rf]
   (when (string? (.-name f))
     (let [display-name (format-display-name (.-name f))]
-      (set! (.-displayName rf) display-name)
-      (set! (.-displayName rf-memo) (str "memo(" display-name ")")))))
+      (set! (.-displayName rf) display-name))))
 
 (defn fn-to-react-fn [^js f]
   (if (react-type? f)
@@ -352,23 +351,21 @@
     (let [rf #(let [argv (.-argv %)
                     tag (nth argv 0)
                     args (rest argv)]
-                (as-element (apply tag args)))
-          rf-memo (react/memo rf #(= (.-argv %1) (.-argv %2)))]
+                (as-element (apply tag args)))]
       (when ^boolean goog.DEBUG
-        (with-name f rf rf-memo))
-      (cache-react-fn f rf-memo)
-      rf-memo)))
+        (with-name f rf))
+      (cache-react-fn f rf)
+      rf)))
 
 (defn as-lazy-component [f]
   (if-some [cached-fn (cached-react-fn f)]
     cached-fn
     (let [rf #(let [args (rest (.-argv %))]
-                (as-element (apply f args)))
-          rf-memo (react/memo rf #(= (.-argv %1) (.-argv %2)))]
+                (as-element (apply f args)))]
       (when ^boolean goog.DEBUG
-        (with-name f rf rf-memo))
-      (cache-react-fn f rf-memo)
-      rf-memo)))
+        (with-name f rf))
+      (cache-react-fn f rf)
+      rf)))
 
 (defn as-component [tag]
   (if-some [cached-fn (cached-react-fn tag)]
