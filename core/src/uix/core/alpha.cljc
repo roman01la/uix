@@ -54,7 +54,8 @@
   ([f]
    (memoize f default-compare-args))
   ([f should-update?]
-   (react/memo f should-update?)))
+   #?(:cljs (react/memo f should-update?)
+      :clj f)))
 
 (def state
   "Returns React's state hook wrapped in atom-like type."
