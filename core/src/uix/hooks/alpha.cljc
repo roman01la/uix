@@ -134,7 +134,7 @@
                  (reset! prev-deps* deps)
                  (let [ret (setup-fn)]
                    (if (fn? ret) ret js/undefined)))
-               (maybe-deps @prev-deps*))
+               (maybe-js-deps @prev-deps*))
               deps)
       :clj nil)))
 
@@ -145,7 +145,7 @@
      (let [[deps setup-fn] (if (vector? deps)
                              [deps body]
                              [nil (cons deps body)])]
-       `(effect! #(do ~@setup-fn) (maybe-js-deps ~deps)))))
+       `(effect! #(do ~@setup-fn) ~deps))))
 
 ;; == Layout effect hook ==
 (defn layout-effect!
@@ -162,7 +162,7 @@
                  (reset! prev-deps* deps)
                  (let [ret (setup-fn)]
                    (if (fn? ret) ret js/undefined)))
-               (maybe-deps @prev-deps*))
+               (maybe-js-deps @prev-deps*))
               deps)
       :clj nil)))
 
@@ -173,7 +173,7 @@
      (let [[deps setup-fn] (if (vector? deps)
                              [deps body]
                              [nil (cons deps body)])]
-       `(layout-effect! #(do ~@setup-fn) (maybe-js-deps ~deps)))))
+       `(layout-effect! #(do ~@setup-fn) ~deps))))
 
 ;; == Callback hook ==
 (defn callback
