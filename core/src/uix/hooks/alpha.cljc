@@ -1,7 +1,7 @@
 (ns uix.hooks.alpha
   "Wrappers for React.js Hooks"
   (:refer-clojure :exclude [ref])
-  #?(:cljs (:require-macros [uix.hooks.alpha :refer [maybe-deps maybe-js-deps maybe-ret-fn with-deps-check]]))
+  #?(:cljs (:require-macros [uix.hooks.alpha :refer [maybe-js-deps maybe-ret-fn with-deps-check]]))
   #?(:cljs (:require [react :as r]
                      [goog.object :as gobj])))
 
@@ -103,10 +103,6 @@
 #?(:clj
    (defmacro maybe-js-deps [deps]
      `(if ~deps (into-array ~deps) js/undefined)))
-
-#?(:clj
-   (defmacro maybe-deps [deps]
-     `(or ~deps js/undefined)))
 
 #?(:clj
    (defmacro maybe-ret-fn [f]
