@@ -134,7 +134,7 @@
                  (reset! prev-deps* deps)
                  (let [ret (setup-fn)]
                    (if (fn? ret) ret js/undefined)))
-               (maybe-deps @prev-deps*))
+               (maybe-js-deps @prev-deps*))
               deps)
       :clj nil)))
 
@@ -162,7 +162,7 @@
                  (reset! prev-deps* deps)
                  (let [ret (setup-fn)]
                    (if (fn? ret) ret js/undefined)))
-               (maybe-deps @prev-deps*))
+               (maybe-js-deps @prev-deps*))
               deps)
       :clj nil)))
 
