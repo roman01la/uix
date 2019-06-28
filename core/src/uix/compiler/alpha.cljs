@@ -136,7 +136,9 @@
     :else (clj->js x)))
 
 (defn convert-prop-value-shallow [x]
-  (reduce-kv kv-conv-shallow #js {} x))
+  (if (map? x)
+    (reduce-kv kv-conv-shallow #js {} x)
+    x))
 
 (defn convert-js-prop-value-shallow [x]
   (->> (js-keys x)
