@@ -35,9 +35,9 @@
 
 (deftest convert-props-test
   (is (js-equal? #js {:className "a"}
-                 (uixc/convert-props {:class "a"} [])))
+                 (uixc/convert-props {:class "a"} [] true)))
   (is (js-equal? #js {:className "a b" :id "a"}
-                 (uixc/convert-props {:class "b"} #js [nil "a" #js ["a"]]))))
+                 (uixc/convert-props {:class "b"} #js [nil "a" #js ["a"]] true))))
 
 
 (deftest to-string-test []
