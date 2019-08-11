@@ -375,7 +375,7 @@
     (fn-to-react-fn tag)))
 
 (defn as-react [f]
-  #(as-element (f (convert-js-prop-value-shallow %))))
+  #(as-element (f (bean/bean %))))
 
 (defn component-element [tag v]
   (let [js-props #js {}
