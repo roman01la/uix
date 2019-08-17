@@ -2,10 +2,12 @@
   (:require-macros [uix.benchmark :refer [bench]])
   (:require [reagent.core :as r]
             ["react-dom/server" :as rserver]
+            [react :as react]
             [uix.compiler.alpha :as uixc]
             [uix.core.alpha :refer-macros [html]]
             [uix.dom.alpha :as uix.dom]
-            [uix.hiccup :as hiccup]))
+            [uix.hiccup :as hiccup]
+            [uix.react :refer [Editor]]))
 
 (defn reagent-interpret []
   (r/as-element [hiccup/editor]))
@@ -21,8 +23,8 @@
 
 (do
 
-  ;(bench :react 10000 (render (react)))
-  ;(bench :react 10000 (render (react)))
+  (bench :react 10000 (render (react/createElement Editor)))
+  (bench :react 10000 (render (react/createElement Editor)))
 
   ;(bench :uix-compile 10000 (render (uix-compile)))
   ;(bench :uix-compile 10000 (render (uix-compile)))

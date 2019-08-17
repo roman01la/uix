@@ -173,8 +173,9 @@ See an example in `uix.recipes.server-rendering`
 ### Hiccup interpretation
 
 ```
-uix-interpret x 12092 ops/s, elapsed 827ms
-reagent-interpret x 4355 ops/s, elapsed 2296ms
+react x 23866 ops/s, elapsed 419ms
+uix-interpret x 11848 ops/s, elapsed 844ms
+reagent-interpret x 4031 ops/s, elapsed 2481ms
 ```
 
 ### SSR on JVM
