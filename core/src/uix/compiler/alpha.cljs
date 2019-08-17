@@ -7,10 +7,9 @@
             [cljs-bean.core :as bean]))
 
 (defn unwrap-ref [^hooks/IRef -ref]
-  (cond
-    (nil? -ref) -ref
-    (satisfies? hooks/IRef -ref) (hooks/unwrap -ref)
-    :else -ref))
+  (if (implements? hooks/IRef -ref)
+    (hooks/unwrap ^not-native -ref)
+    -ref))
 
 (defn js-val? [x]
   (not (identical? "object" (goog/typeOf x))))
