@@ -12,14 +12,14 @@
     (satisfies? hooks/IRef -ref) (hooks/unwrap -ref)
     :else -ref))
 
-(defn ^boolean js-val? [x]
+(defn js-val? [x]
   (not (identical? "object" (goog/typeOf x))))
 
-(defn ^boolean named? [x]
+(defn named? [x]
   (or (keyword? x)
       (symbol? x)))
 
-(defn ^boolean hiccup-tag? [x]
+(defn hiccup-tag? [x]
   (or (named? x)
       (string? x)))
 
@@ -42,50 +42,38 @@
 (defn add-transform-fn [f]
   (swap! transform-fns conj f))
 
-(defn cache-get [^js o k]
-  (gobj/get o k))
-
 (defn ^string capitalize [^string s]
-  (if (< ^number (.-length s) 2)
+  (if (< (.-length s) 2)
     (str/upper-case s)
     (str ^string (str/upper-case (subs s 0 1)) ^string (subs s 1))))
 
 (defn ^string dash-to-camel [dashed]
   (let [name-str (-name dashed)
-        ^js parts (.split name-str #"-")
+        parts (.split name-str #"-")
         ^string start (aget parts 0)
-        ^js parts (.slice parts 1)]
+        parts (.slice parts 1)]
     (if (or (= start "aria") (= start "data"))
       name-str
-      (str start ^string (-> parts
-                             (array-reduce
-                               (fn [a p]
-                                 (.push a (capitalize p))
-                                 a)
-                               #js [])
-                             (.join ""))))))
+      (str start (-> parts
+                     (array-reduce
+                       (fn [a p]
+                         (.push a (capitalize p))
+                         a)
+                       #js [])
+                     ^string (.join ""))))))
 
 (defn cached-prop-name [k]
   (if (named? k)
-    (if-some [k' (cache-get prop-name-cache (-name k))]
+    (if-some [k' (aget prop-name-cache (-name k))]
       k'
       (let [v (dash-to-camel k)]
         (gobj/set prop-name-cache (-name k) v)
         v))
     k))
 
-(defn js-cached-prop-name [k]
-  (if (string? k)
-    (if-some [k' (cache-get prop-name-cache k)]
-      k'
-      (let [v (keyword k)]
-        (gobj/set prop-name-cache k v)
-        v))
-    k))
-
 (defn cached-custom-prop-name [k]
   (if (named? k)
-    (if-some [k' (cache-get custom-prop-name-cache (-name k))]
+    (if-some [k' (aget custom-prop-name-cache (-name k))]
       k'
       (let [v (dash-to-camel k)]
         (gobj/set custom-prop-name-cache (-name k) v)
@@ -155,14 +143,14 @@
   ([class]
    (cond
      (coll? class)
-     (let [^js classes (reduce (fn [^js a c]
-                                 (when ^boolean c
-                                   (->> (if (named? c) (-name c) c)
-                                        (.push a)))
-                                 a)
-                               #js []
-                               class)]
-       (when (pos? ^number (.-length classes))
+     (let [^js/Array classes (reduce (fn [^js/Array a c]
+                                       (when ^boolean c
+                                         (->> (if (named? c) (-name c) c)
+                                              (.push a)))
+                                       a)
+                                     #js []
+                                     class)]
+       (when (pos? (.-length classes))
          (.join classes " ")))
 
      (named? class) (-name class)
@@ -174,27 +162,26 @@
        (class-names a))
      (class-names b)))
   ([a b & rst]
-   (reduce class-names
-           (class-names a b)
-           rst)))
+   (reduce class-names (class-names a b) rst)))
 
 (defn set-id-class
   "Takes the id and class from tag keyword, and adds them to the
   other props. Parsed tag is JS object with :id and :class properties."
   [props id-class]
   (let [id (aget id-class 1)
-        classes (when-let [classes (aget id-class 2)]
+        classes (aget id-class 2)
+        classes (when ^boolean classes
                   (array-seq classes))]
     (cond-> props
             ;; Only use ID from tag keyword if no :id in props already
-      (and (some? id) (nil? (get props :id)))
-      (assoc :id id)
+            (and (some? id) (nil? (get props :id)))
+            (assoc :id id)
 
             ;; Merge classes
-      (seq classes)
-      (assoc :class (class-names classes (get props :class))))))
+            (not (nil? classes))
+            (assoc :class (class-names classes (get props :class))))))
 
-(defn convert-props [props id-class shallow?]
+(defn convert-props [props id-class ^boolean shallow?]
   (let [class (get props :class)
         props (-> props
                   (cond-> class (assoc :class (class-names class)))
@@ -203,7 +190,7 @@
       ^boolean (aget id-class 3)
       (convert-custom-prop-value props)
 
-      ^boolean shallow?
+      shallow?
       (convert-prop-value-shallow props)
 
       :else (convert-prop-value props))))
@@ -212,18 +199,21 @@
 
 (defn parse-tag [tag]
   (loop [matches (re-seq re-tag tag)
-         ^string tag "div"
+         tag "div"
          id nil
          ^js/Array classes #js []]
-    (if-let [^js val (first matches)]
-      (case (aget val 0)
-        "#" (recur (next matches) tag (.slice val 1) classes)
-        "." (recur (next matches) tag id (.concat classes #js [(.slice val 1)]))
-        (recur (next matches) val id classes))
-      #js [tag id classes (str/includes? tag "-")])))
+    (let [val (first matches)
+          nval (next matches)]
+      (if ^boolean val
+        (if (= (aget val 0) "#")
+          (recur nval tag (.slice val 1) classes)
+          (if (= (aget val 0) ".")
+            (recur nval tag id (.concat classes #js [(.slice val 1)]))
+            (recur nval val id classes)))
+        #js [tag id classes (str/includes? tag "-")]))))
 
 (defn cached-parse [x]
-  (if-some [s (cache-get tag-name-cache x)]
+  (if-some [s (aget tag-name-cache x)]
     s
     (let [v (parse-tag x)]
       (gobj/set tag-name-cache x v)
@@ -241,7 +231,7 @@
         props (if props?
                 (reduce (fn [p f] (f p)) props @transform-fns)
                 props)
-        js-props (or (convert-props (when props? props) parsed false)
+        js-props (or ^boolean (convert-props (when props? props) parsed false)
                      #js {})
         first-child (+ first-el (if props? 1 0))]
     (when-some [key (get-key (-meta argv))]
@@ -255,7 +245,7 @@
 (defn fragment-element [^not-native argv]
   (let [props (-nth argv 1 nil)
         props? (or (nil? props) (map? props))
-        js-props (or (convert-prop-value (when props? props))
+        js-props (or ^boolean (convert-prop-value (when props? props))
                      #js {})
         first-child (+ 1 (if props? 1 0))]
     (when-some [key (key-from-vec argv)]
@@ -269,7 +259,7 @@
                            [(as-element (get props :fallback))
                             (dissoc props :fallback)]
                            [nil props])
-        js-props (or (convert-prop-value (when props? props))
+        js-props (or ^boolean (convert-prop-value (when props? props))
                      #js {})
         first-child (+ 1 (if props? 1 0))]
     (when ^boolean fallback
@@ -295,7 +285,7 @@
         props (if props?
                 (reduce (fn [p f] (f p)) props @transform-fns)
                 props)
-        js-props (or (convert-props (when props? props) parsed true)
+        js-props (or ^boolean (convert-props (when props? props) parsed true)
                      #js {})
         first-child (+ first-el (if props? 1 0))]
     (when-some [key (get-key (-meta argv))]
@@ -318,18 +308,18 @@
 (def lazy-sym (symbol-for "react.lazy"))
 (def memo-sym (symbol-for "react.memo"))
 
-(defn ^boolean lazy? [t]
-  (identical? lazy-sym (gobj/get t "$$typeof")))
+(defn lazy? [t]
+  (identical? lazy-sym (aget t "$$typeof")))
 
-(defn ^boolean memo? [t]
-  (identical? memo-sym (gobj/get t "$$typeof")))
+(defn memo? [t]
+  (identical? memo-sym (aget t "$$typeof")))
 
-(defn ^boolean react-type? [t]
+(defn react-type? [t]
   (or (lazy? t) (memo? t)))
 
-(defn ^string format-display-name [^string s]
-  (let [^js parts (.split s #"\$")
-        ^js ns-parts (.slice parts 0 (dec ^number (.-length parts)))
+(defn format-display-name [^string s]
+  (let [^js/Array parts (.split s #"\$")
+        ^js/Array ns-parts (.slice parts 0 (dec ^number (.-length parts)))
         ^string name-part (.slice parts (dec ^number (.-length parts)))]
     (str ^string (.join ns-parts ".") "/" name-part)))
 
@@ -397,7 +387,7 @@
     :else x))
 
 (defn expand-seq [^not-native s]
-  (-seq (map as-element s)))
+  (map as-element s))
 
 (defn make-element [^not-native argv component js-props first-child]
   (case (- (-count argv) first-child)

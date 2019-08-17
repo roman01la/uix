@@ -20,7 +20,7 @@
     (fn-to-react-fn tag)))
 
 (defn component-element [tag attrs args]
-  (let [js-props (or attrs #js {})
+  (let [js-props (or ^boolean attrs #js {})
         el (as-component tag)]
     (set! (.-argv js-props) args)
     (>el el js-props)))
