@@ -187,4 +187,4 @@
    (memo f nil))
   ([f deps]
    #?(:cljs (r/useMemo f (maybe-js-deps deps))
-      :clj f)))
+      :clj (f))))
