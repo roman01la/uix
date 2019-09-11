@@ -136,6 +136,18 @@
        `(defn ~sym ~args
           (uixr/compile-defui ~sym ~body)))))
 
+#?(:clj
+   (defmacro use-let
+     "Bind variables as with let, except that the bindings are only evaluated once."
+     [bindings & body]
+     (let [ref-bindings
+           (->> (partition 2 bindings)
+                (reduce (fn [ret [sym v]]
+                          (conj ret sym `(.-current (r/useRef ~v))))
+                        []))]
+       `(let ~ref-bindings
+             ~@body))))
+
 (defn as-element [x]
   "Compiles Hiccup into React elements at run-time."
   #?(:cljs (compiler/as-element x)
