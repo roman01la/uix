@@ -1,7 +1,7 @@
 {:deps {org.clojure/clojure {:mvn/version "1.10.1"}
         org.clojure/clojurescript {:mvn/version "1.10.520"}
         cljs-bean {:mvn/version "1.4.0"}
-        cljsjs/react {:mvn/version "16.8.3-0"
+        cljsjs/react {:mvn/version "16.9.0-0"
                       :exclusions [cljsjs/react-dom-server]}}
  :paths ["src"]
  :aliases {:dev {:extra-paths ["dev" "resources"]
