@@ -46,12 +46,16 @@
   (let [uname (uix.core/state "")
         repos (uix.core/state [])
         error (uix.core/state nil)
+        loading? (uix.core/state false)
         handle-submit (fn [e]
                         (.preventDefault e)
+                        (reset! loading? true)
                         (-> (fetch-repos @uname)
                             (.then #(do (reset! repos %)
+                                        (reset! loading? false)
                                         (reset! error nil)))
-                            (.catch #(reset! error (.-message %)))))]
+                            (.catch #(do (reset! loading? false)
+                                         (reset! error (.-message %))))))]
     [:<>
      [:form {:on-submit handle-submit}
       [input {:value @uname
@@ -60,6 +64,8 @@
       [:div {:style {:margin-top 16}}
        [button {:disabled? (str/blank? @uname)}
         "Fetch repos"]]]
+     (when @loading?
+       [:div "Loading..."])
      (when-let [msg @error]
        [:div {:style {:padding "4px 12px"
                       :background-color "rgba(255, 0, 0, 0.1)"
