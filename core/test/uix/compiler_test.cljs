@@ -1,10 +1,14 @@
 (ns uix.compiler-test
   (:require [clojure.test :refer [deftest is testing run-tests]]
             [uix.compiler.alpha :as uixc]
-            [goog.object :as gobj]
             [uix.test-utils :refer [as-string js-equal? with-error symbol-for]]))
 
 (enable-console-print!)
+
+(deftest test-seq-return
+  (let [ui #(for [x (range 2)]
+              [:span x])]
+    (is (= (as-string [ui]) "<span>0</span><span>1</span>"))))
 
 (deftest test-format-display-name
   (is (= (uixc/format-display-name (.-name js-equal?))
