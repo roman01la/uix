@@ -316,14 +316,20 @@
 (defn react-type? [t]
   (or (lazy? t) (memo? t)))
 
-(def fmt-regex (js/RegExp. "_" "g"))
+(def fmt-dash-regex (js/RegExp. "_" "g"))
+(def fmt-qmark-regex (js/RegExp. "_QMARK_" "g"))
+(def fmt-bang-regex (js/RegExp. "_BANG_" "g"))
+(def fmt-star-regex (js/RegExp. "_STAR_" "g"))
 
 (defn format-display-name [^string s]
   (let [^js/Array parts (.split s #"\$")
         ^js/Array ns-parts (.slice parts 0 (dec ^number (.-length parts)))
         ^string name-part (.slice parts (dec ^number (.-length parts)))]
     (-> (str ^string (.join ns-parts ".") "/" name-part)
-        (.replace fmt-regex "-"))))
+        (.replace fmt-qmark-regex "?")
+        (.replace fmt-bang-regex "!")
+        (.replace fmt-star-regex "*")
+        (.replace fmt-dash-regex "-"))))
 
 (defn with-name [^js f ^js rf]
   (when (string? (.-name f))
