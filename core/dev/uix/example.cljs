@@ -11,7 +11,7 @@
     (println value)))
 
 (defn browser-load [{:keys [name macros]} cb]
-  (let [url (str "/example-out/" (cljs/ns->relpath name) ".js")]
+  (let [url (str "example-out/" (cljs/ns->relpath name) ".js")]
     (-> (js/fetch url)
         (.then #(.text %))
         (.then #(cb {:lang :js :source %})))))
@@ -69,7 +69,7 @@
                    :flex-direction :column
                    :padding 16}}
      [:header
-      [:img {:src "/logo.png" :width 125}]]
+      [:img {:src "logo.png" :width 125}]]
      [:div {:style {:display :flex
                     :flex 1}}
       [editor {:init-value initial-code
@@ -77,6 +77,6 @@
                :on-eval #(eval-string @code)}]
       [view]]]))
 
-(-> (js/fetch "/init.cljs")
+(-> (js/fetch "init.cljs")
     (.then #(.text %))
     (.then #(uix.dom/render [root %] (.-root js/window))))
