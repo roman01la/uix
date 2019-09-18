@@ -4,9 +4,9 @@ _Idiomatic ClojureScript interface to modern React.js_
 
 Bug reports, feature requests and PRs are welcome 👌
 
-[Try it live](https://uix.surge.sh)
+[Try it live](https://roman01la.github.io/uix/)
 
-[API Documentation](https://roman01la.github.io/uix/)
+[API Documentation](https://roman01la.github.io/uix/docs/)
 
 There are no versioned releases yet, use `deps.edn` to depend on the code via git deps.
 
