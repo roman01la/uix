@@ -316,11 +316,14 @@
 (defn react-type? [t]
   (or (lazy? t) (memo? t)))
 
+(def fmt-regex (js/RegExp. "_" "g"))
+
 (defn format-display-name [^string s]
   (let [^js/Array parts (.split s #"\$")
         ^js/Array ns-parts (.slice parts 0 (dec ^number (.-length parts)))
         ^string name-part (.slice parts (dec ^number (.-length parts)))]
-    (str ^string (.join ns-parts ".") "/" name-part)))
+    (-> (str ^string (.join ns-parts ".") "/" name-part)
+        (.replace fmt-regex "-"))))
 
 (defn with-name [^js f ^js rf]
   (when (string? (.-name f))
