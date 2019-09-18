@@ -167,10 +167,6 @@ See an example in `uix.recipes.server-rendering`
 (uix.dom/render-to-static-stream element {:on-chunk f}) ;; see https://reactjs.org/docs/react-dom-server.html#rendertostaticnodestream
 ```
 
-### Compatible with self-hosted ClojureScript
-
-See [example](https://uix-bootstrapped.surge.sh/)
-
 ## Benchmarks
 
 - Hiccup interpretation `clojure -A:dev:benchmark:bench-front`
