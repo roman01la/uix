@@ -1,10 +1,48 @@
 (ns uix.compiler-test
   (:require [clojure.test :refer [deftest is testing run-tests]]
             [uix.compiler.alpha :as uixc]
+            [goog.object :as gobj]
             [uix.test-utils :refer [as-string js-equal? with-error symbol-for]]))
 
 (enable-console-print!)
 
+(deftest test-format-display-name
+  (is (= (uixc/format-display-name (.-name js-equal?))
+         "uix.test-utils/js-equal?")))
+
+(deftest test-parse-tag
+  (is (= (js->clj (uixc/parse-tag (name :div#id.class)))
+         ["div" "id" ["class"] false]))
+  (is (= (js->clj (uixc/parse-tag (name :#id.class)))
+         ["div" "id" ["class"] false]))
+  (is (= (js->clj (uixc/parse-tag (name :.class1.class2#id)))
+         ["div" "id" ["class1" "class2"] false]))
+  (is (= (js->clj (uixc/parse-tag (name :.#id1#id2)))
+         ["div" "id2" [] false]))
+  (is (= (js->clj (uixc/parse-tag (name :custom-tag)))
+         ["custom-tag" nil [] true])))
+
+(deftest test-class-names
+  (is (= (uixc/class-names) nil))
+  (testing "Named types"
+    (is (= (uixc/class-names "a") "a"))
+    (is (= (uixc/class-names :a) "a"))
+    (is (= (uixc/class-names 'a) "a")))
+  (testing "Collection of classes"
+    (is (= (uixc/class-names [1 2 3]) "1 2 3"))
+    (is (= (uixc/class-names [1 :a 'b]) "1 a b"))))
+
+(deftest test-set-id-class
+  (testing "Hiccup classes should preceding attribute classes"
+    (is (= (uixc/set-id-class {:class "a"} (uixc/parse-tag (name :.b)))
+           {:class "b a"})))
+  (testing "Attribute ID has higher priority than Hiccup ID"
+    (is (= (uixc/set-id-class {:id "a"} (uixc/parse-tag (name :#b)))
+           {:id "a"}))))
+
+(deftest test-add-transform-fn
+  (uixc/add-transform-fn identity)
+  (is (= @uixc/transform-fns #{identity})))
 
 (deftest cached-prop-name
   (is (= "className" (uixc/cached-prop-name :class))))

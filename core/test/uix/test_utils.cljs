@@ -14,6 +14,9 @@
 (defn symbol-for [s]
   (js-invoke js/Symbol "for" s))
 
+(defn react-element-of-type? [f type]
+  (= (gobj/get f "$$typeof") (symbol-for type)))
+
 (defn with-error [f]
   (let [msgs (atom [])
         cc js/console.error]
