@@ -58,12 +58,12 @@
    [:div#viewRoot]])
 
 (defn root [initial-code]
-  (let [code (uix.core/state initial-code)
-        handle-change #(reset! code %)
-        _ (uix.core/effect!
-            (fn []
-              (eval-string initial-code))
-            [])]
+  (use-let [code (uix.core/state initial-code)
+            handle-change #(reset! code %)]
+    (uix.core/effect!
+      (fn []
+        (eval-string initial-code))
+      [])
     [:div {:style {:height "90%"
                    :display :flex
                    :flex-direction :column
