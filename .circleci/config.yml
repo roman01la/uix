@@ -20,7 +20,7 @@ jobs:
 
       - run: cd core && yarn
 
-      - run: scripts/test
+      - run: cd core && scripts/test
 
       - save_cache:
           paths:
