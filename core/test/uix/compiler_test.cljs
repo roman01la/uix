@@ -1,30 +1,9 @@
 (ns uix.compiler-test
   (:require [clojure.test :refer [deftest is testing run-tests]]
             [uix.compiler.alpha :as uixc]
-            [goog.object :as gobj]
-            ["react-dom/server" :as rserver]
-            [react :as react]
-            [react-dom :as rdom]))
+            [uix.test-utils :refer [as-string js-equal? with-error symbol-for]]))
 
 (enable-console-print!)
-
-(defn as-string [comp]
-  (-> (uixc/as-element comp)
-      rserver/renderToStaticMarkup))
-
-(defn js-equal? [a b]
-  (gobj/equals a b))
-
-(defn symbol-for [s]
-  (js-invoke js/Symbol "for" s))
-
-(defn with-error [f]
-  (let [msgs (atom [])
-        cc js/console.error]
-    (set! js/console.error #(swap! msgs conj %))
-    (f)
-    (set! js/console.error cc)
-    (is (empty? @msgs))))
 
 
 (deftest cached-prop-name
