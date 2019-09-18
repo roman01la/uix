@@ -6,3 +6,6 @@ resources/public/example.js
 resources/public/benchmark.js
 target
 .rebel_readline_history
+out
+index.html
+node_modules

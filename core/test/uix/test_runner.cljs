@@ -1,10 +1,17 @@
 (ns uix.test-runner
-  (:require [clojure.test]
+  (:require [cljs.test]
             [uix.core-test]
-            [uix.compiler-test]))
+            [uix.compiler-test]
+            [uix.hooks-test]))
 
-(defn -main []
-  (clojure.test/run-tests
-    (clojure.test/empty-env)
-    'uix.core-test
-    'uix.compiler-test))
+(defmethod cljs.test/report [::cljs.test/default :summary] [m]
+  (when (pos? (:fail m))
+    (js/testsFailed (:fail m)))
+  (when (pos? (:error m))
+    (js/testsErrored (:error m))))
+
+(cljs.test/run-tests
+  (cljs.test/empty-env)
+  'uix.core-test
+  'uix.compiler-test
+  'uix.hooks-test)

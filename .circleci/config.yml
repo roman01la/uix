@@ -14,15 +14,21 @@ jobs:
       - restore_cache:
           keys:
             - v1-dependencies-{{ checksum "core/deps.edn" }}
-            - v1-dependencies- # fallback if cache not found
+            - v1-dependencies-
+            - v1-npm-deps-{{ checksum "yarn.lock" }}
+            - v1-npm-deps-
 
-      - run: cd core && clojure -Spath
-      - run: cd core && clojure -A:test -m cljs.main -re node -m uix.test-runner
+      - run: cd core && scripts/test
 
       - save_cache:
           paths:
             - ~/.m2
           key: v1-dependencies-{{ checksum "core/deps.edn" }}
+
+      - save_cache:
+          paths:
+            - ~/.yarn
+          key: v1-npm-deps-{{ checksum "yarn.lock" }}
 
 workflows:
   version: 2

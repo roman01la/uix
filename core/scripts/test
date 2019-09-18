@@ -1,0 +1,12 @@
+#!/usr/bin/env bash
+
+set -e
+set -o pipefail
+
+echo "Building tests..."
+clojure -A:test -m cljs.main -c uix.test-runner
+
+echo "<div id=root></div><script src="out/main.js"></script>" > index.html
+
+echo "Running tests..."
+scripts/test.js $(pwd)
