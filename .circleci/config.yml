@@ -15,7 +15,7 @@ jobs:
           keys:
             - v1-dependencies-{{ checksum "core/deps.edn" }}
             - v1-dependencies-
-            - v1-npm-deps-{{ checksum "yarn.lock" }}
+            - v1-npm-deps-{{ checksum "core/yarn.lock" }}
             - v1-npm-deps-
 
       - run: cd core && yarn
@@ -30,7 +30,7 @@ jobs:
       - save_cache:
           paths:
             - ~/.yarn
-          key: v1-npm-deps-{{ checksum "yarn.lock" }}
+          key: v1-npm-deps-{{ checksum "core/yarn.lock" }}
 
 workflows:
   version: 2
