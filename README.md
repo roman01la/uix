@@ -1,6 +1,6 @@
 <img src="logo.png" width="125" />
 
-_Experimental ClojureScript wrapper for modern React.js_
+_Idiomatic ClojureScript interface to modern React.js_
 
 Bug reports, feature requests and PRs are welcome 👌
 
@@ -164,6 +164,10 @@ See an example in `uix.recipes.server-rendering`
 (uix.dom/render-to-stream element {:on-chunk f}) ;; see https://reactjs.org/docs/react-dom-server.html#rendertonodestream
 (uix.dom/render-to-static-stream element {:on-chunk f}) ;; see https://reactjs.org/docs/react-dom-server.html#rendertostaticnodestream
 ```
+
+### Compatible with self-hosted ClojureScript
+
+See [example](https://uix-bootstrapped.surge.sh/)
 
 ## Benchmarks
 

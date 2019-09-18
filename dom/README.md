@@ -1,6 +1,6 @@
 <img src="../logo.png" width="125" />
 
-_Experimental ClojureScript wrapper for modern React.js_
+_Idiomatic ClojureScript interface to modern React.js_
 
 Bug reports, feature requests and PRs are welcome 👌
 
