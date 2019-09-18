@@ -130,7 +130,7 @@ Optionally compiles Hiccup into inlined React elements at compile-time
 
 Compiler will try to inline as much as possible based on type information provided by ClojureScript's compiler (inspired by [“On fast ClojureScript React templates”](https://kevinlynagh.com/notes/fast-cljs-react-templates/)). When it is unable to determine type of the value it will emit interpretation call for the value and print a warning asking to annotate a value with either `^:inline` or `^:interpret`.
 
-`uix.core.alpha/defui` does the same as `html` macro and additionally skips type checking arguments if a spec is provided.
+`uix.core.alpha/defui` does the same as `html` macro and additionally skips type checking arguments if a spec is provided **(this part is experimental)**. 
 
 ```clj
 (s/fdef button
