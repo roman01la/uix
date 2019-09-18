@@ -177,7 +177,9 @@
   ([f]
    (callback f nil))
   ([f deps]
-   #?(:cljs (r/useCallback f (maybe-js-deps deps))
+   #?(:cljs (with-deps-check [prev-deps*]
+              (r/useCallback f (maybe-js-deps @prev-deps*))
+              deps)
       :clj f)))
 
 ;; == Memo hook ==
@@ -186,5 +188,7 @@
   ([f]
    (memo f nil))
   ([f deps]
-   #?(:cljs (r/useMemo f (maybe-js-deps deps))
+   #?(:cljs (with-deps-check [prev-deps*]
+              (r/useMemo f (maybe-js-deps @prev-deps*))
+              deps)
       :clj (f))))
