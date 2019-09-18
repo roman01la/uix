@@ -22,7 +22,7 @@ var map__23525 = p__23524;
 var map__23525__$1 = (((((!((map__23525 == null))))?(((((map__23525.cljs$lang$protocol_mask$partition0$ & (64))) || ((cljs.core.PROTOCOL_SENTINEL === map__23525.cljs$core$ISeq$))))?true:false):false))?cljs.core.apply.cljs$core$IFn$_invoke$arity$2(cljs.core.hash_map,map__23525):map__23525);
 var name = cljs.core.get.cljs$core$IFn$_invoke$arity$2(map__23525__$1,cljs.core.cst$kw$name);
 var macros = cljs.core.get.cljs$core$IFn$_invoke$arity$2(map__23525__$1,cljs.core.cst$kw$macros);
-var url = ["/example-out/",cljs.core.str.cljs$core$IFn$_invoke$arity$1(cljs.js.ns__GT_relpath(name)),".js"].join('');
+var url = ["example-out/",cljs.core.str.cljs$core$IFn$_invoke$arity$1(cljs.js.ns__GT_relpath(name)),".js"].join('');
 return fetch(url).then(((function (url,map__23525,map__23525__$1,name,macros){
 return (function (p1__23522_SHARP_){
 return p1__23522_SHARP_.text();
@@ -81,13 +81,13 @@ return uix.example.eval_string(initial_code);
 var G__23537 = cljs.core.PersistentVector.EMPTY;
 return (uix.core.alpha.effect_BANG_.cljs$core$IFn$_invoke$arity$2 ? uix.core.alpha.effect_BANG_.cljs$core$IFn$_invoke$arity$2(G__23536,G__23537) : uix.core.alpha.effect_BANG_(G__23536,G__23537));
 })();
-return new cljs.core.PersistentVector(null, 4, 5, cljs.core.PersistentVector.EMPTY_NODE, [cljs.core.cst$kw$div,new cljs.core.PersistentArrayMap(null, 1, [cljs.core.cst$kw$style,new cljs.core.PersistentArrayMap(null, 4, [cljs.core.cst$kw$height,"90%",cljs.core.cst$kw$display,cljs.core.cst$kw$flex,cljs.core.cst$kw$flex_DASH_direction,cljs.core.cst$kw$column,cljs.core.cst$kw$padding,(16)], null)], null),new cljs.core.PersistentVector(null, 2, 5, cljs.core.PersistentVector.EMPTY_NODE, [cljs.core.cst$kw$header,new cljs.core.PersistentVector(null, 2, 5, cljs.core.PersistentVector.EMPTY_NODE, [cljs.core.cst$kw$img,new cljs.core.PersistentArrayMap(null, 2, [cljs.core.cst$kw$src,"/logo.png",cljs.core.cst$kw$width,(125)], null)], null)], null),new cljs.core.PersistentVector(null, 4, 5, cljs.core.PersistentVector.EMPTY_NODE, [cljs.core.cst$kw$div,new cljs.core.PersistentArrayMap(null, 1, [cljs.core.cst$kw$style,new cljs.core.PersistentArrayMap(null, 2, [cljs.core.cst$kw$display,cljs.core.cst$kw$flex,cljs.core.cst$kw$flex,(1)], null)], null),new cljs.core.PersistentVector(null, 2, 5, cljs.core.PersistentVector.EMPTY_NODE, [uix.example.editor,new cljs.core.PersistentArrayMap(null, 3, [cljs.core.cst$kw$init_DASH_value,initial_code,cljs.core.cst$kw$on_DASH_change,handle_change,cljs.core.cst$kw$on_DASH_eval,((function (code,handle_change,_){
+return new cljs.core.PersistentVector(null, 4, 5, cljs.core.PersistentVector.EMPTY_NODE, [cljs.core.cst$kw$div,new cljs.core.PersistentArrayMap(null, 1, [cljs.core.cst$kw$style,new cljs.core.PersistentArrayMap(null, 4, [cljs.core.cst$kw$height,"90%",cljs.core.cst$kw$display,cljs.core.cst$kw$flex,cljs.core.cst$kw$flex_DASH_direction,cljs.core.cst$kw$column,cljs.core.cst$kw$padding,(16)], null)], null),new cljs.core.PersistentVector(null, 2, 5, cljs.core.PersistentVector.EMPTY_NODE, [cljs.core.cst$kw$header,new cljs.core.PersistentVector(null, 2, 5, cljs.core.PersistentVector.EMPTY_NODE, [cljs.core.cst$kw$img,new cljs.core.PersistentArrayMap(null, 2, [cljs.core.cst$kw$src,"logo.png",cljs.core.cst$kw$width,(125)], null)], null)], null),new cljs.core.PersistentVector(null, 4, 5, cljs.core.PersistentVector.EMPTY_NODE, [cljs.core.cst$kw$div,new cljs.core.PersistentArrayMap(null, 1, [cljs.core.cst$kw$style,new cljs.core.PersistentArrayMap(null, 2, [cljs.core.cst$kw$display,cljs.core.cst$kw$flex,cljs.core.cst$kw$flex,(1)], null)], null),new cljs.core.PersistentVector(null, 2, 5, cljs.core.PersistentVector.EMPTY_NODE, [uix.example.editor,new cljs.core.PersistentArrayMap(null, 3, [cljs.core.cst$kw$init_DASH_value,initial_code,cljs.core.cst$kw$on_DASH_change,handle_change,cljs.core.cst$kw$on_DASH_eval,((function (code,handle_change,_){
 return (function (){
 return uix.example.eval_string(cljs.core.deref(code));
 });})(code,handle_change,_))
 ], null)], null),new cljs.core.PersistentVector(null, 1, 5, cljs.core.PersistentVector.EMPTY_NODE, [uix.example.view], null)], null)], null);
 });
-fetch("/init.cljs").then((function (p1__23538_SHARP_){
+fetch("init.cljs").then((function (p1__23538_SHARP_){
 return p1__23538_SHARP_.text();
 })).then((function (p1__23539_SHARP_){
 return uix.dom.alpha.render(new cljs.core.PersistentVector(null, 2, 5, cljs.core.PersistentVector.EMPTY_NODE, [uix.example.root,p1__23539_SHARP_], null),window.root);
