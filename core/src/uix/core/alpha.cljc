@@ -143,7 +143,7 @@
      (let [ref-bindings
            (->> (partition 2 bindings)
                 (reduce (fn [ret [sym v]]
-                          (conj ret sym `(.-current (r/useRef ~v))))
+                          (conj ret sym `(cljs.core/-deref (ref ~v))))
                         []))]
        `(let ~ref-bindings
              ~@body))))
