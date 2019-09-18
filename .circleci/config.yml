@@ -18,7 +18,9 @@ jobs:
             - v1-npm-deps-{{ checksum "yarn.lock" }}
             - v1-npm-deps-
 
-      - run: cd core && scripts/test
+      - run: cd core && yarn
+
+      - run: scripts/test
 
       - save_cache:
           paths:
