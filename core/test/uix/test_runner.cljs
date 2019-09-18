@@ -5,10 +5,11 @@
             [uix.hooks-test]))
 
 (defmethod cljs.test/report [::cljs.test/default :summary] [m]
+  (println "\nRan" (:test m) "tests containing"
+           (+ (:pass m) (:fail m) (:error m)) "assertions.")
+  (println (:fail m) "failures," (:error m) "errors.")
   (when (pos? (:fail m))
-    (js/testsFailed (:fail m)))
-  (when (pos? (:error m))
-    (js/testsErrored (:error m))))
+    (js/testsFailed (:fail m))))
 
 (cljs.test/run-tests
   (cljs.test/empty-env)
