@@ -1,6 +1,8 @@
 .idea
 .cpcache
 resources/public/out
+resources/public/example-out
+resources/public/example.js
 resources/public/benchmark.js
 target
 .rebel_readline_history
