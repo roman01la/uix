@@ -31,7 +31,7 @@ jobs:
             - v1-npm-deps-{{ checksum "core/yarn.lock" }}
             - v1-npm-deps-
 
-      - run: cd core && yarn
+      - run: cd core && yarn install --frozen-lockfile
 
       - run: cd core && scripts/test
 
@@ -42,7 +42,7 @@ jobs:
 
       - save_cache:
           paths:
-            - ~/.yarn
+            - ~/.cache/yarn
           key: v1-npm-deps-{{ checksum "core/yarn.lock" }}
 
 workflows:
