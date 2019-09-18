@@ -1,0 +1,1 @@
+{:output-dir "resources/public/example-out", :static-fns true, :optimize-constants true, :cache-analysis true, :optimizations :simple, :verbose true, :aot-cache false, :output-to "resources/public/example.js", :fn-invoke-direct true, :main uix.example}
