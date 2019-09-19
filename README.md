@@ -8,6 +8,8 @@ Bug reports, feature requests and PRs are welcome 👌
 
 [API Documentation](https://roman01la.github.io/uix/docs/)
 
+[![CircleCI](https://circleci.com/gh/roman01la/uix.svg?style=svg)](https://circleci.com/gh/roman01la/uix)
+
 There are no versioned releases yet, use `deps.edn` to depend on the code via git deps.
 
 ```clj
@@ -21,8 +23,6 @@ There are no versioned releases yet, use `deps.edn` to depend on the code via gi
                 :deps/root "rn"
                 :sha "{{commit hash}}"}}}
 ```
-
-[![CircleCI](https://circleci.com/gh/roman01la/uix.svg?style=svg)](https://circleci.com/gh/roman01la/uix)
 
 ```clj
 (require '[uix.core.alpha :as uix])
