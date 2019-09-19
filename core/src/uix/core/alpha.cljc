@@ -17,7 +17,9 @@
      :clj child))
 
 #?(:cljs
-    (defn create-class [{:keys [init-state static prototype] :or {init-state #js {}}}]
+    (defn create-class
+      "Creates class based React component"
+      [{:keys [init-state static prototype] :or {init-state #js {}}}]
       (let [ctor (fn []
                    (this-as this
                      (.apply r/Component this (js-arguments))
@@ -30,29 +32,35 @@
           (aset (.-prototype ctor) (name k) v))
         ctor)))
 
-(defn create-error-boundary
-  [{:keys [display-name error->state handle-catch]
-    :or {display-name (str (gensym "error-boundary"))}}
-   render-fn]
-  #?(:cljs
-      (let [render (fn []
-                     (this-as this
-                       (-> (render-fn (.. this -state -argv)
-                                      (.. this -props -argv))
-                           as-element)))
-            klass (create-class {:static {:displayName display-name
-                                          :getDerivedStateFromError (fn [error] #js {:argv (error->state error)})}
-                                 :prototype {:componentDidCatch handle-catch
-                                             :render render}})]
-        (fn [& args]
-          (r/createElement klass #js {:argv args})))
+ (defn create-error-boundary
+   "Creates React's Error Boundary component
 
-     :clj (fn [& args]
-            (try
-              (render-fn nil args)
-              (catch Exception e
-                (handle-catch e nil)
-                (render-fn (error->state e) args))))))
+    display-name — the name of the component to be displayed in stack trace
+    error->state — maps error object to component's state that is used in render-fn
+    handle-catch — for side-effects, logging etc.
+    render-fn — takes state value returned from error->state and a vector of arguments passed into error boundary"
+   [{:keys [display-name error->state handle-catch]
+     :or {display-name (str (gensym "error-boundary"))}}
+    render-fn]
+   #?(:cljs
+       (let [render (fn []
+                      (this-as this
+                        (-> (render-fn (.. this -state -argv)
+                                       (.. this -props -argv))
+                            as-element)))
+             klass (create-class {:static {:displayName display-name
+                                           :getDerivedStateFromError (fn [error] #js {:argv (error->state error)})}
+                                  :prototype {:componentDidCatch handle-catch
+                                              :render render}})]
+         (fn [& args]
+           (r/createElement klass #js {:argv args})))
+
+      :clj (fn [& args]
+             (try
+               (render-fn nil args)
+               (catch Exception e
+                 (handle-catch e nil)
+                 (render-fn (error->state e) args))))))
 
 #?(:cljs
    (deftype ReactRef [current]
