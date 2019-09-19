@@ -8,11 +8,51 @@
             [uix.compiler.react :as uixr]
             [uix.hooks.alpha :as hooks]))
 
+(declare as-element)
+
 ;; React's top-level API
 
 (defn strict-mode [child]
   #?(:cljs [:> r/StrictMode child]
      :clj child))
+
+#?(:cljs
+    (defn create-class [{:keys [init-state static prototype] :or {init-state #js {}}}]
+      (let [ctor (fn []
+                   (this-as this
+                     (.apply r/Component this (js-arguments))
+                     (set! (.-state this) init-state))
+                   nil)]
+        (set! (.-prototype ctor) (.create js/Object (.-prototype r/Component)))
+        (doseq [[k v] static]
+          (aset ctor (name k) v))
+        (doseq [[k v] prototype]
+          (aset (.-prototype ctor) (name k) v))
+        ctor)))
+
+(defn create-error-boundary
+  [{:keys [display-name error->state handle-catch]
+    :or {display-name (str (gensym "error-boundary"))}}
+   render-fn]
+  #?(:cljs
+      (let [render (fn []
+                     (this-as this
+                       (-> (render-fn (.. this -state -argv)
+                                      (.. this -props -argv))
+                           as-element)))
+            klass (create-class {:static {:displayName display-name
+                                          :getDerivedStateFromError (fn [error] #js {:argv (error->state error)})}
+                                 :prototype {:componentDidCatch handle-catch
+                                             :render render}})]
+        (fn [& args]
+          (r/createElement klass #js {:argv args})))
+
+     :clj (fn [& args]
+            (try
+              (render-fn nil args)
+              (catch Exception e
+                (handle-catch e nil)
+                (render-fn (error->state e) args))))))
 
 #?(:cljs
    (deftype ReactRef [current]
