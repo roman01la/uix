@@ -321,15 +321,23 @@
 (def fmt-bang-regex (js/RegExp. "_BANG_" "g"))
 (def fmt-star-regex (js/RegExp. "_STAR_" "g"))
 
+(defn ^string demunge-name [^string s]
+  (-> s
+      (.replace fmt-qmark-regex "?")
+      (.replace fmt-bang-regex "!")
+      (.replace fmt-star-regex "*")
+      (.replace fmt-dash-regex "-")))
+
 (defn format-display-name [^string s]
   (let [^js/Array parts (.split s #"\$")
-        ^js/Array ns-parts (.slice parts 0 (dec ^number (.-length parts)))
-        ^string name-part (.slice parts (dec ^number (.-length parts)))]
-    (-> (str ^string (.join ns-parts ".") "/" name-part)
-        (.replace fmt-qmark-regex "?")
-        (.replace fmt-bang-regex "!")
-        (.replace fmt-star-regex "*")
-        (.replace fmt-dash-regex "-"))))
+        last-idx (dec ^number (.-length parts))
+        ^string name-part (aget parts last-idx)]
+    (if (== 1 (.-length parts))
+      (demunge-name name-part)
+      (-> ^js/Array (.slice parts 0 last-idx)
+          ^string (.join ".")
+          (str "/" name-part)
+          demunge-name))))
 
 (defn with-name [^js f ^js rf]
   (when (string? (.-name f))
