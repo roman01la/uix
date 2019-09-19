@@ -200,7 +200,7 @@ reagent-interpret x 4031 ops/s, elapsed 2481ms
 ## Testing
 
 ```
-clojure -A:test -m cljs.main -re node -m uix.test-runner
+scripts/test
 ```
 
 _Note: to ensure you're using the right Node.js version, you can use [nvm](https://github.com/nvm-sh/nvm) and run `nvm use`
