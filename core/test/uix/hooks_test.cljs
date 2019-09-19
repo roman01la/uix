@@ -1,7 +1,8 @@
 (ns uix.hooks-test
   (:require [clojure.test :refer [deftest is testing run-tests async]]
             [uix.hooks.alpha :as hooks :refer [maybe-js-deps maybe-ret-fn]]
-            [uix.dom.alpha :as dom]))
+            [uix.dom.alpha :as dom]
+            [uix.test-utils :as t]))
 
 (defn render [el]
   (dom/render el js/root))
@@ -36,6 +37,18 @@
     (async done
       (render [f-ref done]))))
 
+#_(deftest test-effect-hook
+    (let [f-effect (fn [done]
+                     (let [calls (hooks/state 0)]
+                       (hooks/effect!
+                         (fn []
+                           (if (== 0 @calls)
+                             (swap! calls inc)
+                             (do (is (== @calls 1))
+                                 (done)))))
+                       @calls))]
+      (async done
+        (render [f-effect done]))))
 
 (defn -main []
   (run-tests))
