@@ -167,6 +167,12 @@ See an example in `uix.recipes.server-rendering`
 (uix.dom/render-to-static-stream element {:on-chunk f}) ;; see https://reactjs.org/docs/react-dom-server.html#rendertostaticnodestream
 ```
 
+### Server-side rendering (JS)
+It's possible to run SSR in JavaScript environment, using React's serializer:
+
+1. Add `ReactDOMServer` into your dependencies (as `cljsjs/react-dom-server` or any other way)
+2. Run `(->> (uix.compiler.alpha/as-element [root]) (.renderToString js/ReactDOMServer))`
+
 ## Benchmarks
 
 - Hiccup interpretation `clojure -A:dev:benchmark:bench-front`
