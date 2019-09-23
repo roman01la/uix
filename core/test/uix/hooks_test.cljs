@@ -1,6 +1,6 @@
 (ns uix.hooks-test
   (:require [clojure.test :refer [deftest is testing run-tests async]]
-            [uix.hooks.alpha :as hooks :refer [maybe-js-deps maybe-ret-fn]]
+            [uix.hooks.alpha :as hooks :refer [maybe-js-deps]]
             [uix.dom.alpha :as dom]
             [uix.test-utils :as t]))
 
@@ -10,10 +10,6 @@
 (deftest test-maybe-js-deps
   (is (.isArray js/Array (maybe-js-deps [])))
   (is (= (maybe-js-deps nil) js/undefined)))
-
-(deftest test-maybe-ret-fn
-  (is (== 1 ((maybe-ret-fn (constantly 1)))))
-  (is (== js/undefined ((maybe-ret-fn (constantly nil))))))
 
 (deftest test-state-hook
   (let [f-state (fn [done]
