@@ -6,7 +6,7 @@
             [clojure.string :as str]
             [cljs-bean.core :as bean]))
 
-(defn unwrap-ref [^hooks/IRef -ref]
+(defn unwrap-ref [-ref]
   (if (implements? hooks/IRef -ref)
     (hooks/unwrap ^not-native -ref)
     -ref))
@@ -402,7 +402,7 @@
     (satisfies? IPrintWithWriter x) (pr-str x)
     :else x))
 
-(defn expand-seq [^not-native s]
+(defn expand-seq [s]
   (map as-element s))
 
 (defn make-element [^not-native argv component js-props first-child]
