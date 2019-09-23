@@ -268,6 +268,7 @@
     (make-element argv react/Suspense js-props first-child)))
 
 (defn portal-element [^not-native argv]
+  (.warn js/console "React portal Hiccup syntax :-> is deprecated, use uix.dom.alpha/create-portal instead")
   (let [child (-nth argv 1 nil)
         target (-nth argv 2 nil)
         node (if (or (string? target) (keyword? target))

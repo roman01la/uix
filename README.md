@@ -64,7 +64,6 @@ There are no versioned releases yet, use `deps.edn` to depend on the code via gi
 - `[:div#id.class]` or `[:#id.class]`
 - `[:> js/Component attrs & children]` - interop with JS components
 - `[:<> attrs & children]` - `React.Fragment`
-- `[:-> element :#selector]` or `[:-> element dom-node]` - `React.createPortal`
 - `[:# {:fallback element} & children]` - `React.Suspense`
 
 ### Hooks

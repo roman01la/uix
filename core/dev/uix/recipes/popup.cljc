@@ -1,12 +1,8 @@
 (ns uix.recipes.popup
   "This recipe shows how to use React's portals
-  to render components into a different DOM node.
-
-  UIx provides a special Hiccup syntax for declaring portals:
-  `[:-> element target]` where target is either CSS selector
-  of the target DOM node in a form of a keyword or a reference to
-  DOM node itself."
-  (:require [uix.core.alpha :as uix]))
+  to render components into a different DOM node."
+  (:require [uix.core.alpha :as uix]
+            [uix.dom.alpha :as dom]))
 
 (defn popup [{:keys [on-close]}]
   [:div {:style {:position :absolute
@@ -27,6 +23,7 @@
     [:<>
      [:button {:on-click #(reset! open?* true)}
       "Open popup"]
-     (when @open?*
-       [:-> [popup {:on-close #(reset! open?* false)}]
-        :#popup-layer])]))
+     #?(:cljs
+         (when @open?*
+           (dom/create-portal [popup {:on-close #(reset! open?* false)}]
+            (.querySelector js/document "#popup-layer"))))]))

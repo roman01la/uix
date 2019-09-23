@@ -439,6 +439,8 @@
                  `(>el suspense ~attrs ~children))))
 
 (defmethod compile-element :portal [v]
+  (binding [*out* *err*]
+    (println "WARNING: React portal Hiccup syntax :-> is deprecated, use uix.dom.alpha/create-portal instead"))
   (let [[_ child node] v]
     `(~'js/ReactDOM.createPortal ~(compile-html* child) ~node)))
 

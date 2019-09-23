@@ -59,7 +59,7 @@
   "Renders Hiccup element into DOM node"
   [child node]
   #?(:cljs (rdom/createPortal (compiler/as-element child) node)
-     :clj [:-> child node]))
+     :clj (prn (str "Portal elements are not supported on JVM, skipping: " [:-> child node]))))
 
 ;; react-dom/server top-level API
 
