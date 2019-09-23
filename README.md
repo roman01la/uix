@@ -154,7 +154,11 @@ Loading React components on-demand as Closure modules. See [code splitting](http
     [ui-list])]
 ```
 
-### Server-side rendering (JVM)
+### Server-side rendering
+
+UIx can be used for SSR or usual templating in both JVM and JavaScript runtimes
+
+#### Server-side rendering in JVM
 
 See an example in `uix.recipes.server-rendering`
 
@@ -167,7 +171,7 @@ See an example in `uix.recipes.server-rendering`
 (uix.dom/render-to-static-stream element {:on-chunk f}) ;; see https://reactjs.org/docs/react-dom-server.html#rendertostaticnodestream
 ```
 
-### Server-side rendering (JS)
+#### Server-side rendering in JS
 It's possible to run SSR in JavaScript environment, using React's serializer:
 
 1. Add `ReactDOMServer` into your dependencies (as `cljsjs/react-dom-server` or any other way)
