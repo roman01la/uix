@@ -39,7 +39,7 @@ There are no versioned releases yet, use `deps.edn` to depend on the code via gi
       [:span @state*]
       [button {:on-click #(swap! state* inc)} "+"]]))
 
-(uix.dom/render [button {:on-click js/console.log} "button"] js/root)
+(uix.dom/render [app] js/root)
 ```
 
 ## Recipes
@@ -113,7 +113,7 @@ Injects provided function into attributes transformation stage. Could be used fo
 _NOTE: UIx interpreter is already super fast (3x faster than Reagent and only 2x slower than vanilla React).
 Use pre-compilation ONLY if you are hitting performance problems._
 
-Optionally compiles Hiccup into inlined React elements at compile-time
+Compiles Hiccup into inlined React elements at compile-time
 
 ```clj
 (uix/html
@@ -130,6 +130,12 @@ Optionally compiles Hiccup into inlined React elements at compile-time
 ```
 
 Compiler will try to inline as much as possible based on type information provided by ClojureScript's compiler (inspired by [“On fast ClojureScript React templates”](https://kevinlynagh.com/notes/fast-cljs-react-templates/)). When it is unable to determine type of the value it will emit interpretation call for the value and print a warning asking to annotate a value with either `^:inline` or `^:interpret`.
+
+```clj
+(defn button [attrs text]
+  [:button ^:interpret attrs ;; interpret attrs map as React attributes at runtime
+  ^:inline text]) ;; will inline text as is assuming it's a string
+```
 
 `uix.core.alpha/defui` does the same as `html` macro and additionally skips type checking arguments if a spec is provided **(this part is experimental)**. 
 
