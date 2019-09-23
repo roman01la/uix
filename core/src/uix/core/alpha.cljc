@@ -153,7 +153,7 @@
      (require-lazy '[my.ns.components :refer [c1 c2]])"
      [form]
      (if-not &env
-       `(require ~form)
+       `(clojure.core/require ~form)
        (let [m (s/conform :lazy/libspec form)]
          (when (not= m :clojure.spec.alpha/invalid)
            (let [{:keys [lib refer]} (:libspec m)
@@ -188,13 +188,15 @@
    (defmacro use-let
      "Bind variables as with let, except that the bindings are only evaluated once."
      [bindings & body]
-     (let [ref-bindings
-           (->> (partition 2 bindings)
-                (reduce (fn [ret [sym v]]
-                          (conj ret sym `(cljs.core/-deref (ref ~v))))
-                        []))]
-       `(let ~ref-bindings
-             ~@body))))
+     (if-not &env
+       `(let ~bindings ~@body)
+       (let [ref-bindings
+             (->> (partition 2 bindings)
+                  (reduce (fn [ret [sym v]]
+                            (conj ret sym `(cljs.core/-deref (ref ~v))))
+                          []))]
+         `(let ~ref-bindings
+               ~@body)))))
 
 (defn as-element [x]
   "Compiles Hiccup into React elements at run-time."
