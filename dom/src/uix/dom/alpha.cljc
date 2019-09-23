@@ -63,15 +63,15 @@
 
 ;; react-dom/server top-level API
 
-#?(:clj
-   (def render-to-string
-     "Renders to HTML string to be used with React"
-     compiler/render-to-string))
+(defn render-to-string [element]
+  "Renders to HTML string to be used with React"
+  #?(:clj compiler/render-to-string
+     :cljs (.renderToString js/ReactDOMServer (compiler/as-element element))))
 
-#?(:clj
-   (def render-to-static-markup
-     "Renders to HTML string"
-     compiler/render-to-static-markup))
+(defn render-to-static-markup [element]
+  "Renders to HTML string"
+  #?(:clj compiler/render-to-static-markup
+     :cljs (.renderToStaticMarkup js/ReactDOMServer (compiler/as-element element))))
 
 #?(:clj
    (def render-to-stream
@@ -80,9 +80,17 @@
      (render-to-stream [element] {:on-chunk f})"
      compiler/render-to-stream))
 
+#?(:cljs
+   (defn render-to-stream [element]
+     (.renderToNodeStream js/ReactDOMServer (compiler/as-element element))))
+
 #?(:clj
    (def render-to-static-stream
      "Like render-to-static-markup, but pushes HTML in chunks as they are being rendered
 
      (render-to-static-stream [element] {:on-chunk f})"
      compiler/render-to-static-stream))
+
+#?(:cljs
+   (defn render-to-static-stream [element]
+     (.renderToStaticNodeStream js/ReactDOMServer (compiler/as-element element))))

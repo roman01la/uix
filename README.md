@@ -177,10 +177,10 @@ See an example in `uix.recipes.server-rendering`
 ```
 
 #### Server-side rendering in JS
-It's possible to run SSR in JavaScript environment, using React's serializer:
+SSR works in JavaScript environment via React's serializer using same API. 
 
 1. Add `ReactDOMServer` into your dependencies (as `cljsjs/react-dom-server` or any other way)
-2. Run `(->> (uix.compiler.alpha/as-element [root]) (.renderToString js/ReactDOMServer))`
+2. Run `(uix.dom/render-to-string element)`
 
 ## Benchmarks
 
