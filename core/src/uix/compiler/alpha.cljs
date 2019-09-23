@@ -404,7 +404,11 @@
     :else x))
 
 (defn expand-seq [s]
-  (map as-element s))
+  (reduce (fn [ret e]
+            (.push ret (as-element e))
+            ret)
+          #js []
+          s))
 
 (defn make-element [^not-native argv component js-props first-child]
   (case (- (-count argv) first-child)
