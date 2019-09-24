@@ -5,7 +5,9 @@
             [uix.test-utils :as t]))
 
 (defn render [el]
-  (dom/render el js/root))
+  (let [root (.createElement js/document "div")]
+    (.append (.getElementById js/document "root") root)
+    (dom/render el root)))
 
 (deftest test-maybe-js-deps
   (is (.isArray js/Array (maybe-js-deps [])))
