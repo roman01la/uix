@@ -43,8 +43,13 @@
    (defn state
      "Takes initial value and returns an instance of StateHook."
      [value]
-     (let [[value set-value] (r/useState value)]
-       (StateHook. value set-value)))
+     (let [[value set-value] (r/useState value)
+           sh (r/useMemo #(StateHook. value set-value) #js [])]
+       (r/useMemo (fn []
+                    (set! (.-value sh) value)
+                    (set! (.-set-value sh) set-value)
+                    sh)
+                  #js [value set-value])))
 
    :clj
    (defn state [value]

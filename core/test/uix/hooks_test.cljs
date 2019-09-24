@@ -24,6 +24,17 @@
     (async done
       (render [f-state done]))))
 
+(deftest test-state-hook-identity
+  (let [f-state (fn [done]
+                  (let [xs (hooks/state [])]
+                    (if (< (count @xs) 2)
+                      (swap! xs conj xs)
+                      (let [[s1 s2] @xs]
+                        (is (identical? s1 s2))
+                        (done)))))]
+    (async done
+      (render [f-state done]))))
+
 (deftest test-ref-hook-mutable
   (let [f-ref (fn [done]
                 (let [ref (hooks/ref 1)]
