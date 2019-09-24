@@ -17,8 +17,11 @@
   (is (uix.core/default-compare-args #js {:argv 1} #js {:argv 1})))
 
 (deftest test-memoize
-  (let [f (uix.core/memoize identity)]
-    (is (t/react-element-of-type? f "react.memo"))))
+  (let [f (uix.core/memoize (fn [x]
+                              (is (= 1 x))
+                              [:h1 x]))]
+    (is (t/react-element-of-type? f "react.memo"))
+    (is (= "<h1>1</h1>" (t/as-string [f 1])))))
 
 #_(deftest test-require-lazy
     (require-lazy '[uix.core.alpha :refer [strict-mode]])

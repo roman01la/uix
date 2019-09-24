@@ -102,7 +102,8 @@
   ([f]
    (memoize f default-compare-args))
   ([f should-update?]
-   #?(:cljs (react/memo f should-update?)
+   #?(:cljs (react/memo #(compiler/as-element (apply f (next (.-argv %))))
+                        should-update?)
       :clj f)))
 
 (def state
