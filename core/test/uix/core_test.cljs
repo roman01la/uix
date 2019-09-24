@@ -1,9 +1,10 @@
 (ns uix.core-test
-  (:require [clojure.test :refer [deftest is testing run-tests]]
-            [uix.core.alpha :as uix.core :refer-macros [require-lazy html defui]]
+  (:require [clojure.test :refer [deftest is async testing run-tests]]
+            [uix.core.alpha :as uix.core :refer-macros [use-let require-lazy html defui]]
             [react :as r]
             [uix.test-utils :as t]
-            [cljs-bean.core :as bean]))
+            [cljs-bean.core :as bean]
+            [uix.hooks.alpha :as hooks]))
 
 (deftest test-strict-mode
   (is (= (uix.core/strict-mode 1) [:> r/StrictMode 1])))
@@ -48,6 +49,21 @@
                   .-type)]
     (is (= (ftype #js {:x 1}) 1))))
 
+(deftest test-use-let
+  (let [v (atom 9)
+        f (fn [done]
+            (let [called?* (hooks/state false)]
+              (use-let [x 1
+                        {:keys [y]} {:y 2}
+                        z (swap! v inc)] ;; should eval only once
+                (is (= 1 x))
+                (is (= 2 y))
+                (is (= 10 z))
+                (if @called?*
+                  (done)
+                  (reset! called?* true)))))]
+    (async done
+      (t/render [f done]))))
 
 (defn -main []
   (run-tests))

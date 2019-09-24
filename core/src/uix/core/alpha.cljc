@@ -194,7 +194,8 @@
        (let [ref-bindings
              (->> (partition 2 bindings)
                   (reduce (fn [ret [sym v]]
-                            (conj ret sym `(cljs.core/-deref (ref ~v))))
+                            (let [v `(.useMemo ~'js/React (fn [] ~v) (cljs.core/array))]
+                              (conj ret sym v)))
                           []))]
          `(let ~ref-bindings
                ~@body)))))
