@@ -61,10 +61,10 @@
 
 (defn cached-prop-name [k]
   (if (named? k)
-    (if-some [k' (aget prop-name-cache (-name k))]
+    (if-some [k' (aget prop-name-cache (-name ^not-native k))]
       k'
       (let [v (dash-to-camel k)]
-        (gobj/set prop-name-cache (-name k) v)
+        (gobj/set prop-name-cache (-name ^not-native k) v)
         v))
     k))
 
@@ -73,7 +73,7 @@
     (if-some [k' (aget custom-prop-name-cache (-name k))]
       k'
       (let [v (dash-to-camel k)]
-        (gobj/set custom-prop-name-cache (-name k) v)
+        (gobj/set custom-prop-name-cache (-name ^not-native k) v)
         v))
     k))
 
@@ -87,7 +87,7 @@
                             #js [])
 
                    (convert-prop-value-shallow v))
-    (named? v) (-name v)
+    (named? v) (-name ^not-native v)
     :else v))
 
 (defn kv-conv [o k v]
@@ -115,7 +115,7 @@
 (defn convert-prop-value [x]
   (cond
     (js-val? x) x
-    (named? x) (-name x)
+    (named? x) (-name ^not-native x)
     (map? x) (reduce-kv kv-conv #js {} x)
     (coll? x) (clj->js x)
     (ifn? x) #(apply x %&)
@@ -129,7 +129,7 @@
 (defn convert-custom-prop-value [x]
   (cond
     (js-val? x) x
-    (named? x) (-name x)
+    (named? x) (-name ^not-native x)
     (map? x) (reduce-kv custom-kv-conv #js {} x)
     (coll? x) (clj->js x)
     (ifn? x) #(apply x %&)
@@ -142,7 +142,7 @@
      (coll? class)
      (let [^js/Array classes (reduce (fn [^js/Array a c]
                                        (when ^boolean c
-                                         (->> (if (named? c) (-name c) c)
+                                         (->> (if (named? c) (-name ^not-native c) c)
                                               (.push a)))
                                        a)
                                      #js []
@@ -150,7 +150,7 @@
        (when (pos? (.-length classes))
          (.join classes " ")))
 
-     (named? class) (-name class)
+     (named? class) (-name ^not-native class)
      :else class))
   ([a b]
    (if ^boolean a
@@ -397,7 +397,7 @@
     (js-val? x) x
     (vector? x) (vec-to-elem x)
     (seq? x) (expand-seq x)
-    (named? x) (-name x)
+    (named? x) (-name ^not-native x)
     (satisfies? IPrintWithWriter x) (pr-str x)
     :else x))
 
