@@ -97,7 +97,8 @@
   ([]
    (ref nil))
   ([value]
-   #?(:cljs (RefHook. (r/useRef value))
+   #?(:cljs (let [vref (r/useRef value)]
+              (r/useMemo #(RefHook. vref) #js []))
       :clj (atom value))))
 
 #?(:clj

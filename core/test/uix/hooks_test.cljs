@@ -24,7 +24,7 @@
     (async done
       (render [f-state done]))))
 
-(deftest test-ref-hook
+(deftest test-ref-hook-mutable
   (let [f-ref (fn [done]
                 (let [ref (hooks/ref 1)]
                   (is (instance? hooks/RefHook ref))
@@ -32,6 +32,18 @@
                   (swap! ref inc)
                   (is (== @ref 2))
                   (done)))]
+    (async done
+      (render [f-ref done]))))
+
+(deftest test-ref-hook-memoized-instance
+  (let [f-ref (fn [done]
+                (let [ref (hooks/ref 1)
+                      refs (hooks/state [])]
+                  (if (< (count @refs) 2)
+                    (swap! refs conj ref)
+                    (let [[r1 r2] @refs]
+                      (is (identical? r1 r2))
+                      (done)))))]
     (async done
       (render [f-ref done]))))
 
