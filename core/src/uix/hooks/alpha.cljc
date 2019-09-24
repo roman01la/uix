@@ -40,9 +40,7 @@
        (-write writer "]"))))
 
 #?(:cljs
-   (defn state
-     "Takes initial value and returns an instance of StateHook."
-     [value]
+   (defn state [value]
      (let [[value set-value] (r/useState value)
            sh (r/useMemo #(StateHook. value set-value) #js [])]
        (r/useMemo (fn []
@@ -97,14 +95,10 @@
        (pr-writer {:val (-deref o)} writer opts)
        (-write writer "]"))))
 
-(defn ref
-  "Takes optional initial value and returns an instance of RefHook."
-  ([]
-   (ref nil))
-  ([value]
-   #?(:cljs (let [vref (r/useRef value)]
-              (r/useMemo #(RefHook. vref) #js []))
-      :clj (atom value))))
+(defn ref [value]
+  #?(:cljs (let [vref (r/useRef value)]
+             (r/useMemo #(RefHook. vref) #js []))
+     :clj (atom value)))
 
 #?(:clj
    (defmacro maybe-js-deps [deps]
@@ -118,23 +112,16 @@
         ~f)))
 
 ;; == Effect hook ==
-(defn effect!
-  "Takes a function to be executed in an effect and optional vector of dependencies.
-
-  See: https://reactjs.org/docs/hooks-reference.html#useeffect"
-  ([setup-fn]
-   #?(:cljs (effect! setup-fn js/undefined)
-      :clj (effect! setup-fn nil)))
-  ([setup-fn deps]
-   #?(:cljs (with-deps-check [prev-deps*]
-              (r/useEffect
-               (fn []
-                 (reset! prev-deps* deps)
-                 (let [ret (setup-fn)]
-                   (if (fn? ret) ret js/undefined)))
-               (maybe-js-deps @prev-deps*))
-              deps)
-      :clj nil)))
+(defn effect! [setup-fn deps]
+  #?(:cljs (with-deps-check [prev-deps*]
+             (r/useEffect
+              (fn []
+                (reset! prev-deps* deps)
+                (let [ret (setup-fn)]
+                  (if (fn? ret) ret js/undefined)))
+              (maybe-js-deps @prev-deps*))
+             deps)
+     :clj nil))
 
 #?(:clj
    (defmacro with-effect
@@ -146,23 +133,16 @@
        `(effect! #(do ~@setup-fn) ~deps))))
 
 ;; == Layout effect hook ==
-(defn layout-effect!
-  "Takes a function to be executed in a layout effect and optional vector of dependencies.
-
-  See: https://reactjs.org/docs/hooks-reference.html#uselayouteffect"
-  ([setup-fn]
-   #?(:cljs (layout-effect! setup-fn js/undefined)
-      :clj (layout-effect! setup-fn nil)))
-  ([setup-fn deps]
-   #?(:cljs (with-deps-check [prev-deps*]
-              (r/useLayoutEffect
-               (fn []
-                 (reset! prev-deps* deps)
-                 (let [ret (setup-fn)]
-                   (if (fn? ret) ret js/undefined)))
-               (maybe-js-deps @prev-deps*))
-              deps)
-      :clj nil)))
+(defn layout-effect! [setup-fn deps]
+  #?(:cljs (with-deps-check [prev-deps*]
+             (r/useLayoutEffect
+              (fn []
+                (reset! prev-deps* deps)
+                (let [ret (setup-fn)]
+                  (if (fn? ret) ret js/undefined)))
+              (maybe-js-deps @prev-deps*))
+             deps)
+     :clj nil))
 
 #?(:clj
    (defmacro with-layout-effect
@@ -174,23 +154,15 @@
        `(layout-effect! #(do ~@setup-fn) ~deps))))
 
 ;; == Callback hook ==
-(defn callback
-  "Takes function f and optional vector of dependencies, and returns f."
-  ([f]
-   (callback f nil))
-  ([f deps]
-   #?(:cljs (with-deps-check [prev-deps*]
-              (r/useCallback f (maybe-js-deps @prev-deps*))
-              deps)
-      :clj f)))
+(defn callback [f deps]
+  #?(:cljs (with-deps-check [prev-deps*]
+             (r/useCallback f (maybe-js-deps @prev-deps*))
+             deps)
+     :clj f))
 
 ;; == Memo hook ==
-(defn memo
-  "Takes function f and optional vector of dependencies, and returns memoized f."
-  ([f]
-   (memo f nil))
-  ([f deps]
-   #?(:cljs (with-deps-check [prev-deps*]
-              (r/useMemo f (maybe-js-deps @prev-deps*))
-              deps)
-      :clj (f))))
+(defn memo [f deps]
+  #?(:cljs (with-deps-check [prev-deps*]
+             (r/useMemo f (maybe-js-deps @prev-deps*))
+             deps)
+     :clj (f)))

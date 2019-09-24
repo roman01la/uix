@@ -3,8 +3,7 @@
             [uix.core.alpha :as uix.core :refer-macros [use-let require-lazy html defui]]
             [react :as r]
             [uix.test-utils :as t]
-            [cljs-bean.core :as bean]
-            [uix.hooks.alpha :as hooks]))
+            [cljs-bean.core :as bean]))
 
 (deftest test-strict-mode
   (is (= (uix.core/strict-mode 1) [:> r/StrictMode 1])))
@@ -52,7 +51,7 @@
 (deftest test-use-let
   (let [v (atom 9)
         f (fn [done]
-            (let [called?* (hooks/state false)]
+            (let [called?* (uix.core/state false)]
               (use-let [x 1
                         {:keys [y]} {:y 2}
                         z (swap! v inc)] ;; should eval only once

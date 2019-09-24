@@ -106,29 +106,51 @@
                         should-update?)
       :clj f)))
 
-(def state
-  "Returns React's state hook wrapped in atom-like type."
-  hooks/state)
+(defn state
+  "Takes initial value and returns React's state hook wrapped in atom-like type."
+  [value]
+  (hooks/state value))
 
-(def effect!
-  "React's effect hook. Takes callback and deps."
-  hooks/effect!)
+(defn effect!
+  "Takes a function to be executed in an effect and optional vector of dependencies.
 
-(def layout-effect!
-  "React's layout effect hook. Takes callback and deps."
-  hooks/layout-effect!)
+  See: https://reactjs.org/docs/hooks-reference.html#useeffect"
+  ([setup-fn]
+   #?(:cljs (effect! setup-fn js/undefined)
+      :clj (effect! setup-fn nil)))
+  ([setup-fn deps]
+   (hooks/effect! setup-fn deps)))
 
-(def memo
-  "React's memo hook. Takes callback and deps."
-  hooks/memo)
+(defn layout-effect!
+  "Takes a function to be executed in a layout effect and optional vector of dependencies.
 
-(def ref
-  "Returns React's ref hook wrapped in atom-like type. Takes optional initial value."
-  hooks/ref)
+  See: https://reactjs.org/docs/hooks-reference.html#uselayouteffect"
+  ([setup-fn]
+   #?(:cljs (layout-effect! setup-fn js/undefined)
+      :clj (layout-effect! setup-fn nil)))
+  ([setup-fn deps]
+   (hooks/layout-effect! setup-fn deps)))
 
-(def callback
-  "React's callback hook. Takes callback and deps."
-  hooks/callback)
+(defn memo
+  "Takes function f and optional vector of dependencies, and returns memoized f."
+  ([f]
+   (memo f nil))
+  ([f deps]
+   (hooks/memo f deps)))
+
+(defn ref
+  "Takes optional initial value and returns React's ref hook wrapped in atom-like type."
+  ([]
+   (ref nil))
+  ([value]
+   (hooks/ref value)))
+
+(defn callback
+  "Takes function f and optional vector of dependencies, and returns f."
+  ([f]
+   (callback f nil))
+  ([f deps]
+   (hooks/callback f deps)))
 
 #?(:clj
    (defmacro with-effect
@@ -205,10 +227,12 @@
   #?(:cljs (compiler/as-element x)
      :clj x))
 
-(defn as-react [f]
+(defn as-react
+  "Interop with React components. Takes UIx component function and returns same component wrapped into interop layer."
+  [f]
   #?(:cljs (compiler/as-react f)
      :clj f))
 
-(def add-transform-fn
+(defn add-transform-fn [f]
   "Injects attributes transforming function for Hiccup elements pre-transformations"
-  compiler/add-transform-fn)
+  (compiler/add-transform-fn f))

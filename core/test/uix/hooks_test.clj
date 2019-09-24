@@ -1,13 +1,14 @@
 (ns uix.hooks-test
   (:require [clojure.test :refer :all]
+            [uix.core.alpha :as core]
             [uix.hooks.alpha :as hooks]))
 
 (deftest test-state
-  (is (= 1 @(hooks/state 1))))
+  (is (= 1 @(core/state 1))))
 
 (deftest test-ref
-  (is (= nil @(hooks/ref)))
-  (is (= 1 @(hooks/ref 1))))
+  (is (= nil @(core/ref)))
+  (is (= 1 @(core/ref 1))))
 
 (deftest test-with-deps-check
   (hooks/with-deps-check [prev-deps]
@@ -15,19 +16,19 @@
     [1]))
 
 (deftest test-effect!
-  (is (= nil (hooks/effect! identity))))
+  (is (= nil (core/effect! identity))))
 
 (deftest test-with-effect
-  (is (= nil (hooks/with-effect [] (1)))))
+  (is (= nil (core/with-effect [] (1)))))
 
 (deftest test-layout-effect!
-  (is (= nil (hooks/layout-effect! identity))))
+  (is (= nil (core/layout-effect! identity))))
 
 (deftest test-with-layout-effect
-  (is (= nil (hooks/with-layout-effect [] (1)))))
+  (is (= nil (core/with-layout-effect [] (1)))))
 
 (deftest test-callback
-  (is (= identity (hooks/callback identity))))
+  (is (= identity (core/callback identity))))
 
 (deftest test-memo
-  (is (= 1 (hooks/memo (constantly 1)))))
+  (is (= 1 (core/memo (constantly 1)))))
