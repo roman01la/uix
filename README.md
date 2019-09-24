@@ -96,6 +96,10 @@ React Hooks in idiomatic Clojure style
   (prn "after update")
   #(prn "before unmount"))
 
+;; Reagent's with-let macro, evaluates bindings only once
+(uix/with-let [date (js/Date.)]
+  date)
+
 ;; more in uix.core.alpha ns
 ```
 
