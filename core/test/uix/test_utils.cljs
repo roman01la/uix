@@ -2,7 +2,8 @@
   (:require [uix.compiler.alpha :as uixc]
             ["react-dom/server" :as rserver]
             [goog.object :as gobj]
-            [clojure.test :refer [is]]))
+            [clojure.test :refer [is]]
+            [uix.dom.alpha :as dom]))
 
 (defn as-string [comp]
   (-> (uixc/as-element comp)
@@ -24,3 +25,8 @@
     (f)
     (set! js/console.error cc)
     (is (empty? @msgs))))
+
+(defn render [el]
+  (let [root (.createElement js/document "div")]
+    (.append (.getElementById js/document "root") root)
+    (dom/render el root)))

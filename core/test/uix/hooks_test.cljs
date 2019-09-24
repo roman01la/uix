@@ -1,13 +1,7 @@
 (ns uix.hooks-test
   (:require [clojure.test :refer [deftest is testing run-tests async]]
             [uix.hooks.alpha :as hooks :refer [maybe-js-deps]]
-            [uix.dom.alpha :as dom]
             [uix.test-utils :as t]))
-
-(defn render [el]
-  (let [root (.createElement js/document "div")]
-    (.append (.getElementById js/document "root") root)
-    (dom/render el root)))
 
 (deftest test-maybe-js-deps
   (is (.isArray js/Array (maybe-js-deps [])))
@@ -22,7 +16,7 @@
                       (done)
                       (swap! state inc))))]
     (async done
-      (render [f-state done]))))
+      (t/render [f-state done]))))
 
 (deftest test-state-hook-identity
   (let [f-state (fn [done]
@@ -33,7 +27,7 @@
                         (is (identical? s1 s2))
                         (done)))))]
     (async done
-      (render [f-state done]))))
+      (t/render [f-state done]))))
 
 (deftest test-ref-hook-mutable
   (let [f-ref (fn [done]
@@ -44,7 +38,7 @@
                   (is (== @ref 2))
                   (done)))]
     (async done
-      (render [f-ref done]))))
+      (t/render [f-ref done]))))
 
 (deftest test-ref-hook-memoized-instance
   (let [f-ref (fn [done]
@@ -56,7 +50,7 @@
                       (is (identical? r1 r2))
                       (done)))))]
     (async done
-      (render [f-ref done]))))
+      (t/render [f-ref done]))))
 
 #_(deftest test-effect-hook
     (let [f-effect (fn [done]
