@@ -33,11 +33,10 @@
   (is (= (uixc/class-names) nil))
   (testing "Named types"
     (is (= (uixc/class-names "a") "a"))
-    (is (= (uixc/class-names :a) "a"))
-    (is (= (uixc/class-names 'a) "a")))
+    (is (= (uixc/class-names :a) "a")))
   (testing "Collection of classes"
     (is (= (uixc/class-names [1 2 3]) "1 2 3"))
-    (is (= (uixc/class-names [1 :a 'b]) "1 a b"))))
+    (is (= (uixc/class-names [1 :a "b"]) "1 a b"))))
 
 (deftest test-set-id-class
   (testing "Hiccup classes should preceding attribute classes"
@@ -114,22 +113,6 @@
                  (as-string [:div [comp :bar]])))
     (is (re-find #"class=.foo"
                  (as-string [my-div {:type :fooish :content "inner"}])))))
-
-(deftest symbol-string-tag []
-  (is (re-find #"foobar"
-               (as-string ['div "foobar"])))
-  (is (re-find #"foobar"
-               (as-string ["div" "foobar"])))
-  (is (re-find #"id=.foo"
-               (as-string ['div#foo "x"])))
-  (is (re-find #"id=.foo"
-               (as-string ["div#foo" "x"])))
-  (is (re-find #"class=.foo bar"
-               (as-string ['div.foo {:class "bar"}])))
-  (is (re-find #"class=.foo bar"
-               (as-string ["div.foo.bar"])))
-  (is (re-find #"id=.foo"
-               (as-string ['div#foo.foo.bar]))))
 
 (deftest test-null-component
   (let [null-comp (fn [do-show]

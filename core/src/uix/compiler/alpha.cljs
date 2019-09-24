@@ -15,12 +15,10 @@
   (not (identical? "object" (goog/typeOf x))))
 
 (defn named? [x]
-  (or (keyword? x)
-      (symbol? x)))
+  (keyword? x))
 
 (defn hiccup-tag? [x]
-  (or (named? x)
-      (string? x)))
+  (keyword? x))
 
 (declare make-element)
 (declare as-element)
