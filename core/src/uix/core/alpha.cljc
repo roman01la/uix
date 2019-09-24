@@ -208,7 +208,7 @@
           (uixr/compile-defui ~sym ~body)))))
 
 #?(:clj
-   (defmacro use-let
+   (defmacro with-let
      "Bind variables as with let, except that the bindings are only evaluated once."
      [bindings & body]
      (if-not &env
