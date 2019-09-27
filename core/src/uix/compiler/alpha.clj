@@ -458,9 +458,20 @@
   (prn (str "Interop elements are not supported on JVM, skipping: " element
             "\nExclude JavaScript components using reader macro: #?(:cljs ...).")))
 
+(defn render-error-boundary! [f args *state sb]
+  (let [{:keys [display-name render-fn handle-catch error->state]} f]
+    (try
+      (-> (render-fn (atom nil) args)
+          (-render-html *state sb))
+      (catch Exception e
+        (handle-catch e display-name)
+        (-> (render-fn (atom (error->state e)) args)
+            (-render-html *state sb))))))
+
 (defn render-component! [[f & args] *state sb]
-  (-> (apply f args)
-      (-render-html *state sb)))
+  (if (-> f meta :uix.core.alpha/error-boundary)
+    (render-error-boundary! f args *state sb)
+    (-render-html (apply f args) *state sb)))
 
 (defn render-element!
   "Render an element vector as a HTML element."

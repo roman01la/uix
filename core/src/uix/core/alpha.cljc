@@ -55,12 +55,10 @@
          (fn [& args]
            (r/createElement klass #js {:argv args})))
 
-      :clj (fn [& args]
-             (try
-               (render-fn nil args)
-               (catch Exception e
-                 (handle-catch e nil)
-                 (render-fn (error->state e) args))))))
+      :clj ^::error-boundary {:display-name display-name
+                              :render-fn render-fn
+                              :handle-catch handle-catch
+                              :error->state error->state}))
 
 #?(:cljs
    (deftype ReactRef [current]

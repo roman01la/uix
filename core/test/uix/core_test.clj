@@ -59,16 +59,19 @@
 
   (testing "Error in error boundary"
     (let [handle-catch (atom nil)
+          child (fn [] (throw (Exception. "Hello!")))
           err-b (core/create-error-boundary
                   {:error->state ex-message
-                   :handle-catch (fn [err info] (reset! handle-catch err))}
                   (fn [cause args]
                     (is (= [1] args))
                     (if (nil? cause)
                       (throw (Exception. "Hello!"))
                       (is (= "Hello!" cause)))))]
 
-      (compiler/render-to-static-markup [err-b 1])
+                   :handle-catch (fn [err info]
+                                   (println (ex-message err) info)
+                                   (reset! handle-catch err))}
+      (compiler/render-to-static-markup [err-b 1 [child]])
       (is (some? @handle-catch)))))
 
 (deftest test-ifn-component
