@@ -1,6 +1,6 @@
 (ns uix.example
   (:require [cljs.js :as cljs]
-            [uix.core.alpha :as uix.core :refer-macros [with-let]]
+            [uix.core.alpha :as uix.core]
             [uix.dom.alpha :as uix.dom]))
 
 (def st (cljs/empty-state))
@@ -58,24 +58,24 @@
    [:div#viewRoot]])
 
 (defn root [initial-code]
-  (with-let [code (uix.core/state initial-code)
-             handle-change #(reset! code %)]
-            (uix.core/effect!
-              (fn []
-                (eval-string initial-code))
-              [])
-            [:div {:style {:height "90%"
-                           :display :flex
-                           :flex-direction :column
-                           :padding 16}}
-             [:header
-              [:img {:src "logo.png" :width 125}]]
-             [:div {:style {:display :flex
-                            :flex 1}}
-              [editor {:init-value initial-code
-                       :on-change handle-change
-                       :on-eval #(eval-string @code)}]
-              [view]]]))
+  (let [code (uix.core/state initial-code)
+        handle-change #(reset! code %)]
+    (uix.core/effect!
+      (fn []
+        (eval-string initial-code))
+      [])
+    [:div {:style {:height "90%"
+                   :display :flex
+                   :flex-direction :column
+                   :padding 16}}
+     [:header
+      [:img {:src "logo.png" :width 125}]]
+     [:div {:style {:display :flex
+                    :flex 1}}
+      [editor {:init-value initial-code
+               :on-change handle-change
+               :on-eval #(eval-string @code)}]
+      [view]]]))
 
 (-> (js/fetch "init.cljs")
     (.then #(.text %))
