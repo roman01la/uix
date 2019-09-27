@@ -10,12 +10,13 @@
               [:span x])]
     (is (= (as-string [ui]) "<span>0</span><span>1</span>"))))
 
-(deftest test-format-display-name
-  (is (= (uixc/format-display-name (.-name js-equal?))
-         "uix.test-utils/js-equal?"))
-  (let [f-hello (fn [])]
-    (is (= (uixc/format-display-name (.-name f-hello))
-           "f-hello"))))
+(when ^boolean goog.DEBUG
+  (deftest test-format-display-name
+    (is (= (uixc/format-display-name (.-name js-equal?))
+           "uix.test-utils/js-equal?"))
+    (let [f-hello (fn [])]
+      (is (= (uixc/format-display-name (.-name f-hello))
+             "f-hello")))))
 
 (deftest test-parse-tag
   (is (= (js->clj (uixc/parse-tag (name :div#id.class)))

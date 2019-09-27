@@ -44,7 +44,7 @@
                (is (= @#'bean/Bean (type props)))
                (:x props))
         ftype (-> (uix.core/as-react ctor)
-                  r/createElement
+                  ^js (r/createElement)
                   .-type)]
     (is (= (ftype #js {:x 1}) 1))))
 

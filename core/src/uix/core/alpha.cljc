@@ -44,7 +44,7 @@
      :or {display-name (str (gensym "error-boundary"))}}
     render-fn]
    #?(:cljs
-       (let [constructor (fn [this _]
+       (let [constructor (fn [^js/React.Component this _]
                            (set! (.-state this) #js {:argv nil})
                            (specify! (.-state this)
                              IDeref
