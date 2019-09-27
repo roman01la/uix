@@ -2,7 +2,7 @@
 
 _Idiomatic ClojureScript interface to modern React.js_
 
-Bug reports, feature requests and PRs are welcome 👌
+Discuss at [#uix on Clojurians Slack](http://clojurians.net/). Bug reports, feature requests and PRs are welcome.
 
 [Try it live](https://roman01la.github.io/uix/)
 
