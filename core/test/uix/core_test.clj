@@ -70,3 +70,12 @@
 
       (compiler/render-to-static-markup [err-b 1])
       (is (some? @handle-catch)))))
+
+(deftest test-ifn-component
+  (defmulti multi-c (fn [t _] t))
+  (defmethod multi-c :div [_ child]
+    [:div child])
+  (defmethod multi-c :span [_ child]
+    [:span child])
+  (is (= "<div>1</div>" (compiler/render-to-static-markup [multi-c :div 1])))
+  (is (= "<span>1</span>" (compiler/render-to-static-markup [multi-c :span 1]))))

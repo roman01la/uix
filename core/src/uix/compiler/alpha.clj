@@ -472,8 +472,8 @@
         (identical? :# tag) (render-suspense! element)
         (identical? :-> tag) (render-portal! element)
         (identical? :> tag) (render-interop! element)
-        (fn? tag) (render-component! element *state sb)
-        :else (render-html-element! element *state sb)))))
+        (keyword? tag) (render-html-element! element *state sb)
+        :else (render-component! element *state sb)))))
 
 (extend-protocol HtmlRenderer
   IPersistentVector
