@@ -6,6 +6,8 @@
             [clojure.string :as str]
             [cljs-bean.core :as bean]))
 
+(def ^:dynamic *default-compare-args* #(= (.-argv %1) (.-argv %2)))
+
 (defn unwrap-ref [-ref]
   (if (implements? hooks/IRef -ref)
     (hooks/unwrap ^not-native -ref)
@@ -338,9 +340,11 @@
           (str "/" name-part)
           demunge-name))))
 
-(defn with-name [^js f ^js rf]
+(defn with-name [^js f ^js rf rf-memo]
   (when (string? (.-name f))
-    (set! (.-displayName rf) (format-display-name (.-name f)))))
+    (let [display-name (format-display-name (.-name f))]
+      (set! (.-displayName rf) display-name)
+      (set! (.-displayName rf-memo) (str "memo(" display-name ")")))))
 
 (defn fn-to-react-fn [^js f]
   (if (react-type? f)
@@ -348,20 +352,22 @@
     (let [rf #(let [argv ^not-native (.-argv %)
                     tag (-nth argv 0)
                     args (subvec argv 1)]
-                (as-element (apply tag args)))]
+                (as-element (apply tag args)))
+          rf-memo (react/memo rf *default-compare-args*)]
       (when ^boolean goog.DEBUG
-        (with-name f rf))
-      (cache-react-fn f rf)
-      rf)))
+        (with-name f rf rf-memo))
+      (cache-react-fn f rf-memo)
+      rf-memo)))
 
 (defn as-lazy-component [f]
   (if-some [cached-fn (cached-react-fn f)]
     cached-fn
-    (let [rf #(as-element (apply f (rest (.-argv %))))]
+    (let [rf #(as-element (apply f (rest (.-argv %))))
+          rf-memo (react/memo rf *default-compare-args*)]
       (when ^boolean goog.DEBUG
-        (with-name f rf))
-      (cache-react-fn f rf)
-      rf)))
+        (with-name f rf rf-memo))
+      (cache-react-fn f rf-memo)
+      rf-memo)))
 
 (defn as-component [tag]
   (if-some [cached-fn (cached-react-fn tag)]

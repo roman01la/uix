@@ -13,9 +13,6 @@
     (is (= (type ref) uix.core/ReactRef))
     (is (= @ref 1))))
 
-(deftest test-default-compare-args
-  (is (uix.core/default-compare-args #js {:argv 1} #js {:argv 1})))
-
 (deftest test-memoize
   (let [f (uix.core/memoize (fn [x]
                               (is (= 1 x))

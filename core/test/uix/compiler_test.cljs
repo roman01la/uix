@@ -5,6 +5,9 @@
 
 (enable-console-print!)
 
+(deftest test-default-compare-args
+  (is (uixc/*default-compare-args* #js {:argv 1} #js {:argv 1})))
+
 (deftest test-seq-return
   (let [ui #(for [x (range 2)]
               [:span x])]

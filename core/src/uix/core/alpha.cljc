@@ -111,9 +111,6 @@
    #?(:cljs (ReactRef. v)
       :clj (atom v))))
 
-(defn default-compare-args [a b]
-  (= (.-argv a) (.-argv b)))
-
 (defn memoize
   "Takes component `f` and comparator function `should-update?`
   that takes previous and next props of the component.
@@ -122,7 +119,8 @@
   When `should-update?` is not provided uses default comparator
   that compares props with clojure.core/="
   ([f]
-   (memoize f default-compare-args))
+   (memoize f #?(:cljs compiler/*default-compare-args*
+                 :clj nil)))
   ([f should-update?]
    #?(:cljs (react/memo #(compiler/as-element (apply f (next (.-argv %))))
                         should-update?)
