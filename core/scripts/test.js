@@ -17,11 +17,14 @@ const puppeteer = require('puppeteer');
     }
   );
 
+  await page.exposeFunction('testsDone', async () => {
+      await browser.close();
+
+      if (failures > 0) {
+        process.exit(1);
+      }
+    }
+  );
+
   await page.goto(`file://${process.argv[2]}/index.html`);
-
-  await browser.close();
-
-  if (failures > 0) {
-    process.exit(1);
-  }
 })();

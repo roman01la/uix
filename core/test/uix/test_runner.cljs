@@ -9,7 +9,8 @@
            (+ (:pass m) (:fail m) (:error m)) "assertions.")
   (println (:fail m) "failures," (:error m) "errors.")
   (when (pos? (:fail m))
-    (js/testsFailed (:fail m))))
+    (js/testsFailed (:fail m)))
+  (js/testsDone))
 
 (cljs.test/run-tests
   (cljs.test/empty-env)
