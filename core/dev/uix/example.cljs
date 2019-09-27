@@ -1,6 +1,6 @@
 (ns uix.example
   (:require [cljs.js :as cljs]
-            [uix.core.alpha :as uix.core]
+            [uix.core.alpha :as uix.core :refer-macros [with-let]]
             [uix.dom.alpha :as uix.dom]))
 
 (def st (cljs/empty-state))

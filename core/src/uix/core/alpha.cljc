@@ -19,11 +19,12 @@
 #?(:cljs
     (defn create-class
       "Creates class based React component"
-      [{:keys [init-state static prototype] :or {init-state #js {}}}]
-      (let [ctor (fn []
+      [{:keys [constructor static prototype]}]
+      (let [ctor (fn [props]
                    (this-as this
                      (.apply r/Component this (js-arguments))
-                     (set! (.-state this) init-state))
+                     (when constructor
+                       (constructor this props)))
                    nil)]
         (set! (.-prototype ctor) (.create js/Object (.-prototype r/Component)))
         (doseq [[k v] static]
@@ -43,13 +44,36 @@
      :or {display-name (str (gensym "error-boundary"))}}
     render-fn]
    #?(:cljs
-       (let [render (fn []
+       (let [constructor (fn [this _]
+                           (set! (.-state this) #js {:argv nil})
+                           (specify! (.-state this)
+                             IDeref
+                             (-deref [o]
+                               (.. this -state -argv))
+                             IReset
+                             (-reset! [o new-value]
+                               (.setState this #js {:argv new-value})
+                               new-value)
+                             ISwap
+                             (-swap!
+                               ([o f]
+                                (-reset! o (f (-deref o))))
+                               ([o f a]
+                                (-reset! o (f (-deref o) a)))
+                               ([o f a b]
+                                (-reset! o (f (-deref o) a b)))
+                               ([o f a b xs]
+                                (-reset! o (apply f (-deref o) a b xs))))))
+             derive-state (fn [error] #js {:argv (error->state error)})
+             render (fn []
                       (this-as this
-                        (-> (render-fn (.. this -state -argv)
-                                       (.. this -props -argv))
-                            as-element)))
-             klass (create-class {:static {:displayName display-name
-                                           :getDerivedStateFromError (fn [error] #js {:argv (error->state error)})}
+                        (let [args (.. this -props -argv)
+                              state (.-state this)]
+                          (-> (render-fn state args)
+                              as-element))))
+             klass (create-class {:constructor constructor
+                                  :static {:displayName display-name
+                                           :getDerivedStateFromError derive-state}
                                   :prototype {:componentDidCatch handle-catch
                                               :render render}})]
          (fn [& args]

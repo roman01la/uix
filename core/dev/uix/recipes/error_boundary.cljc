@@ -5,10 +5,11 @@
   (core/create-error-boundary
     {:error->state (fn [error] {:error error})
      :handle-catch (fn [error info] (println error))}
-    (fn [{:keys [error]} [child]]
-      (if error
-        error
-        child))))
+    (fn [state [child]]
+      (let [{:keys [error]} @state]
+        (if error
+          error
+          child)))))
 
 (defn erroring-component []
   (throw "Hey!"))

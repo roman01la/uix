@@ -50,7 +50,7 @@
                   {:error->state #(reset! error->state-called? true)
                    :handle-catch #(reset! handle-catch-called? true)}
                   (fn [err args]
-                    (is (= nil err))
+                    (is (= nil @err))
                     (is (= [1] args))))]
 
       (compiler/render-to-static-markup [err-b 1])
@@ -62,15 +62,15 @@
           child (fn [] (throw (Exception. "Hello!")))
           err-b (core/create-error-boundary
                   {:error->state ex-message
-                  (fn [cause args]
-                    (is (= [1] args))
-                    (if (nil? cause)
-                      (throw (Exception. "Hello!"))
-                      (is (= "Hello!" cause)))))]
-
                    :handle-catch (fn [err info]
                                    (println (ex-message err) info)
                                    (reset! handle-catch err))}
+                  (fn [cause [x child]]
+                    (is (= 1 x))
+                    (if (nil? @cause)
+                      child
+                      (is (= "Hello!" @cause)))))]
+
       (compiler/render-to-static-markup [err-b 1 [child]])
       (is (some? @handle-catch)))))
 
