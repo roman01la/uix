@@ -1,6 +1,6 @@
 (ns uix.core-test
   (:require [clojure.test :refer [deftest is async testing run-tests]]
-            [uix.core.alpha :as uix.core :refer-macros [with-let require-lazy html defui]]
+            [uix.core.alpha :as uix.core :refer-macros [require-lazy html defui]]
             [react :as r]
             [uix.test-utils :as t]
             [cljs-bean.core :as bean]))
@@ -44,22 +44,6 @@
                   ^js (r/createElement)
                   .-type)]
     (is (= (ftype #js {:x 1}) 1))))
-
-(deftest test-with-let
-  (let [v (atom 9)
-        f (fn [done]
-            (let [called?* (uix.core/state false)]
-              (with-let [x 1
-                         {:keys [y]} {:y 2}
-                         z (swap! v inc)] ;; should eval only once
-                        (is (= 1 x))
-                        (is (= 2 y))
-                        (is (= 10 z))
-                        (if @called?*
-                          (done)
-                          (reset! called?* true)))))]
-    (async done
-      (t/render [f done]))))
 
 (deftest test-create-error-boundary-1
   (let [error->state-called? (atom false)

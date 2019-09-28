@@ -35,12 +35,6 @@
   (is (fn? hello))
   (is (= 1 (hello 1))))
 
-(deftest test-with-let
-  (core/with-let [x 1
-                  y 2]
-                 (is (= x 1))
-                 (is (= y 2))))
-
 (deftest test-create-error-boundary
 
   (testing "No error in error boundary"
