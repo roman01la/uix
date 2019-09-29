@@ -7,6 +7,7 @@
 
 (def ^:dynamic *skip-check?*) ;; skips type check at usage place
 (def ^:dynamic *skip-fn-check?*) ;; skips type check at declaration place
+(def ^:dynamic *defui?*) ;; skips type check at declaration place
 (def ^:dynamic *specked-args*) ;; arguments of a specked fn
 (def ^:dynamic *cljs-env*) ;; cljs compiler's env
 
@@ -413,7 +414,7 @@
                 (:key m) (assoc :key (:key m))
                 (:ref m) (assoc :ref `(uix.compiler.alpha/unwrap-ref ~(:ref m))))
         attrs (to-js (compile-attrs attrs))
-        args (binding [*skip-check?* (has-spec? tag)]
+        args (binding [*skip-check?* (if *defui?* (has-spec? tag) true)]
                (mapv compile-html* args))]
     `(component-element ~tag ~attrs [~@args])))
 
@@ -464,12 +465,14 @@
 (defn compile-html
   "Compiles Hiccup expr into React.js calls"
   [expr env]
-  (binding [*cljs-env* env]
+  (binding [*cljs-env* env
+            *defui?* false]
     (compile-html* expr)))
 
 (defmacro compile-defui
   "Compiles Hiccup component defined with defui macro into React component"
   [sym body]
-  (binding [*skip-fn-check?* (has-spec? sym)
+  (binding [*defui?* true
+            *skip-fn-check?* (has-spec? sym)
             *specked-args* (->> &env :locals keys set)]
     `(do ~@(mapv #(compile-html % &env) body))))
