@@ -9,7 +9,7 @@
 
 (defn debug-warn [c]
   (->> (str "Only pre-compiled Hiccup should be used in pre-compiled components. Check " (.-displayName c) " component.")
-       (.warn js/console)))
+       (.error js/console)))
 
 (defn fn-to-react-fn [f]
   (let [rf (fn -rf [props]
