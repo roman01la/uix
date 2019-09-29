@@ -43,9 +43,7 @@
     (if (contains? inlineable-types tag)
       expr
       (binding [*out* *err*]
-        (println "WARNING: Interpreting by default, please specify ^:inline or ^:interpret")
-        (prn expr)
-        (println "Inferred tag was:" tag)
+        (println "WARNING: Interpreting " expr " by default, mark it as ^:inline or ^:interpret. Inferred tag " tag)
         (let [{:keys [line file]} (meta expr)]
           (when (and line file)
             (println (str file ":" line))))
