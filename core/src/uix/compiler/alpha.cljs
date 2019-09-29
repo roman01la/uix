@@ -362,7 +362,7 @@
 (defn as-lazy-component [f]
   (if-some [cached-fn (cached-react-fn f)]
     cached-fn
-    (let [rf #(as-element (apply f (rest (.-argv %))))
+    (let [rf #(as-element (apply f (subvec (.-argv %) 1)))
           rf-memo (react/memo rf *default-compare-args*)]
       (when ^boolean goog.DEBUG
         (with-name f rf rf-memo))
