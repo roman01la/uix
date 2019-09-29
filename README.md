@@ -8,6 +8,10 @@ Discuss at [#uix on Clojurians Slack](http://clojurians.net/). Bug reports, feat
 
 [API Documentation](https://roman01la.github.io/uix/docs/)
 
+<a href="https://www.patreon.com/bePatron?c=1239559">
+  <img src="https://c5.patreon.com/external/logo/become_a_patron_button.png" height="40px" />
+</a>
+
 [![CircleCI](https://circleci.com/gh/roman01la/uix.svg?style=svg)](https://circleci.com/gh/roman01la/uix)
 
 There are no versioned releases yet, use `deps.edn` to depend on the code via git deps.
