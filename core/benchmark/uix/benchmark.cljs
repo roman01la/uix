@@ -15,7 +15,8 @@
 (defn uix-interpret []
   (uixc/as-element [hiccup/editor]))
 
-(defn uix-compile [])
+(defn uix-compile []
+  (uixc/as-element [hiccup/editor-compiled]))
 
 
 (defn render [el]
@@ -26,8 +27,8 @@
   (bench :react 10000 (render (react/createElement Editor)))
   (bench :react 10000 (render (react/createElement Editor)))
 
-  ;(bench :uix-compile 10000 (render (uix-compile)))
-  ;(bench :uix-compile 10000 (render (uix-compile)))
+  (bench :uix-compile 10000 (render (uix-compile)))
+  (bench :uix-compile 10000 (render (uix-compile)))
 
   (bench :uix-interpret 10000 (render (uix-interpret)))
   (bench :uix-interpret 10000 (render (uix-interpret)))
