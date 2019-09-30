@@ -78,6 +78,8 @@
          attrs (reduce (fn [a f] (f a)) attrs @compiler/transform-fns)]
      [tag attrs children])))
 
+(declare to-js)
+
 (defn join-classes-js
   "Emits runtime class string concatenation expression"
   [xs]
