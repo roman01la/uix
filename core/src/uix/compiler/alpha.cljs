@@ -137,22 +137,41 @@
     (ifn? x) #(apply x %&)
     :else (clj->js x)))
 
+(defn class-names-coll [class]
+  (let [^js/Array classes (reduce (fn [^js/Array a c]
+                                    (when ^boolean c
+                                      (->> (if (named? c) (-name ^not-native c) c)
+                                           (.push a)))
+                                    a)
+                                  #js []
+                                  class)]
+    (when (pos? (.-length classes))
+      (.join classes " "))))
+
+(defn class-names-map [class]
+  (let [^js/Array classes (reduce-kv (fn [^js/Array a b ^boolean c]
+                                       (when c
+                                         (->> (if (named? b) (-name ^not-native b) b)
+                                              (.push a)))
+                                       a)
+                                  #js []
+                                  class)]
+    (when (pos? (.-length classes))
+      (.join classes " "))))
+
 (defn ^string class-names
   ([])
   ([class]
    (cond
-     (coll? class)
-     (let [^js/Array classes (reduce (fn [^js/Array a c]
-                                       (when ^boolean c
-                                         (->> (if (named? c) (-name ^not-native c) c)
-                                              (.push a)))
-                                       a)
-                                     #js []
-                                     class)]
-       (when (pos? (.-length classes))
-         (.join classes " ")))
+     (map? class) ;; {c1 true c2 false}
+     (class-names-map class)
 
-     (named? class) (-name ^not-native class)
+     (coll? class) ;; [c1 c2 c3]
+     (class-names-coll class)
+
+     (named? class) ;; :c1
+     (-name ^not-native class)
+
      :else class))
   ([a b]
    (if ^boolean a

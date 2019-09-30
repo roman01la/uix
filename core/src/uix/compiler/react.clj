@@ -80,12 +80,13 @@
 
 (defn join-classes-js
   "Emits runtime class string concatenation expression"
-  ([] "")
-  ([& xs]
-   (let [strs (->> (repeat (count xs) "~{}")
-                   (interpose ",")
-                   (apply str))]
-     (list* 'js* (str "[" strs "].join(' ')") xs))))
+  [xs]
+  (let [strs (->> (repeat (count xs) "~{}")
+                  (interpose ",")
+                  (apply str))]
+    (->> xs
+         (map to-js)
+         (list* 'js* (str "[" strs "].join(' ')")))))
 
 (defn join-classes
   "Joins class names into a single string"
@@ -111,11 +112,11 @@
   "Takes attributes map and parsed tag, and returns attributes merged with class names and id"
   [props [_ id class]]
   (cond-> props
-          ;; Only use ID from tag keyword if no :id in props already
+    ;; Only use ID from tag keyword if no :id in props already
     (and (some? id) (nil? (get props :id)))
     (assoc :id id)
 
-          ;; Merge classes
+    ;; Merge classes
     class
     (assoc :class (join-classes [class (get props :class)]))))
 
@@ -146,17 +147,31 @@
 (defmethod compile-config-kv :ref [_ value]
   `(uix.compiler.alpha/unwrap-ref ~value))
 
+(defn join-classes-map [m]
+  (->> m
+       (reduce-kv
+         (fn [ret k v]
+           (cond
+             (true? v) (conj ret k)
+             (false? v) ret
+             :else (conj ret `(when ~v ~(to-js k)))))
+         [])
+       join-classes-js))
+
 (defmethod compile-config-kv :class [name value]
   (cond
     (or (nil? value) (keyword? value) (string? value))
     value
+
+    (map? value)
+    (join-classes-map value)
 
     (and (or (sequential? value) (set? value))
          (every? string? value))
     (join-classes value)
 
     (vector? value)
-    (apply join-classes-js value)
+    (join-classes-js value)
 
     :else value))
 
@@ -373,7 +388,9 @@
 
      (pos? (count children))
      (->> children
-          (assoc attrs :children)))
+          (assoc attrs :children))
+
+     :else attrs)
    (inline-element type)))
 
 (defmulti compile-element

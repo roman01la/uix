@@ -40,7 +40,9 @@
     (is (= (uixc/class-names :a) "a")))
   (testing "Collection of classes"
     (is (= (uixc/class-names [1 2 3]) "1 2 3"))
-    (is (= (uixc/class-names [1 :a "b"]) "1 a b"))))
+    (is (= (uixc/class-names [1 :a "b"]) "1 a b")))
+  (testing "Map of class -> boolean"
+    (is (= (uixc/class-names {:c1 true :c2 false} "c1")))))
 
 (deftest test-set-id-class
   (testing "Hiccup classes should preceding attribute classes"

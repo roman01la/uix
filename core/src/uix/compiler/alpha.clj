@@ -328,17 +328,21 @@
   (cond
     (nil? class)
     first?
+
     (string? class)
     (do
       (when-not first?
         (append! sb " "))
       (append! sb class)
       false)
-    (or (sequential? class)
-        (set? class))
+
+    (map? class)
+    (reduce-kv #(when %3 (render-class! sb %1 %2)) first? class)
+
+    (or (sequential? class) (set? class))
     (reduce #(render-class! sb %1 %2) first? class)
-    :else
-    (render-class! sb first? (to-str class))))
+
+    :else (recur sb first? (to-str class))))
 
 (defn render-classes! [classes sb]
   (when classes
