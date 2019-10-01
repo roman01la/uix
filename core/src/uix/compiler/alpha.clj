@@ -101,10 +101,10 @@
    :col-span "colSpan"
    :content-editable "contenteditable"
    :context-menu "contextMenu"
-   :cross-origin "crossOrigin"
+   :cross-origin "crossorigin"
    :date-time "dateTime"
    :enc-type "encType"
-   :form-action "formAction"
+   :form-action "formaction"
    :form-enc-type "formEncType"
    :form-method "formMethod"
    :form-no-validate "formnovalidate"
@@ -274,7 +274,11 @@
                            [second rest]
                            [nil (cons second rest)])
         attrs (reduce (fn [a f] (f a)) attrs @transform-fns)
-        attrs-classes (:class attrs)
+        attrs-classes (if (vector? (:class attrs))
+                        (let [c (filter some? (:class attrs))]
+                          (when (seq c)
+                            (vec c)))
+                        (:class attrs))
         classes (if (and tag-classes attrs-classes)
                   [tag-classes attrs-classes]
                   (or tag-classes attrs-classes))]
@@ -356,11 +360,12 @@
 (defn render-attr! [tag key value sb]
   (let [attr (normalize-attr-key key)]
     (cond
-      (= "type" attr) :nop                                  ;; rendered manually in render-element! before id
+      (= "id" attr) (when value (append! sb " id=\"" value "\""))
+      (= "type" attr) (when value (append! sb " type=\"" value "\""))
       (= "style" attr) (render-style! value sb)
       (= "key" attr) :nop
       (= "ref" attr) :nop
-      (= "class" attr) :nop
+      (= "class" attr) (render-classes! value sb)
       (and (= "value" attr)
            (or (= "select" tag)
                (= "textarea" tag))) :nop
@@ -418,31 +423,21 @@
                 (symbol? tag)
                 (string? tag))
     (throw (ex-info "Tag should be keyword, string or symbol" {:tag tag})))
-  (let [[tag id classes attrs children] (normalize-element element)]
+  (let [[tag id classes attrs children] (normalize-element element)
+        attrs (assoc attrs :id id :class classes)
+        select-value (get-value attrs)]
     (append! sb "<" tag)
 
-    (when-some [type (:type attrs)]
-      (append! sb " type=\"" type "\""))
-
-    (when (and (= "option" tag)
-               (= (get-value attrs) *select-value*))
+    (when (and (= "option" tag) (= select-value *select-value*))
       (append! sb " selected=\"\""))
 
-    (when id
-      (append! sb " id=\"" id "\""))
-
     (render-attrs! tag attrs sb)
-
-    (render-classes! classes sb)
-
-    (when (= :state/root @*state)
-      (append! sb " data-reactroot=\"\""))
 
     (when (not= :state/static @*state)
       (vreset! *state :state/tag-open))
 
     (if (= "select" tag)
-      (binding [*select-value* (get-value attrs)]
+      (binding [*select-value* select-value]
         (render-content! tag attrs children *state sb))
       (render-content! tag attrs children *state sb))))
 

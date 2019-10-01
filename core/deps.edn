@@ -25,7 +25,9 @@
            :bench-front {:main-opts ["-m" "figwheel.main" "-O" "advanced" "--build" "benchmark" "--serve"]}
            :bench-ssr {:main-opts ["-m" "uix.benchmark"]}
            :test {:extra-paths ["test"]
-                  :extra-deps {uix.dom {:local/root "../dom"}}}
+                  :extra-deps {uix.dom {:local/root "../dom"}
+                               cljsjs/react-dom-server {:mvn/version "16.9.0-0"}
+                               clj-diffmatchpatch {:mvn/version "0.0.9.3"}}}
            :ci {:extra-paths ["dev"]
                 :extra-deps {cljfmt {:mvn/version "0.6.4"}}}
            :example {:main-opts ["-m" "cljs.main" "-co" "example.cljs.edn" "-c" "uix.example"]}}}

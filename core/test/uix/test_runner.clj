@@ -2,10 +2,10 @@
   (:require [clojure.test :refer :all]
             [uix.core-test]
             [uix.hooks-test]
-            [uix.compiler-test]))
+            [uix.ssr-test]))
 
 (defn -main [& args]
   (run-tests
-    'uix.compiler-test
+    #_'uix.ssr-test
     'uix.core-test
     'uix.hooks-test))
