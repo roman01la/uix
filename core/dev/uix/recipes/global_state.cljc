@@ -5,25 +5,47 @@
             #?(:cljs [cljs-bean.core :as bean])
             #?(:cljs [react-dom :as rdom])))
 
+;; Database subscription hook
+;; https://github.com/facebook/react/tree/master/packages/use-subscription#subscribing-to-event-dispatchers
+(defn subscribe* [ref]
+  #?(:clj  @ref
+     :cljs (uix/subscribe
+             (uix/memo
+               (fn []
+                 {:get-current-value (fn [] @ref)
+                  :subscribe (fn [callback]
+                               (let [id (random-uuid)]
+                                 (add-watch ref id callback)
+                                 #(remove-watch ref id)))})
+               #js [ref]))))
+
 ;; Global database
 (defonce db (atom {}))
 
-;; Database subscription hook
-;; https://github.com/facebook/react/tree/master/packages/use-subscription#subscribing-to-event-dispatchers
-(def sub
-  (let [!id (atom 0)]
-    (fn [f]
-      #?(:clj (f @db)
-         :cljs (uix/subscribe
-                 (uix/memo
-                   (fn []
-                     {:get-current-value #(f @db)
-                      :subscribe (fn [callback]
-                                   (let [id (swap! !id inc)]
-                                     (add-watch db id #(when (not= (f %3) (f %4))
-                                                         (callback)))
-                                     #(remove-watch db id)))})
-                   [f]))))))
+(def db-subs (atom {}))
+
+#?(:cljs
+    (deftype SubRef [ref]
+      IDeref
+      (-deref [o]
+        (subscribe* ref))))
+
+(defn derive-ref [ref f]
+  #?(:clj (atom (f @ref))
+     :cljs (let [sref (atom (f @ref))]
+             (add-watch ref f (fn [_ _ _ n]
+                                (let [nv (f n)]
+                                  (when (not= nv @sref)
+                                    (reset! sref nv)))))
+             (SubRef. sref))))
+
+(defn reg-sub [name f]
+  (swap! db-subs assoc name f))
+
+(defn subscribe [[name :as s]]
+  (let [f (get @db-subs name)]
+    (assert f (str "Subscription " name " is not found"))
+    (derive-ref db #(f % s))))
 
 ;; Event handler
 (defmulti handle-event (fn [db [event]] event))
@@ -43,6 +65,28 @@
 
 ;; ==== Usage ====
 
+;; Subscriptions
+(reg-sub :db/value
+  (fn [db]
+    (:value db)))
+
+(reg-sub :db/loading?
+  (fn [db]
+    (:loading? db)))
+
+(reg-sub :db/error
+  (fn [db]
+    (:error db)))
+
+(reg-sub :db/repos
+  (fn [db]
+    (:repos db)))
+
+(reg-sub :db/nth-repo
+  (fn [db [_ idx]]
+    (when (seq (:repos db))
+      (nth (:repos db) idx))))
+
 ;; Event handlers
 (defmethod handle-event :db/init [_ _]
   {:db {:value ""
@@ -60,7 +104,7 @@
           :on-failed :fetch-repos-failed}})
 
 (defmethod handle-event :fetch-repos-ok [db [_ repos]]
-  (let [repos (map :name repos)]
+  (let [repos (mapv :name repos)]
     {:db (assoc db :repos repos :loading? false)}))
 
 (defmethod handle-event :fetch-repos-failed [db [_ error]]
@@ -70,20 +114,22 @@
 ;; Effect handlers
 (defmethod handle-fx :http [_ [_ {:keys [url on-ok on-failed]}]]
   #?(:cljs
-      (-> (js/fetch url)
-          (.then #(if (.-ok %)
-                    (.json %)
-                    (throw (.-statusText %))))
-          (.then bean/->clj)
-          (.then #(dispatch [on-ok %]))
-          (.catch #(dispatch [on-failed %])))))
+     (-> (js/fetch url)
+         (.then #(if (.-ok %)
+                   (.json %)
+                   (throw (.-statusText %))))
+         (.then bean/->clj)
+         (.then #(dispatch [on-ok %]))
+         (.catch #(dispatch [on-failed %])))))
 
 ;; UI component
 (defn recipe []
-  (let [uname (sub :value)
-        loading? (sub :loading?)
-        error (sub :error)
-        repos (sub :repos)]
+  (let [uname @(subscribe [:db/value])
+        loading? @(subscribe [:db/loading?])
+        error @(subscribe [:db/error])
+        repos @(subscribe [:db/repos])
+        repo3 @(subscribe [:db/nth-repo 3])]
+    (println repo3)
     [:<>
      [:pre {:style {:white-space :normal}}
       "DB state: " (str @db)]
