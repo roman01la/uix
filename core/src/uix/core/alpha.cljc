@@ -5,7 +5,7 @@
             #?(:clj [uix.specs.alpha])
             #?(:cljs [react :as r])
             [uix.compiler.alpha :as compiler]
-            [uix.compiler.react :as uixr]
+            [uix.compiler.aot :as uixr]
             [uix.hooks.alpha :as hooks]))
 
 (declare as-element)

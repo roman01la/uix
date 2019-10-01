@@ -1,4 +1,4 @@
-(ns uix.compiler.react
+(ns uix.compiler.aot
   "Hiccup compiler that translates Hiccup into React.js at compile-time."
   (:require [clojure.string :as str]
             [cljs.analyzer :as ana]
