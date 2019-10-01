@@ -172,6 +172,14 @@
   ([f deps]
    (hooks/callback f deps)))
 
+(defn subscribe
+  "subscribe - fn, takes callback, sets up a listener on external event emitter
+               which calls the callback and returns a function that unsets the listener.
+
+  get-current-value - fn, returns current state of the external event emitter"
+  [{:keys [get-current-value subscribe] :as subscription}]
+  (hooks/subscribe subscription))
+
 #?(:clj
    (defmacro with-effect
      "Convenience macro for effect hook."

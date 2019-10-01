@@ -166,3 +166,40 @@
              (r/useMemo f (maybe-js-deps @prev-deps*))
              deps)
      :clj (f)))
+
+;; == Subscription ==
+;; https://github.com/facebook/react/tree/master/packages/use-subscription
+(defn subscribe [{:keys [get-current-value subscribe]}]
+  #?(:clj (get-current-value)
+     :cljs (let [get-initial-state (fn [] {:get-current-value get-current-value
+                                           :subscribe subscribe
+                                           :value (get-current-value)})
+                 [state set-state] (r/useState get-initial-state)
+                 ret-value (if (or (not= (:get-current-value state) get-current-value)
+                                   (not= (:subscribe state) subscribe))
+                             (let [ret-val (get-current-value)]
+                               (set-state {:get-current-value get-current-value
+                                           :subscribe subscribe
+                                           :value ret-val})
+                               ret-val)
+                             (:value state))]
+             (r/useDebugValue ret-value)
+             (r/useEffect
+               (fn []
+                 (let [did-unsubscribe? (volatile! false)
+                       check-for-updates (fn []
+                                           (when-not @did-unsubscribe?
+                                             (let [value (get-current-value)]
+                                               (set-state
+                                                 #(if (or (not= (:get-current-value %) get-current-value)
+                                                          (not= (:subscribe %) subscribe)
+                                                          (= (:value %) value))
+                                                    %
+                                                    (assoc % :value value))))))
+                       unsubscribe (subscribe check-for-updates)]
+                   (check-for-updates)
+                   (fn []
+                     (vreset! did-unsubscribe? true)
+                     (unsubscribe))))
+               #js [get-current-value subscribe])
+             ret-value)))

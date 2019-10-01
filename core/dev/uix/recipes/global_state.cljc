@@ -9,31 +9,21 @@
 (defonce db (atom {}))
 
 ;; Database subscription hook
-(defn sub [f]
-  (let [state* (uix/state (f @db))
-        state @state*
-        did (uix/ref f)]
-    #?(:cljs
-       (uix/layout-effect!
-         #(when (not= f @did)
-            (-reset! did f))))
-    #?(:cljs
-       (uix/layout-effect!
-         (fn []
-           (let [f @did
-                 unsub? (volatile! false)
-                 check-updates (fn [n]
-                                 (let [nf (f n)]
-                                   (when (and (not ^boolean @unsub?) (not= state nf))
-                                     (rdom/unstable_batchedUpdates
-                                       #(-reset! state* nf)))))]
-             (add-watch db f #(check-updates %4))
-             (check-updates @db)
-             (fn []
-               (vreset! unsub? true)
-               (remove-watch db f))))
-         [@did state]))
-    state))
+;; https://github.com/facebook/react/tree/master/packages/use-subscription#subscribing-to-event-dispatchers
+(def sub
+  (let [!id (atom 0)]
+    (fn [f]
+      #?(:clj (f @db)
+         :cljs (uix/subscribe
+                 (uix/memo
+                   (fn []
+                     {:get-current-value #(f @db)
+                      :subscribe (fn [callback]
+                                   (let [id (swap! !id inc)]
+                                     (add-watch db id #(when (not= (f %3) (f %4))
+                                                         (callback)))
+                                     #(remove-watch db id)))})
+                   [f]))))))
 
 ;; Event handler
 (defmulti handle-event (fn [db [event]] event))
@@ -46,6 +36,7 @@
 
 ;; Event dispatcher
 (defn dispatch [event]
+  #?(:cljs (js/console.log :event event))
   (let [effects (handle-event @db event)]
     (doseq [[event args] effects]
       (handle-fx @db [event args]))))
@@ -80,7 +71,9 @@
 (defmethod handle-fx :http [_ [_ {:keys [url on-ok on-failed]}]]
   #?(:cljs
       (-> (js/fetch url)
-          (.then #(.json %))
+          (.then #(if (.-ok %)
+                    (.json %)
+                    (throw (.-statusText %))))
           (.then bean/->clj)
           (.then #(dispatch [on-ok %]))
           (.catch #(dispatch [on-failed %])))))
