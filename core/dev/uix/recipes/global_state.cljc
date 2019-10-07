@@ -6,7 +6,7 @@
             #?(:cljs [cljs-bean.core :as bean])))
 
 (defn ^:before-load before-load []
-  (xf/unreg-all))
+  (xf/unreg-all-subs))
 
 ;; Subscriptions
 (xf/reg-sub :db
@@ -41,38 +41,44 @@
       (nth repos idx))))
 
 ;; Event handlers
-(defmethod xf/handle-event :db/init [_ _]
-  {:db {:value ""
-        :repos []
-        :loading? false
-        :error nil}})
+(xf/reg-event-db :db/init
+  (fn [_ _]
+    {:value ""
+     :repos []
+     :loading? false
+     :error nil}))
 
-(defmethod xf/handle-event :set-value [db [_ value]]
-  {:db (assoc db :value value)})
+(xf/reg-event-db :set-value
+   (fn [db [_ value]]
+     (assoc db :value value)))
 
-(defmethod xf/handle-event :fetch-repos [db [_ uname]]
-  {:db (assoc db :loading? true)
-   :http {:url (str "https://api.github.com/users/" uname "/repos")
-          :on-ok :fetch-repos-ok
-          :on-failed :fetch-repos-failed}})
+(xf/reg-event-fx :fetch-repos
+  (fn [db [_ uname]]
+    {:db (assoc db :loading? true)
+     :http {:url (str "https://api.github.com/users/" uname "/repos")
+            :on-ok :fetch-repos-ok
+            :on-failed :fetch-repos-failed}}))
 
-(defmethod xf/handle-event :fetch-repos-ok [db [_ repos]]
-  (let [repos (vec repos)]
-    {:db (assoc db :repos repos :loading? false :error nil)}))
+(xf/reg-event-db :fetch-repos-ok
+  (fn [db [_ repos]]
+    (let [repos (vec repos)]
+      (assoc db :repos repos :loading? false :error nil))))
 
-(defmethod xf/handle-event :fetch-repos-failed [db [_ error]]
-  {:db (assoc db :loading? false :error error)})
+(xf/reg-event-db :fetch-repos-failed
+  (fn [db [_ error]]
+    (assoc db :loading? false :error error)))
 
 
 ;; Effect handlers
-(defmethod xf/handle-fx :http [_ [_ {:keys [url on-ok on-failed]}]]
-  #?(:cljs
-     (-> (js/fetch url)
-         (.then #(if (.-ok %)
-                   (.json %)
-                   (xf/dispatch [on-failed %])))
-         (.then bean/->clj)
-         (.then #(xf/dispatch [on-ok %])))))
+(xf/reg-fx :http
+  (fn [_ [_ {:keys [url on-ok on-failed]}]]
+    #?(:cljs
+       (-> (js/fetch url)
+           (.then #(if (.-ok %)
+                     (.json %)
+                     (xf/dispatch [on-failed %])))
+           (.then bean/->clj)
+           (.then #(xf/dispatch [on-ok %]))))))
 
 ;; UI components
 (defn repo-item [idx]

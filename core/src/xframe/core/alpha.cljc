@@ -11,6 +11,8 @@
   Every node memoizes on its input subscriptions or the database if none provided."
   (:require [uix.core.alpha :as uix]))
 
+;; TODO: subscriptions graph visual debugger
+
 (defprotocol ILazyRef
   (force-ref [o])
   (set-result! [o new-result])
@@ -117,7 +119,6 @@
 
 ;; ====== Public API ======
 
-;; TODO: re-instantiate subscriptions when hot-reloading
 (defn subscribe [[sub-name :as s]]
   (let [[f deps-f] (get @subs-registry sub-name)]
     (assert f (str "Subscription " sub-name " is not found"))
@@ -155,19 +156,32 @@
                      ([_ _] (map subscribe vecs)))))]
     (vswap! subs-registry assoc sub-name [f deps-f])))
 
-(defn unreg-all []
+(defn unreg-all-subs []
   (vreset! subs-registry {})
   (vreset! refs-cache {}))
 
-(defmulti handle-event (fn [db [event]] event))
+(def event-handlers (volatile! {}))
+(def fx-handlers (volatile! {}))
 
-(defmulti handle-fx (fn [db [event]] event))
-
-(defmethod handle-fx :db [_ [_ db*]]
-  (reset! db (constantly db*))
-  (notify-listeners!))
-
-(defn dispatch [event]
-  (let [effects (handle-event @db event)]
+(defn dispatch [[name :as event]]
+  (let [handler (get @event-handlers name)
+        _ (assert handler (str "Event handler " name " is not found"))
+        effects (handler @db event)]
     (doseq [[event args] effects]
-      (handle-fx @db [event args]))))
+      (let [handler (get @fx-handlers event)]
+        (assert handler (str "Effect handler " event " is not found"))
+        (handler @db [event args])))))
+
+(defn reg-event-db [name f]
+  (vswap! event-handlers assoc name (fn [a b] {:db (f a b)})))
+
+(defn reg-event-fx [name f]
+  (vswap! event-handlers assoc name f))
+
+(defn reg-fx [name f]
+  (vswap! fx-handlers assoc name f))
+
+(reg-fx :db
+  (fn [_ [_ db*]]
+    (reset! db (constantly db*))
+    (notify-listeners!)))
