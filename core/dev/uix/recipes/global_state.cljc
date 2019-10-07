@@ -6,6 +6,38 @@
             #?(:cljs [cljs-bean.core :as bean])
             #?(:cljs [react-dom :as rdom])))
 
+(defprotocol ILazyRef)
+
+#?(:cljs
+   (deftype LazyRef [^:mutable f]
+     ILazyRef
+     IDeref
+     (-deref [o]
+       ;; TODO: memoize
+       (f))
+     IReset
+     (-reset! [o new-value]
+       (set! f new-value))))
+
+#?(:clj
+   (deftype LazyRef [f]
+     ILazyRef))
+
+(defn lazy-ref [v]
+  (LazyRef. (if (fn? v) v (constantly v))))
+
+;; Global database
+(defonce db (lazy-ref {}))
+
+(def subs-registry (volatile! {}))
+(def refs-cache (volatile! {}))
+
+#?(:cljs
+    (def subs-in-order (volatile! #js [])))
+
+(defn notify-listeners! []
+  #?(:cljs (run! (fn [f] (f)) @subs-in-order)))
+
 ;; Database subscription hook
 ;; https://github.com/facebook/react/tree/master/packages/use-subscription#subscribing-to-event-dispatchers
 (defn subscribe-ref [ref key]
@@ -15,15 +47,12 @@
                (fn []
                  {:get-current-value (fn [] @ref)
                   :subscribe (fn [callback]
-                               (add-watch ref key callback)
-                               #(remove-watch ref key))})
+                               (.push @subs-in-order callback)
+                               (fn []
+                                 (let [idx (.indexOf @subs-in-order callback)]
+                                   (when-not (neg? idx)
+                                     (vswap! subs-in-order #(.splice % idx 1))))))})
                #js [ref]))))
-
-;; Global database
-(defonce db (atom {}))
-
-(def db-subs (volatile! {}))
-(def db-subs-cache (volatile! {}))
 
 (defn force-refs! [refs]
   (cond
@@ -32,35 +61,24 @@
         :clj [(instance? clojure.lang.IDeref refs) (deref refs)])
     :else '()))
 
-(defn ref-sink [refs f s]
-  (let [run-refs! #(f (force-refs! refs))
-        crefs (if (sequential? refs) refs [refs])
-        ret (atom (run-refs!))
-        callback #(when (not= %3 %4)
-                    (reset! ret (run-refs!)))
-        watch! #(do
-                  #?(:cljs
-                     (when ^boolean goog.DEBUG
-                       (set! (.-downstream %) (assoc (.-downstream %) s ret))))
-                  (add-watch % s callback))
-        _ (run! watch! crefs)]
-    ret))
+(defn ref-sink [refs f]
+  (lazy-ref #(f (force-refs! refs))))
 
 (defn create-sub-with-cache [s f deps-f]
-  (if-let [ref (get @db-subs-cache s)]
+  (if-let [ref (get @refs-cache s)]
     ref
-    (let [ref (ref-sink (deps-f s) #(f % s) s)]
-      (vswap! db-subs-cache assoc s ref)
+    (let [ref (ref-sink (deps-f s) #(f % s))]
+      (vswap! refs-cache assoc s ref)
       ref)))
 
 (defn subscribe [[sub-name :as s]]
-  (let [[f deps-f] (get @db-subs sub-name)]
+  (let [[f deps-f] (get @subs-registry sub-name)]
     (assert f (str "Subscription " sub-name " is not found"))
     (create-sub-with-cache s f deps-f)))
 
 (defmacro <sub [s]
   `(let [s# ~s]
-     (subscribe-ref (uix.core.alpha/memo #(subscribe s#) s#) s#)))
+     (subscribe-ref (uix.core.alpha/memo #(subscribe s#) [s#]) s#)))
 
 ;; https://github.com/Day8/re-frame/blob/master/src/re_frame/subs.cljc#L200
 (defn reg-sub [sub-name & args]
@@ -92,7 +110,7 @@
                    (fn inp-fn
                      ([_] (map subscribe vecs))
                      ([_ _] (map subscribe vecs)))))]
-    (vswap! db-subs assoc sub-name [f deps-f])))
+    (vswap! subs-registry assoc sub-name [f deps-f])))
 
 ;; Event handler
 (defmulti handle-event (fn [db [event]] event))
@@ -101,7 +119,8 @@
 (defmulti handle-fx (fn [db [event]] event))
 
 (defmethod handle-fx :db [_ [_ db*]]
-  (reset! db db*))
+  (reset! db (constantly db*))
+  (notify-listeners!))
 
 ;; Event dispatcher
 (defn dispatch [event]
@@ -134,6 +153,11 @@
 (reg-sub :db/repos
   (fn [db]
     (:repos db)))
+
+(reg-sub :db/repos-count
+  :<- [:db/repos]
+  (fn [repos _]
+    (count repos)))
 
 (reg-sub :repos/nth
   :<- [:db/repos]
@@ -176,29 +200,6 @@
          (.then #(dispatch [on-ok %])))))
 
 ;; UI components
-(defn inspect-db [ref]
-  #?(:cljs
-     (when (seq (.-downstream ref))
-       [:ul
-        (for [[sub ref] (.-downstream ref)]
-          ^{:key sub}
-          [:li
-           [:div (str sub)]
-           [inspect-db ref]])])))
-
-(defn devtools []
-  (let [_ (<sub [:db])]
-    [:div
-     {:style {:position :absolute
-              :top 0
-              :right 0
-              :width 240
-              :height "100vh"
-              :background-color :white
-              :border-left "1px solid black"
-              :overflow-y :auto}}
-     [inspect-db db]]))
-
 (defn repo-item [idx]
   (let [{:keys [name description]} (<sub [:repos/nth idx])
         open? (uix/state false)]
@@ -217,11 +218,10 @@
 
 (defn recipe []
   (let [uname (<sub [:db/value])
-        repos (<sub [:db/repos])
+        repos-count (<sub [:db/repos-count])
         loading? (<sub [:db/loading?])
         error (<sub [:db/error])]
     [:<>
-     [devtools]
      [:div
       [:input {:value uname
                :placeholder "GitHub username"
@@ -233,11 +233,11 @@
      (when error
        [:div {:style {:color "red"}}
         (.-message error)])
-     (when (seq repos)
+     (when (pos? repos-count)
        [:div {:style {:width 240
                       :height 400
                       :overflow-y :auto}}
-        (for [idx (range (count repos))]
+        (for [idx (range repos-count)]
           ^{:key idx} [repo-item idx])])]))
 
 
