@@ -6,21 +6,6 @@
             #?(:cljs [cljs-bean.core :as bean])
             #?(:cljs [react-dom :as rdom])))
 
-(defprotocol IRef
-  (remove-watch-with-deps [this key]))
-
-(extend-type #?(:cljs Atom :clj clojure.lang.Atom)
-  IRef
-  (remove-watch-with-deps [this key]
-    (do (remove-watch this key)
-        (doseq [deps-ref (.-deps this)]
-          (remove-watch-with-deps deps-ref key)))))
-
-(defn with-deps [ref deps]
-  (set! (.-deps ref) deps)
-  ref)
-
-
 ;; Database subscription hook
 ;; https://github.com/facebook/react/tree/master/packages/use-subscription#subscribing-to-event-dispatchers
 (defn subscribe-ref [ref key]
@@ -30,9 +15,8 @@
                (fn []
                  {:get-current-value (fn [] @ref)
                   :subscribe (fn [callback]
-                               (let [id (random-uuid)]
-                                 (add-watch ref key callback)
-                                 #(remove-watch-with-deps ref key)))})
+                               (add-watch ref key callback)
+                               #(remove-watch ref key))})
                #js [ref]))))
 
 ;; Global database
@@ -51,11 +35,13 @@
 (defn ref-sink [refs f s]
   (let [run-refs! #(f (force-refs! refs))
         crefs (if (sequential? refs) refs [refs])
-        ret (with-deps (atom (run-refs!)) crefs)
-        watch! #(add-watch % s (fn [_ _ o n]
-                                 (when (not= o n)
-                                   (reset! ret (run-refs!)))))]
-    #?(:cljs (run! watch! crefs))
+        ret (atom (run-refs!))
+        watch! #(do
+                  (set! (.-downstream %) (assoc (.-downstream %) s ret))
+                  (add-watch % s (fn [_ _ o n]
+                                   (when (not= o n)
+                                     (reset! ret (run-refs!))))))
+        _ (run! watch! crefs)]
     ret))
 
 (defn create-sub-with-cache [s f deps-f]
@@ -117,6 +103,9 @@
 
 ;; Event dispatcher
 (defn dispatch [event]
+  #?(:cljs
+     (when ^boolean goog.DEBUG
+       (js/console.log event)))
   (let [effects (handle-event @db event)]
     (doseq [[event args] effects]
       (handle-fx @db [event args]))))
@@ -124,6 +113,10 @@
 ;; ==== Usage ====
 
 ;; Subscriptions
+(reg-sub :db
+  (fn [db]
+    db))
+
 (reg-sub :db/value
   (fn [db]
     (:value db)))
@@ -164,10 +157,10 @@
 
 (defmethod handle-event :fetch-repos-ok [db [_ repos]]
   (let [repos (vec repos)]
-    {:db (assoc db :repos repos :loading? false)}))
+    {:db (assoc db :repos repos :loading? false :error nil)}))
 
 (defmethod handle-event :fetch-repos-failed [db [_ error]]
-  {:db (assoc db :repos [] :loading? false :error error)})
+  {:db (assoc db :loading? false :error error)})
 
 
 ;; Effect handlers
@@ -176,12 +169,34 @@
      (-> (js/fetch url)
          (.then #(if (.-ok %)
                    (.json %)
-                   (throw (.-statusText %))))
+                   (dispatch [on-failed %])))
          (.then bean/->clj)
-         (.then #(dispatch [on-ok %]))
-         (.catch #(dispatch [on-failed %])))))
+         (.then #(dispatch [on-ok %])))))
 
 ;; UI components
+(defn inspect-db [ref]
+  #?(:cljs
+     (when (seq (.-downstream ref))
+       [:ul
+        (for [[sub ref] (.-downstream ref)]
+          ^{:key sub}
+          [:li
+           [:div (str sub)]
+           [inspect-db ref]])])))
+
+(defn devtools []
+  (let [_ (<sub [:db])]
+    [:div
+     {:style {:position :absolute
+              :top 0
+              :right 0
+              :width 240
+              :height "100vh"
+              :background-color :white
+              :border-left "1px solid black"
+              :overflow-y :auto}}
+     [inspect-db db]]))
+
 (defn repo-item [idx]
   (let [{:keys [name description]} (<sub [:repos/nth idx])
         open? (uix/state false)]
@@ -200,10 +215,11 @@
 
 (defn recipe []
   (let [uname (<sub [:db/value])
-        loading? false
-        error false
-        repos (<sub [:db/repos])]
+        repos (<sub [:db/repos])
+        loading? (<sub [:db/loading?])
+        error (<sub [:db/error])]
     [:<>
+     [devtools]
      [:div
       [:input {:value uname
                :placeholder "GitHub username"
@@ -216,7 +232,6 @@
        [:div {:style {:color "red"}}
         (.-message error)])
      (when (seq repos)
-       (prn (count repos))
        [:div {:style {:width 240
                       :height 400
                       :overflow-y :auto}}
