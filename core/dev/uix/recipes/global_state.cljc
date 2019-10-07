@@ -36,11 +36,13 @@
   (let [run-refs! #(f (force-refs! refs))
         crefs (if (sequential? refs) refs [refs])
         ret (atom (run-refs!))
+        callback #(when (not= %3 %4)
+                    (reset! ret (run-refs!)))
         watch! #(do
-                  (set! (.-downstream %) (assoc (.-downstream %) s ret))
-                  (add-watch % s (fn [_ _ o n]
-                                   (when (not= o n)
-                                     (reset! ret (run-refs!))))))
+                  #?(:cljs
+                     (when ^boolean goog.DEBUG
+                       (set! (.-downstream %) (assoc (.-downstream %) s ret))))
+                  (add-watch % s callback))
         _ (run! watch! crefs)]
     ret))
 
