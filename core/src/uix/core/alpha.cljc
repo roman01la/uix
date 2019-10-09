@@ -8,6 +8,21 @@
             [uix.compiler.aot :as uixr]
             [uix.hooks.alpha :as hooks]))
 
+#?(:cljs
+   (when (and ^boolean goog.DEBUG
+              (exists? js/__REACT_DEVTOOLS_GLOBAL_HOOK__))
+     (defonce __devtools-hook
+       (let [value (volatile! nil)
+             react-type-setter (fn [v]
+                                 (vreset! value v))
+             react-type-getter (fn []
+                                 (if-let [uixf (.-uixf @value)]
+                                   uixf
+                                   @value))
+             config #js {:get react-type-getter
+                         :set react-type-setter}]
+         (.defineProperty js/Object js/window "$type" config)))))
+
 (declare as-element)
 
 ;; React's top-level API

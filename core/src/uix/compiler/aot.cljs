@@ -19,6 +19,8 @@
                      (r/as-element ret))
                  ret)))
         rf-memo (react/memo rf r/*default-compare-args*)]
+    (when (and ^boolean goog.DEBUG (exists? js/__REACT_DEVTOOLS_GLOBAL_HOOK__))
+      (set! (.-uixf rf) f))
     (when ^boolean goog.DEBUG
       (r/with-name f rf rf-memo))
     (r/cache-react-fn f rf-memo)

@@ -373,6 +373,8 @@
                     args (subvec argv 1)]
                 (as-element (apply tag args)))
           rf-memo (react/memo rf *default-compare-args*)]
+      (when (and ^boolean goog.DEBUG (exists? js/__REACT_DEVTOOLS_GLOBAL_HOOK__))
+        (set! (.-uixf rf) f))
       (when ^boolean goog.DEBUG
         (with-name f rf rf-memo))
       (cache-react-fn f rf-memo)
@@ -383,6 +385,8 @@
     cached-fn
     (let [rf #(as-element (apply f (subvec (.-argv %) 1)))
           rf-memo (react/memo rf *default-compare-args*)]
+      (when (and ^boolean goog.DEBUG (exists? js/__REACT_DEVTOOLS_GLOBAL_HOOK__))
+        (set! (.-uixf rf) f))
       (when ^boolean goog.DEBUG
         (with-name f rf rf-memo))
       (cache-react-fn f rf-memo)
