@@ -9,52 +9,56 @@
   (xf/unreg-all-subs))
 
 ;; Subscriptions
-(xf/reg-sub :db
-  (fn [db]
-    db))
-
-(xf/reg-sub :db/value
-  (fn [db]
-    (:value db)))
-
-(xf/reg-sub :db/loading?
-  (fn [db]
-    (:loading? db)))
-
-(xf/reg-sub :db/error
-  (fn [db]
-    (:error db)))
-
 (xf/reg-sub :db/repos
   (fn [db]
     (:repos db)))
 
-(xf/reg-sub :db/repos-count
+(xf/reg-sub :repos/value
   :<- [:db/repos]
-  (fn [repos _]
-    (count repos)))
+  (fn [repos]
+    (:value repos)))
 
-(xf/reg-sub :repos/nth
+(xf/reg-sub :repos/loading?
   :<- [:db/repos]
-  (fn [repos [_ idx]]
-    (when (seq repos)
-      (nth repos idx))))
+  (fn [repos]
+    (:loading? repos)))
+
+(xf/reg-sub :repos/error
+  :<- [:db/repos]
+  (fn [repos]
+    (:error repos)))
+
+(xf/reg-sub :repos/items
+  :<- [:db/repos]
+  (fn [repos]
+    (:items repos)))
+
+(xf/reg-sub :repos/count
+  :<- [:repos/items]
+  (fn [items]
+    (count items)))
+
+(xf/reg-sub :repos/nth-item
+  :<- [:repos/items]
+  (fn [items [_ idx]]
+    (when (seq items)
+      (nth items idx))))
 
 ;; Event handlers
 (xf/reg-event-db :db/init
   (fn [_ _]
-    {:value ""
-     :repos []
-     :loading? false
-     :error nil}))
+    {:repos {:value ""
+             :items []
+             :loading? false
+             :error nil}}))
 
 (xf/reg-event-db :set-value
    (fn [db [_ value]]
-     (assoc db :value value)))
+     (assoc-in db [:repos :value] value)))
 
 (xf/reg-event-fx :fetch-repos
   (fn [db [_ uname]]
-    {:db (assoc db :loading? true)
+    {:db (assoc-in db [:repos :loading?] true)
      :http {:url (str "https://api.github.com/users/" uname "/repos")
             :on-ok :fetch-repos-ok
             :on-failed :fetch-repos-failed}}))
@@ -62,11 +66,11 @@
 (xf/reg-event-db :fetch-repos-ok
   (fn [db [_ repos]]
     (let [repos (vec repos)]
-      (assoc db :repos repos :loading? false :error nil))))
+      (update db :repos assoc :items repos :loading? false :error nil))))
 
 (xf/reg-event-db :fetch-repos-failed
   (fn [db [_ error]]
-    (assoc db :loading? false :error error)))
+    (update db :repos assoc :loading? false :error error)))
 
 
 ;; Effect handlers
@@ -82,7 +86,7 @@
 
 ;; UI components
 (defn repo-item [idx]
-  (let [{:keys [name description]} (<sub [:repos/nth idx])
+  (let [{:keys [name description]} (<sub [:repos/nth-item idx])
         open? (uix/state false)]
     [:div {:on-click #(swap! open? not)
            :style {:padding 8
@@ -97,29 +101,37 @@
        [:div {:style {:margin "8px 0 0"}}
         description])]))
 
+(defn form []
+  (let [uname (<sub [:repos/value])]
+    [:form {:on-submit #(do
+                          (.preventDefault %)
+                          (xf/dispatch [:fetch-repos uname]))}
+     [:input {:value uname
+              :placeholder "GitHub username"
+              :on-change #(xf/dispatch [:set-value (.. % -target -value)])}]
+     [:button
+      "Fetch repos"]]))
+
+(defn repos-list []
+  (let [repos-count (<sub [:repos/count])]
+    (when (pos? repos-count)
+      [:div {:style {:width 240
+                     :height 400
+                     :overflow-y :auto}}
+       (for [idx (range repos-count)]
+         ^{:key idx} [repo-item idx])])))
+
 (defn recipe []
-  (let [uname (<sub [:db/value])
-        repos-count (<sub [:db/repos-count])
-        loading? (<sub [:db/loading?])
-        error (<sub [:db/error])]
+  (let [loading? (<sub [:repos/loading?])
+        error (<sub [:repos/error])]
     [:<>
-     [:div
-      [:input {:value uname
-               :placeholder "GitHub username"
-               :on-change #(xf/dispatch [:set-value (.. % -target -value)])}]
-      [:button {:on-click #(xf/dispatch [:fetch-repos uname])}
-       "Fetch repos"]]
+     [form]
      (when loading?
-       [:div "Loading repos for " uname "..."])
+       [:div "Loading repos..."])
      (when error
        [:div {:style {:color "red"}}
         (.-message error)])
-     (when (pos? repos-count)
-       [:div {:style {:width 240
-                      :height 400
-                      :overflow-y :auto}}
-        (for [idx (range repos-count)]
-          ^{:key idx} [repo-item idx])])]))
+     [repos-list]]))
 
 
 ;; Init database
