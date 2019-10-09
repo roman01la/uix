@@ -142,7 +142,7 @@ Compiler will try to inline as much as possible based on type information provid
   ^:inline text]) ;; will inline text as is assuming it's a string
 ```
 
-`uix.core.alpha/defui` does the same as `html` macro and additionally skips type checking arguments if a spec is provided **(this part is experimental)**. 
+`uix.core.alpha/defui` does the same as `html` macro and additionally skips type checking arguments if a spec is provided **(this part is experimental)**.
 
 ```clj
 (s/fdef button
@@ -182,7 +182,8 @@ See an example in `uix.recipes.server-rendering`
 ```
 
 #### Server-side rendering in JS
-SSR works in JavaScript environment via React's serializer using same API. 
+
+SSR works in JavaScript environment via React's serializer using same API.
 
 1. Add `ReactDOMServer` into your dependencies (as `cljsjs/react-dom-server` or any other way)
 2. Run `(uix.dom/render-to-string element)`
@@ -216,6 +217,12 @@ reagent-interpret x 4031 ops/s, elapsed 2481ms
 | rum     | 254KB | 70KB |
 | reagent | 269KB | 74KB |
 | uix     | 234KB | 65KB |
+
+## React DevTools
+
+When inspecting UI tree in React DevTools, filter out `memo` components to get cleaner view of components tree.
+
+<img src="devtools.png" width="460">
 
 ## Testing
 
