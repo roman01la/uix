@@ -9,7 +9,8 @@
   subscribed nodes which forces evaluation of the whole graph from the root.
 
   Every node memoizes on its input subscriptions or the database if none provided."
-  (:require [uix.core.alpha :as uix]))
+  (:require [uix.core.alpha :as uix])
+  #?(:cljs (:require-macros [xframe.core.alpha :refer [set-ref!]])))
 
 ;; TODO: subscriptions graph visual debugger
 
@@ -85,6 +86,17 @@
                 (sequential? refs) refs
                 :else [refs])]
      (LazyRef. f refs nil false))))
+
+#?(:clj
+   (defmacro ref!
+     ([v]
+      `(lazy-ref (fn [] ~v)))
+     ([v deps]
+      `(lazy-ref (fn [] ~v) ~deps))))
+
+#?(:clj
+   (defmacro set-ref! [ref v]
+     `(reset! ~ref (fn [] ~v))))
 
 ;; =============================
 
