@@ -70,13 +70,16 @@
        (-ref-deref o f result clean?))
      clojure.lang.IAtom
      (reset [o new-value]
+       (assert (fn? new-value) (str new-value " is not a function"))
        (set! f new-value)
        (set! clean? false))))
 
 (defn lazy-ref
   ([f]
+   (assert (fn? f) (str f " is not a function"))
    (LazyRef. f nil nil false))
   ([f refs]
+   (assert (fn? f) (str f " is not a function"))
    (let [refs (cond
                 (nil? refs) nil
                 (sequential? refs) refs
