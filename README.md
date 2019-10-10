@@ -218,6 +218,17 @@ reagent-interpret x 4031 ops/s, elapsed 2481ms
 | reagent | 269KB | 74KB |
 | uix     | 234KB | 65KB |
 
+## Figwheel
+
+When developing with Figwheel it is recommended to mark root render function with `^:after-load` meta, so Figwheel can update UI tree once the code was re-evaluated.
+
+```clj
+(ns ^:figwheel-hooks my.ns)
+
+(defn ^:after-load render []
+  (uix.dom/render [app] js/root))
+```
+
 ## React DevTools
 
 When inspecting UI tree in React DevTools, filter out `memo` components to get cleaner view of components tree.
