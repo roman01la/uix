@@ -38,7 +38,8 @@
    (deftype LazyRef [^:mutable f
                      refs
                      ^:mutable result
-                     ^:mutable clean?]
+                     ^:mutable clean?
+                     ^:mutable meta]
      ILazyRef
      (set-result! [o new-result]
        (set! result new-result))
@@ -52,13 +53,21 @@
      IReset
      (-reset! [o new-value]
        (set! f new-value)
-       (set! clean? false))))
+       (set! clean? false))
+     IWithMeta
+     (-with-meta [o new-meta]
+       (set! meta new-meta)
+       o)
+     IMeta
+     (-meta [o]
+       meta)))
 
 #?(:clj
    (deftype LazyRef [^:volatile-mutable f
                      refs
                      ^:volatile-mutable result
-                     ^:volatile-mutable clean?]
+                     ^:volatile-mutable clean?
+                     ^:volatile-mutable meta]
      ILazyRef
      (set-result! [o new-result]
        (set! result new-result))
@@ -78,14 +87,18 @@
 (defn lazy-ref
   ([f]
    (assert (fn? f) (str f " is not a function"))
-   (LazyRef. f nil nil false))
+   (LazyRef. f nil nil false nil))
   ([f refs]
    (assert (fn? f) (str f " is not a function"))
    (let [refs (cond
                 (nil? refs) nil
                 (sequential? refs) refs
-                :else [refs])]
-     (LazyRef. f refs nil false))))
+                :else [refs])
+         ret (LazyRef. f refs nil false nil)]
+     #?(:cljs (when ^boolean goog.DEBUG
+                (doseq [ref refs]
+                  (set! (.-deps ref) (conj (.-deps ref) ret)))))
+     ret)))
 
 #?(:clj
    (defmacro ref!
@@ -102,8 +115,29 @@
 
 (defonce db (lazy-ref (constantly {})))
 
-(def ^:private subs-registry (volatile! {}))
-(def ^:private refs-cache (volatile! {}))
+(def ^:private subs-registry (atom {}))
+(def ^:private refs-cache (atom {}))
+
+#?(:cljs
+   (when ^boolean goog.DEBUG
+
+     (defn get-refs-graph* [refs]
+       (map (fn [ref]
+              [(.-sub ref) (get-refs-graph* (.-deps ref))])
+            refs))
+
+     (defn get-refs-graph []
+       [[:db] (get-refs-graph* (.-deps db))])
+
+     (defn ^:export devtools-hook []
+       (let [_ (aset js/window "__XTOOLS_HOOK__" #js {})
+             assoc-state! #(aset (.-__XTOOLS_HOOK__ js/window) %1 (str %2))
+             on-update-subs #(assoc-state! "subscriptions" (keys %))
+             on-update-refs #(assoc-state! "refs" (get-refs-graph))]
+         (on-update-subs @subs-registry)
+         (on-update-refs)
+         (add-watch subs-registry ::devtools #(on-update-subs %4))
+         (add-watch refs-cache ::devtools on-update-refs)))))
 
 #?(:cljs
    (def ^:private subs-in-order #js []))
@@ -129,7 +163,9 @@
   (if-let [ref (get @refs-cache s)]
     ref
     (let [ref (lazy-ref #(f % s) (deps-f s))]
-      (vswap! refs-cache assoc s ref)
+      #?(:cljs (when ^boolean goog.DEBUG
+                 (set! (.-sub ref) s)))
+      (swap! refs-cache assoc s ref)
       ref)))
 
 ;; ====== Public API ======
@@ -169,11 +205,11 @@
                    (fn inp-fn
                      ([_] (map subscribe vecs))
                      ([_ _] (map subscribe vecs)))))]
-    (vswap! subs-registry assoc sub-name [f deps-f])))
+    (swap! subs-registry assoc sub-name [f deps-f])))
 
 (defn unreg-all-subs []
-  (vreset! subs-registry {})
-  (vreset! refs-cache {}))
+  (reset! subs-registry {})
+  (reset! refs-cache {}))
 
 (def event-handlers (volatile! {}))
 (def fx-handlers (volatile! {}))

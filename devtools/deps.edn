@@ -1,0 +1,7 @@
+{:deps {org.clojure/clojure {:mvn/version "1.10.1"}
+        org.clojure/clojurescript {:mvn/version "1.10.520"}
+        ring/ring-core {:mvn/version "1.7.1"}
+        ring/ring-jetty-adapter {:mvn/version "1.7.1"}
+        uix.core {:local/root "../core"}
+        uix.dom {:local/root "../dom"}}
+ :paths ["src" "resources" "dev"]}

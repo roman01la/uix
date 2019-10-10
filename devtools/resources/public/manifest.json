@@ -1,0 +1,7 @@
+{
+  "name": "xFrame DevTools",
+  "version": "1.0",
+  "description": "Chrome DevTools extension for xFrame",
+  "manifest_version": 2,
+  "devtools_page": "devtools.html"
+}
