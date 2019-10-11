@@ -357,7 +357,7 @@
         attrs (dissoc attrs :key :ref)
         js-attrs (or (to-js attrs) empty-js-obj)
         props-sym (gensym "props")
-        react-sym `(cljs.core/js-invoke ~'js/Symbol "for" "react.element")
+        react-sym `(~'js* "Symbol.for(~{})" "react.element")
         react-key (cond
                     (string? key) key
                     (nil? key) nil

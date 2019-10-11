@@ -13,7 +13,7 @@
   (gobj/equals a b))
 
 (defn symbol-for [s]
-  (js-invoke js/Symbol "for" s))
+  (js* "Symbol.for(~{})" s))
 
 (defn react-element-of-type? [f type]
   (= (gobj/get f "$$typeof") (symbol-for type)))

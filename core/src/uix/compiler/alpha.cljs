@@ -322,7 +322,7 @@
   (set! (.-cljsReact f) rf))
 
 (defn symbol-for [s]
-  (js-invoke js/Symbol "for" s))
+  (js* "Symbol.for(~{})" s))
 
 (def lazy-sym (symbol-for "react.lazy"))
 (def memo-sym (symbol-for "react.memo"))
