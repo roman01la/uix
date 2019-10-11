@@ -247,7 +247,8 @@
      [sym args & body]
      (if-not &env
        `(defn ~sym ~args ~@body)
-       `(uixr/compile-defui ~sym ~args ~body))))
+       `(defn ~sym ~args
+          (uixr/compile-defui ~sym ~body)))))
 
 (defn as-element [x]
   "Compiles Hiccup into React elements at run-time."

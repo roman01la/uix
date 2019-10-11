@@ -3,6 +3,8 @@
   (:require [clojure.string :as str]
             [cljs.analyzer :as ana]
             [cljs.spec.alpha :as s]
+            [cljs.compiler :as cljsc]
+            [cljs.env :as env]
             [uix.compiler.alpha :as compiler]))
 
 (def ^:dynamic *skip-check?*) ;; skips type check at usage place
@@ -10,6 +12,87 @@
 (def ^:dynamic *defui?*) ;; skips type check at declaration place
 (def ^:dynamic *specked-args*) ;; arguments of a specked fn
 (def ^:dynamic *cljs-env*) ;; cljs compiler's env
+
+(defn unevaluated? [expr]
+  (or (symbol? expr)
+      (and (seq? expr)
+           (not= (first expr) `quote))))
+
+(defn literal? [x]
+  (and (not (unevaluated? x))
+       (or (not (or (vector? x) (map? x)))
+           (and (every? literal? x)
+                (not (keyword? (first x)))))))
+
+;; EXPERIMENTAL: constants hoisting
+
+;; https://github.com/clojure/clojurescript/blob/b38ded99dc0967a48824d55ea644bee86b4eae5b/src/main/clojure/cljs/compiler.cljc#L1786
+(defn emit-constants-table [table]
+  (cljsc/emitln "goog.provide('" (cljsc/munge ana/constants-ns-sym) "');")
+  (cljsc/emitln "goog.require('cljs.core');")
+  (doseq [[sym value] table]
+    (cond
+      (keyword? sym)
+      (do (cljsc/emits "cljs.core." value " = ")
+          (cljsc/emits-keyword sym))
+
+      (symbol? sym)
+      (do (cljsc/emits "cljs.core." value " = ")
+          (cljsc/emits-symbol sym))
+
+      (.startsWith ^String (name value) "uix-hoisted-")
+      (do (cljsc/emits "cljs.core." (cljsc/munge value) " = ")
+          (-> sym meta :ast cljsc/emits))
+
+      :else (throw
+              (ex-info
+                (str "Cannot emit constant for type " (type sym))
+                {:error :invalid-constant-type
+                 :clojure.error/phase :compilation})))
+
+    (cljsc/emits ";\n")))
+
+(alter-var-root #'cljs.compiler/emit-constants-table
+                (fn [_] emit-constants-table))
+
+(defn static-value? [v]
+  (if (coll? v)
+    (every? static-value? v)
+    (or (literal? v)
+        (and (symbol? v)
+             (.startsWith ^String (str v) "cljs.core.uix_hoisted_")))))
+
+(defn static-element? [tag attrs children]
+  (and (not (:ref attrs))
+       (static-value? [tag attrs children])))
+
+(defn gen-constant-id [val]
+  (symbol (str "uix-hoisted-" (hash val))))
+
+;; https://github.com/clojure/clojurescript/blob/d79eda372f35e3c79c1f9cec1219266b60d40cb4/src/main/clojure/cljs/analyzer.cljc#L565
+(defn register-constant! [env val]
+  (let [id (gen-constant-id val)]
+    (swap! env/*compiler*
+           (fn [cenv]
+             (-> cenv
+                 (update-in [::ana/constant-table] #(if (get % val) % (assoc % val id)))
+                 (update-in [::ana/namespaces (-> env :ns :name) ::ana/constants]
+                            (fn [{:keys [seen order] :or {seen #{} order []} :as constants}]
+                              (cond-> constants
+                                      (not (contains? seen val))
+                                      (assoc :seen (conj seen val)
+                                             :order (conj order val))))))))
+    id))
+
+(defn maybe-hoist [hiccup compiled tag attrs children]
+  (if (and (-> @env/*compiler* :options :optimize-constants)
+           (static-element? tag attrs children))
+    (let [ast (ana/analyze (assoc *cljs-env* :context :expr) compiled)
+          sym (register-constant! *cljs-env* (with-meta hiccup {:ast ast}))]
+      (symbol (str "cljs.core." (cljsc/munge sym))))
+    compiled))
+
+;; EXPERIMENTAL: inference
 
 (def inlineable-types #{'number 'string 'clj-nil 'boolean})
 
@@ -51,17 +134,6 @@
         `(uix.compiler.alpha/as-element ~expr)))))
 
 (declare compile-html*)
-
-(defn unevaluated? [expr]
-  (or (symbol? expr)
-      (and (seq? expr)
-           (not= (first expr) `quote))))
-
-(defn literal? [x]
-  (and (not (unevaluated? x))
-       (or (not (or (vector? x) (map? x)))
-           (and (every? literal? x)
-                (not (keyword? (first x)))))))
 
 (defn normalize-element
   "Takes Hiccup element and optional index specifying position of attributes
@@ -395,26 +467,6 @@
      :else attrs)
    (inline-element type)))
 
-(def ^:dynamic *hoisted-forms*)
-
-(defn hoisted-forms->defs [forms]
-  (for [[sym v] forms]
-    `(def ~sym ~v)))
-
-(defn static-value? [v]
-  (if (coll? v)
-    (every? static-value? v)
-    (literal? v)))
-
-(defn static-element? [tag attrs children]
-  (and (not (:ref attrs))
-       (static-value? [tag attrs children])))
-
-(defn hoist-element [v ret]
-  (let [sym (symbol (str "uix-hoisted-" (hash v)))]
-    (swap! *hoisted-forms* assoc sym ret)
-    sym))
-
 (defmulti compile-element
   (fn [[tag]]
     (cond
@@ -439,14 +491,11 @@
                 :always (set-id-class id-class)
                 (:key m) (assoc :key (:key m))
                 (:ref m) (assoc :ref `(uix.compiler.alpha/unwrap-ref ~(:ref m))))
-        static? (static-element? tag attrs children)
         js-attrs (compile-attrs attrs)
         children (mapv compile-html* children)
         ret (check-attrs v attrs children
                          (inline-children tag js-attrs children))]
-    (if static?
-      (hoist-element v ret)
-      ret)))
+    (maybe-hoist v ret tag attrs children)))
 
 (defmethod compile-element :component [v]
   (let [[tag & args] v
@@ -464,14 +513,11 @@
         m (meta v)
         attrs (cond-> attrs
                 (:key m) (assoc :key (:key m)))
-        static? (static-element? nil attrs children)
         attrs (to-js (compile-attrs attrs))
         children (mapv compile-html* children)
         ret (check-attrs v attrs children
                          (inline-children `fragment attrs children))]
-    (if static?
-      (hoist-element v ret)
-      ret)))
+    (maybe-hoist v ret nil attrs children)))
 
 (defmethod compile-element :suspense [v]
   (let [[_ attrs children] (normalize-element v)
@@ -479,14 +525,11 @@
         attrs (cond-> attrs
                 (:fallback attrs) (update :fallback compile-html*)
                 (:key m) (assoc :key (:key m)))
-        static? (static-element? nil attrs children)
         attrs (to-js (compile-attrs attrs))
         children (mapv compile-html* children)
         ret (check-attrs v attrs children
                          `(>el suspense ~attrs ~children))]
-    (if static?
-      (hoist-element v ret)
-      ret)))
+    (maybe-hoist v ret nil attrs children)))
 
 (defmethod compile-element :portal [v]
   (binding [*out* *err*]
@@ -514,21 +557,17 @@
 (defn compile-html
   "Compiles Hiccup expr into React.js calls"
   [expr env]
-  (binding [*cljs-env* env
-            *defui?* false]
+  (binding [*defui?* false
+            *cljs-env* env]
     (compile-html* expr)))
 
 
 (defmacro compile-defui
   "Compiles Hiccup component defined with defui macro into React component"
-  [sym args body]
+  [sym body]
   (binding [*defui?* true
             *cljs-env* &env
             *skip-fn-check?* (has-spec? sym)
-            *specked-args* (->> &env :locals keys set)
-            *hoisted-forms* (atom {})]
-    (let [body (mapv compile-html* body)
-          hoisted-forms (hoisted-forms->defs @*hoisted-forms*)]
-      `(do
-         ~@hoisted-forms
-         (defn ~sym ~args ~@body)))))
+            *specked-args* (->> &env :locals keys set)]
+    `(do ~@(mapv compile-html* body))))
+
