@@ -1,7 +1,7 @@
 (ns ^:figwheel-hooks uix.recipes.global-state
   "This recipe shows how UIx apps can architect global data store
   and effects handling using Hooks API."
-  (:require [uix.core.alpha :as uix]
+  (:require [uix.core.alpha :as uix :refer [defui]]
             [xframe.core.alpha :as xf :refer [<sub]]
             #?(:cljs [cljs-bean.core :as bean])))
 
@@ -101,7 +101,7 @@
        [:div {:style {:margin "8px 0 0"}}
         description])]))
 
-(defn form []
+(defui form []
   (let [uname (<sub [:repos/value])]
     [:form {:on-submit #(do
                           (.preventDefault %)

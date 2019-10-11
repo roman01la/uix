@@ -395,6 +395,26 @@
      :else attrs)
    (inline-element type)))
 
+(def ^:dynamic *hoisted-forms*)
+
+(defn hoisted-forms->defs [forms]
+  (for [[sym v] forms]
+    `(def ~sym ~v)))
+
+(defn static-value? [v]
+  (if (coll? v)
+    (every? static-value? v)
+    (literal? v)))
+
+(defn static-element? [tag attrs children]
+  (and (not (:ref attrs))
+       (static-value? [tag attrs children])))
+
+(defn hoist-element [v ret]
+  (let [sym (symbol (str "uix-hoisted-" (hash v)))]
+    (swap! *hoisted-forms* assoc sym ret)
+    sym))
+
 (defmulti compile-element
   (fn [[tag]]
     (cond
@@ -419,10 +439,14 @@
                 :always (set-id-class id-class)
                 (:key m) (assoc :key (:key m))
                 (:ref m) (assoc :ref `(uix.compiler.alpha/unwrap-ref ~(:ref m))))
+        static? (static-element? tag attrs children)
         js-attrs (compile-attrs attrs)
-        children (mapv compile-html* children)]
-    (check-attrs (keyword tag) v attrs children
-                 (inline-children tag js-attrs children))))
+        children (mapv compile-html* children)
+        ret (check-attrs v attrs children
+                         (inline-children tag js-attrs children))]
+    (if static?
+      (hoist-element v ret)
+      ret)))
 
 (defmethod compile-element :component [v]
   (let [[tag & args] v
@@ -440,10 +464,14 @@
         m (meta v)
         attrs (cond-> attrs
                 (:key m) (assoc :key (:key m)))
+        static? (static-element? nil attrs children)
         attrs (to-js (compile-attrs attrs))
-        children (mapv compile-html* children)]
-    (check-attrs v attrs children
-                 (inline-children `fragment attrs children))))
+        children (mapv compile-html* children)
+        ret (check-attrs v attrs children
+                         (inline-children `fragment attrs children))]
+    (if static?
+      (hoist-element v ret)
+      ret)))
 
 (defmethod compile-element :suspense [v]
   (let [[_ attrs children] (normalize-element v)
@@ -451,10 +479,14 @@
         attrs (cond-> attrs
                 (:fallback attrs) (update :fallback compile-html*)
                 (:key m) (assoc :key (:key m)))
+        static? (static-element? nil attrs children)
         attrs (to-js (compile-attrs attrs))
-        children (mapv compile-html* children)]
-    (check-attrs v attrs children
-                 `(>el suspense ~attrs ~children))))
+        children (mapv compile-html* children)
+        ret (check-attrs v attrs children
+                         `(>el suspense ~attrs ~children))]
+    (if static?
+      (hoist-element v ret)
+      ret)))
 
 (defmethod compile-element :portal [v]
   (binding [*out* *err*]
@@ -486,10 +518,17 @@
             *defui?* false]
     (compile-html* expr)))
 
+
 (defmacro compile-defui
   "Compiles Hiccup component defined with defui macro into React component"
-  [sym body]
+  [sym args body]
   (binding [*defui?* true
+            *cljs-env* &env
             *skip-fn-check?* (has-spec? sym)
-            *specked-args* (->> &env :locals keys set)]
-    `(do ~@(mapv #(compile-html % &env) body))))
+            *specked-args* (->> &env :locals keys set)
+            *hoisted-forms* (atom {})]
+    (let [body (mapv compile-html* body)
+          hoisted-forms (hoisted-forms->defs @*hoisted-forms*)]
+      `(do
+         ~@hoisted-forms
+         (defn ~sym ~args ~@body)))))
