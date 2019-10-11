@@ -118,7 +118,7 @@ Injects provided function into attributes transformation stage. Could be used fo
 _NOTE: UIx interpreter is already super fast (3x faster than Reagent and only 2x slower than vanilla React).
 Use pre-compilation ONLY if you are hitting performance problems._
 
-Compiles Hiccup into inlined React elements at compile-time
+Compiles Hiccup into inlined React elements at compile-time and hoists constant elements so they can be shared across components in different namespaces (for reference see [@babel/plugin-transform-react-inline-elements](https://babeljs.io/docs/en/babel-plugin-transform-react-inline-elements) and [@babel/plugin-transform-react-constant-elements](https://babeljs.io/docs/en/babel-plugin-transform-react-constant-elements)). Hoisting is enabled with `:optimize-constants` compiler option, which is automatically enabled for `:optimizations :advanced`.
 
 ```clj
 (uix/html
