@@ -336,7 +336,7 @@
     (true? *skip-check?*) expr
     :else `(maybe-interpret ~expr)))
 
-(defn check-attrs [tag v attrs children expr]
+(defn check-attrs [v attrs children expr]
   (if (and (nil? attrs) (symbol? (first children)))
     `(let [m# ~(first children)]
        (assert (not (map? m#))
@@ -442,7 +442,7 @@
                 (:key m) (assoc :key (:key m)))
         attrs (to-js (compile-attrs attrs))
         children (mapv compile-html* children)]
-    (check-attrs ":<> (React.Fragment)" v attrs children
+    (check-attrs v attrs children
                  (inline-children `fragment attrs children))))
 
 (defmethod compile-element :suspense [v]
@@ -453,7 +453,7 @@
                 (:key m) (assoc :key (:key m)))
         attrs (to-js (compile-attrs attrs))
         children (mapv compile-html* children)]
-    (check-attrs ":# (React.Suspense)" v attrs children
+    (check-attrs v attrs children
                  `(>el suspense ~attrs ~children))))
 
 (defmethod compile-element :portal [v]
@@ -470,7 +470,7 @@
                 (:ref m) (assoc :ref `(uix.compiler.alpha/unwrap-ref ~(:ref m))))
         attrs (to-js (compile-attrs attrs))
         children (mapv compile-html* children)]
-    (check-attrs `(.-name ~tag) v attrs children
+    (check-attrs v attrs children
                  `(>el ~tag ~attrs ~children))))
 
 (defn compile-html* [expr]
