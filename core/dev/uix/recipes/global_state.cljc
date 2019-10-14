@@ -60,8 +60,8 @@
       (update db :repos assoc :items repos :loading? false :error nil))))
 
 (xf/reg-event-db :fetch-repos-failed
-                 (fn [db [_ error]]
-                   (update db :repos assoc :loading? false :error error)))
+  (fn [db [_ error]]
+    (update db :repos assoc :loading? false :error error)))
 
 
 ;; Effect handlers
