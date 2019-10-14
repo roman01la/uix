@@ -17,7 +17,8 @@
                   ^:volatile-mutable result
                   ^:volatile-mutable sub
                   ^:volatile-mutable sup
-                  ^:volatile-mutable clean?]
+                  ^:volatile-mutable clean?
+                  ameta]
   IAdapton
   (get-sup [this]
     sup)
@@ -70,30 +71,39 @@
   (swap [this f x y]
     (.reset this (f (.deref this) x y)))
   (swap [this f x y args]
-    (.reset this (apply f (.deref this) x y args))))
+    (.reset this (apply f (.deref this) x y args)))
+
+  clojure.lang.IMeta
+  (meta [this]
+    ameta))
 
 (defn adapton? [v]
   (instance? Adapton v))
 
-(defn make-athunk [thunk]
-  (Adapton. thunk nil #{} #{} false))
+(defn make-athunk [thunk & [meta]]
+  (Adapton. thunk nil #{} #{} false meta))
 
 (defn aref [v]
-  (let [a (Adapton. nil v #{} #{} true)]
+  (let [a (Adapton. nil v #{} #{} true nil)]
     (set-thunk! a #(get-result a))
     a))
 
-(defmacro adapt [e]
-  `(make-athunk (fn [] ~e)))
+(defmacro adapt [e & [meta]]
+  `(make-athunk (fn [] ~e) ~meta))
 
 (defn avar-get [v]
   (deref (deref v)))
 
 (defmacro defamemo [f args & body]
-  `(def ~f
-     (let [f# (fn ~args ~@body)
-           f*# (memoize #(adapt (apply f# %)))]
-       (fn [& args#] @(f*# args#)))))
+  (let [argsym (gensym)
+        m (assoc (meta f) :args argsym)
+        mexpr (if &env
+                `(when ~'^boolean goog.DEBUG ~m)
+                m)]
+    `(def ~f
+       (let [f# (fn ~args ~@body)
+             f*# (memoize (fn [~argsym] (adapt (apply f# ~argsym) ~mexpr)))]
+         (fn [& args#] @(f*# args#))))))
 
 (defmacro avar [e]
   `(aref (adapt ~e)))

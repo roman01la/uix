@@ -12,7 +12,8 @@
                               codox {:mvn/version "0.10.6"}
                               codox-theme-rdash {:mvn/version "0.1.2"}
                               aleph {:mvn/version "0.4.6"}
-                              cljfmt {:mvn/version "0.6.4"}}}
+                              cljfmt {:mvn/version "0.6.4"}
+                              rhizome {:mvn/version "0.2.9"}}}
            :rec-front {:extra-deps {com.bhauman/rebel-readline-cljs {:mvn/version "0.1.4"}}
                        :main-opts ["-m" "figwheel.main" "--build" "dev" "--repl" "--serve"]}
            :rec-ssr  {:main-opts ["-m" "uix.recipes.server-rendering"]}

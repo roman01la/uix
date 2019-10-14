@@ -6,7 +6,7 @@
             [xframe.core.adapton :as adapton]
             [clojure.string :as str]))
 
-;; TODO: subscriptions graph visual debugger
+;; TODO: reset graph when hot-reloading
 
 (defonce db (adapton/aref {}))
 
@@ -37,16 +37,33 @@
 
 ;; ====== Public API ======
 
+(comment
+  (require 'rhizome.viz)
+  (rhizome.viz/view-tree (comp seq :children) :children g
+    :node->descriptor (fn [n] {:label (:name n)})))
+
+(defn subs-graph
+  "Takes db and returns its dependency graph"
+  [a]
+  (let [sup #?(:cljs (->> (adapton/get-sup a) .values js/Array.from (mapv subs-graph))
+               :clj (->> (adapton/get-sup a) (mapv subs-graph)))
+        m (meta a)]
+    {:name (if-let [name (:name m)]
+             (into [name] (:args m))
+             :db)
+     :children sup
+     :value (adapton/get-result a)}))
+
 #?(:clj
    (defmacro reg-sub [name [_ args & body]]
      (let [f (-> (munge name) (str/replace "." "-") symbol)]
        `(do
-          (adapton/defamemo ~f ~args ~@body)
+          (adapton/defamemo ~(with-meta f {:name name}) ~args ~@body)
           (-reg-sub ~name ~f)))))
 
 (defn <- [[name & args]]
   (let [f (get @subs-registry name)]
-    (assert (fn? f) (str "Subscription " name " is not found"))
+    (assert f (str "Subscription " name " is not found"))
     (apply f args)))
 
 (defn <sub [s]

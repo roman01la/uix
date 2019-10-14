@@ -18,7 +18,8 @@
                   ^:mutable result
                   ^:mutable sub
                   ^:mutable sup
-                  ^:mutable clean?]
+                  ^:mutable clean?
+                  ameta]
   IAdapton
   (get-sup [this]
     sup)
@@ -72,16 +73,20 @@
   (-swap! [this f x y]
     (-reset! this (f (-deref this) x y)))
   (-swap! [this f x y args]
-    (-reset! this (apply f (-deref this) x y args))))
+    (-reset! this (apply f (-deref this) x y args)))
+
+  IMeta
+  (-meta [this]
+    ameta))
 
 (defn adapton? [v]
   (instance? Adapton v))
 
-(defn make-athunk [thunk]
-  (Adapton. thunk nil (js/Set.) (js/Set.) false))
+(defn make-athunk [thunk & [meta]]
+  (Adapton. thunk nil (js/Set.) (js/Set.) false meta))
 
 (defn aref [v]
-  (let [a (Adapton. nil v (js/Set.) (js/Set.) true)]
+  (let [a (Adapton. nil v (js/Set.) (js/Set.) true nil)]
     (set-thunk! a #(get-result a))
     a))
 
