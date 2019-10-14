@@ -1,48 +1,39 @@
-(ns ^:figwheel-hooks uix.recipes.global-state
+(ns uix.recipes.global-state
   "This recipe shows how UIx apps can architect global data store
   and effects handling using Hooks API."
   (:require [uix.core.alpha :as uix :refer [defui]]
             [xframe.core.alpha :as xf :refer [<sub]]
             #?(:cljs [cljs-bean.core :as bean])))
-
-(defn ^:before-load before-load []
-  (xf/unreg-all-subs))
-
 ;; Subscriptions
 (xf/reg-sub :db/repos
-  (fn [db]
-    (:repos db)))
+  (fn []
+    (:repos (xf/<- [::xf/db]))))
 
 (xf/reg-sub :repos/value
-  :<- [:db/repos]
-  (fn [repos]
-    (:value repos)))
+  (fn []
+    (:value (xf/<- [:db/repos]))))
 
 (xf/reg-sub :repos/loading?
-  :<- [:db/repos]
-  (fn [repos]
-    (:loading? repos)))
+  (fn []
+    (:loading? (xf/<- [:db/repos]))))
 
 (xf/reg-sub :repos/error
-  :<- [:db/repos]
-  (fn [repos]
-    (:error repos)))
+  (fn []
+    (:error (xf/<- [:db/repos]))))
 
 (xf/reg-sub :repos/items
-  :<- [:db/repos]
-  (fn [repos]
-    (:items repos)))
+  (fn []
+    (:items (xf/<- [:db/repos]))))
 
 (xf/reg-sub :repos/count
-  :<- [:repos/items]
-  (fn [items]
-    (count items)))
+  (fn []
+    (count (xf/<- [:repos/items]))))
 
 (xf/reg-sub :repos/nth-item
-  :<- [:repos/items]
-  (fn [items [_ idx]]
-    (when (seq items)
-      (nth items idx))))
+  (fn [idx]
+    (let [items (xf/<- [:repos/items])]
+      (when (seq items)
+        (nth items idx)))))
 
 ;; Event handlers
 (xf/reg-event-db :db/init
@@ -53,8 +44,8 @@
              :error nil}}))
 
 (xf/reg-event-db :set-value
-   (fn [db [_ value]]
-     (assoc-in db [:repos :value] value)))
+  (fn [db [_ value]]
+    (assoc-in db [:repos :value] value)))
 
 (xf/reg-event-fx :fetch-repos
   (fn [db [_ uname]]
@@ -69,8 +60,8 @@
       (update db :repos assoc :items repos :loading? false :error nil))))
 
 (xf/reg-event-db :fetch-repos-failed
-  (fn [db [_ error]]
-    (update db :repos assoc :loading? false :error error)))
+                 (fn [db [_ error]]
+                   (update db :repos assoc :loading? false :error error)))
 
 
 ;; Effect handlers

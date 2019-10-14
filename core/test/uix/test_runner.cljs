@@ -3,6 +3,7 @@
             [uix.core-test]
             [uix.compiler-test]
             [uix.hooks-test]
+            [uix.adapton-test]
             [uix.xframe-test]))
 
 (defmethod cljs.test/report [::cljs.test/default :summary] [m]
@@ -18,4 +19,5 @@
   'uix.core-test
   'uix.compiler-test
   'uix.hooks-test
+  'uix.adapton-test
   'uix.xframe-test)
