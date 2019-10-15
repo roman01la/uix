@@ -19,7 +19,10 @@
   2. db is updated, calling subscription listener [B]
   db +====> A +====> B +====> [B]
    +
-   +---> C +---> D"
+   +---> C +---> D
+  
+  Alternatives:
+  - https://github.com/salsa-rs/salsa"
   #?(:cljs (:require-macros [xframe.core.alpha :refer [reg-sub]]))
   (:require [uix.core.alpha :as uix]
             [xframe.core.adapton :as adapton]
