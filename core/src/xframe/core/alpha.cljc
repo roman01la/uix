@@ -1,4 +1,4 @@
-(ns xframe.core.alpha
+(ns ^:figwheel-hooks xframe.core.alpha
   "EXPERIMENTAL: Global state management based on Adapton
   https://github.com/roman01la/adapton
 
@@ -25,11 +25,9 @@
             [xframe.core.adapton :as adapton]
             [clojure.string :as str]))
 
-;; TODO: reset graph when hot-reloading
+(defonce ^:dynamic db (adapton/aref {}))
 
-(defonce db (adapton/aref {}))
-
-(def ^:private subs-registry (atom {}))
+(defonce ^:private subs-registry (atom {}))
 
 (defn -reg-sub [name f]
   (swap! subs-registry assoc name f))
@@ -77,6 +75,7 @@
    (defmacro reg-sub [name [_ args & body]]
      (let [f (-> (munge name) (str/replace "." "-") symbol)]
        `(do
+          ;; TODO: no need in actual var definition
           (adapton/defamemo ~(with-meta f {:name name}) ~args ~@body)
           (-reg-sub ~name ~f)))))
 
@@ -109,11 +108,17 @@
 (defn reg-fx [name f]
   (vswap! fx-handlers assoc name f))
 
-(reg-sub ::db
-  (fn []
-    @db))
+(defn reg-db-sub []
+  (reg-sub ::db (fn [] @db)))
+
+(reg-db-sub)
 
 (reg-fx :db
   (fn [_ [_ db*]]
     (reset! db db*)
     (notify-listeners!)))
+
+#?(:cljs
+   (defn ^:before-load reset-db []
+     (set! db (adapton/aref @db))
+     (reg-db-sub)))
