@@ -34,6 +34,8 @@
        [:div
         [recipe]])]))
 
-#?(:cljs (uix.dom/hydrate [root] js/root))
+#?(:cljs
+   (defn ^:export render []
+     (uix.dom/hydrate [root] js/root)))
 
 #?(:cljs (loader/set-loaded! :recipes))
