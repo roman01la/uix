@@ -1,6 +1,25 @@
 (ns xframe.core.alpha
   "EXPERIMENTAL: Global state management based on Adapton
-  https://github.com/roman01la/adapton"
+  https://github.com/roman01la/adapton
+
+  How it works:
+  - App db is Adapton ref node
+  - A subscription is Adapton thunk node
+  - Subscriptions graph is a graph of Adapton nodes maintained by Adapton itself
+
+  1. When UI is rendered `<sub` calls register listeners on Adapton nodes (subscriptions)
+  2. When app db is updated, xFrame calls all listeners currently registered
+  3. Listeners evaluate Adapton nodes, which triggers evaluation of the graph up to the root node (app db)
+
+  1. Initial Adapton graph + subscriptions in UI
+  db +---> A +---> B +---> [B]
+   +
+   +---> C +---> D
+
+  2. db is updated, calling subscription listener [B]
+  db +====> A +====> B +====> [B]
+   +
+   +---> C +---> D"
   #?(:cljs (:require-macros [xframe.core.alpha :refer [reg-sub]]))
   (:require [uix.core.alpha :as uix]
             [xframe.core.adapton :as adapton]
