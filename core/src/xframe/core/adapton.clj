@@ -94,16 +94,18 @@
 (defn avar-get [v]
   (deref (deref v)))
 
-(defmacro defamemo [f args & body]
+(defmacro amemo [args & body]
   (let [argsym (gensym)
-        m (assoc (meta f) :args argsym)
+        m (assoc (meta args) :args argsym)
         mexpr (if &env
                 `(when ~'^boolean goog.DEBUG ~m)
                 m)]
-    `(def ~f
-       (let [f# (fn ~args ~@body)
-             f*# (memoize (fn [~argsym] (adapt (apply f# ~argsym) ~mexpr)))]
-         (fn [& args#] @(f*# args#))))))
+    `(let [f# (fn ~args ~@body)
+           f*# (memoize (fn [~argsym] (adapt (apply f# ~argsym) ~mexpr)))]
+       (fn [& args#] @(f*# args#)))))
+
+(defmacro defamemo [f args & body]
+  `(def ~f (amemo ~args ~@body)))
 
 (defmacro avar [e]
   `(aref (adapt ~e)))

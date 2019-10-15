@@ -73,11 +73,8 @@
 
 #?(:clj
    (defmacro reg-sub [name [_ args & body]]
-     (let [f (-> (munge name) (str/replace "." "-") symbol)]
-       `(do
-          ;; TODO: no need in actual var definition
-          (adapton/defamemo ~(with-meta f {:name name}) ~args ~@body)
-          (-reg-sub ~name ~f)))))
+     `(->> (adapton/amemo ~(with-meta args {:name name}) ~@body)
+           (-reg-sub ~name))))
 
 (defn <- [[name & args]]
   (let [f (get @subs-registry name)]
