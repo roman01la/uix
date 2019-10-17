@@ -39,7 +39,11 @@
       (do
         (-> (.from js/Array sub) (.forEach #(-edge! this %)))
         (set! clean? true)
-        (set! result (thunk))
+        (try
+          (set! result (thunk))
+          (catch :default e
+            (set! result e)
+            (.error js/console (str "Subscription " (into [(:name ameta)] (:args ameta)) " failed to compute"))))
         (recur))))
   (dirty! [this]
     (when boolean clean?
