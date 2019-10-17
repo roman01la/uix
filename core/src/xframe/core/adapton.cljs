@@ -32,9 +32,9 @@
     (.add (.-sup a-sub) this))
   (-edge! [this a-sub]
     (.delete sub a-sub)
-    (.delete (get-sup a-sub) this))
-  (compute [this]
-    (if clean?
+    (.delete (get-sup ^not-native a-sub) this))
+  (compute [^not-native this]
+    (if ^boolean clean?
       result
       (do
         (-> (.from js/Array sub) (.forEach #(-edge! this %)))
@@ -42,9 +42,9 @@
         (set! result (thunk))
         (recur))))
   (dirty! [this]
-    (when clean?
+    (when boolean clean?
       (set! clean? false)
-      (-> (.from js/Array sup) (.forEach #(dirty! %)))))
+      (-> (.from js/Array sup) (.forEach #(dirty! ^not-native %)))))
   (set-thunk! [this new-thunk]
     (set! thunk new-thunk))
   (set-result! [this new-result]
@@ -57,7 +57,7 @@
           result (compute this)
           _ (vreset! curr-adapting @prev-adapting)]
       (when @curr-adapting
-        (+edge! @curr-adapting this))
+        (+edge! ^not-native @curr-adapting this))
       result))
 
   IReset
