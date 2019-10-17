@@ -177,33 +177,34 @@
 ;; https://github.com/facebook/react/tree/master/packages/use-subscription
 (defn subscribe [{:keys [get-current-value subscribe]}]
   #?(:clj (get-current-value)
-     :cljs (let [get-initial-state (fn [] {:get-current-value get-current-value
-                                           :subscribe subscribe
-                                           :value (get-current-value)})
+     :cljs (let [get-initial-state (r/useCallback (fn [] #js {:get-current-value get-current-value
+                                                              :subscribe subscribe
+                                                              :value (get-current-value)})
+                                                  #js [get-current-value subscribe])
                  [state set-state] (r/useState get-initial-state)
-                 ret-value (if (or (not= (:get-current-value state) get-current-value)
-                                   (not= (:subscribe state) subscribe))
+                 ret-value (if (or (not (identical? (gobj/get state "get-current-value") get-current-value))
+                                   (not (identical? (gobj/get state "subscribe") subscribe)))
                              (let [ret-val (get-current-value)]
-                               (set-state {:get-current-value get-current-value
-                                           :subscribe subscribe
-                                           :value ret-val})
+                               (set-state #js {:get-current-value get-current-value
+                                               :subscribe subscribe
+                                               :value ret-val})
                                ret-val)
-                             (:value state))]
+                             (gobj/get state "value"))]
              (r/useDebugValue ret-value)
              (r/useEffect
                (fn []
                  (let [did-unsubscribe? (volatile! false)
                        check-for-updates (fn []
-                                           (when-not @did-unsubscribe?
+                                           (when-not ^boolean @did-unsubscribe?
                                              (let [value (get-current-value)]
                                                (batched-update
                                                  (fn []
                                                    (set-state
-                                                     #(if (or (not= (:get-current-value %) get-current-value)
-                                                              (not= (:subscribe %) subscribe)
-                                                              (= (:value %) value))
+                                                     #(if (or (not (identical? (gobj/get % "get-current-value") get-current-value))
+                                                              (not (identical? (gobj/get % "subscribe") subscribe))
+                                                              (= (gobj/get % "value") value))
                                                         %
-                                                        (assoc % :value value))))))))
+                                                        (.assign js/Object #js {} % #js {:value value}))))))))
                        unsubscribe (subscribe check-for-updates)]
                    (check-for-updates)
                    (fn []

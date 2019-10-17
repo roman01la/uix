@@ -46,7 +46,7 @@
             (.error js/console (str "Subscription " (into [(:name ameta)] (:args ameta)) " failed to compute"))))
         (recur))))
   (dirty! [this]
-    (when boolean clean?
+    (when ^boolean clean?
       (set! clean? false)
       (-> (.from js/Array sup) (.forEach #(dirty! ^not-native %)))))
   (set-thunk! [this new-thunk]
@@ -58,9 +58,9 @@
   (-deref [this]
     (let [prev-adapting (volatile! @curr-adapting)
           _ (vreset! curr-adapting this)
-          result (compute this)
+          result (compute ^not-native this)
           _ (vreset! curr-adapting @prev-adapting)]
-      (when @curr-adapting
+      (when ^boolean @curr-adapting
         (+edge! ^not-native @curr-adapting this))
       result))
 
