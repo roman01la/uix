@@ -75,17 +75,50 @@
      :value (adapton/get-result a)}))
 
 #?(:clj
+    (defn memoize-last-by [key-f args-f f]
+      (let [mem (atom {})]
+        (fn [& args]
+          (let [k (key-f args)
+                args (args-f args)
+                e (find @mem k)]
+            (if (and e (= args (first (val e))))
+              (second (val e))
+              (let [ret (f args)]
+                (swap! mem assoc k (list args ret))
+                ret))))))
+   :cljs
+    (defn memoize-last-by [key-f args-f f]
+      (let [mem (volatile! {})
+            lookup-sentinel #js {}]
+        (fn [& args]
+          (let [k (key-f args)
+                args (args-f args)
+                v (get @mem k lookup-sentinel)]
+            (if (or (identical? v lookup-sentinel)
+                    (not= args (aget v 0)))
+              (let [ret (f args)]
+                (vswap! mem assoc k #js [args ret])
+                ret)
+              (aget v 1)))))))
+
+#?(:clj
    (defmacro reg-sub [name [_ args & body]]
-     `(->> (adapton/amemo ~(with-meta args {:name name}) ~@body)
+     `(->> (adapton/xf-amemo ~(with-meta args {:name name}) ~@body)
            (-reg-sub ~name))))
 
-(defn <- [[name & args]]
-  (let [f (get @subs-registry name)]
-    (assert f (str "Subscription " name " is not found"))
-    (apply f args)))
+(defn <-
+  ([s]
+   (<- s nil))
+  ([[name & args] key]
+   (let [f (get @subs-registry name)]
+     (assert f (str "Subscription " name " is not found"))
+     (f key args))))
 
-(defn <sub [s]
-  (subscribe-ref (uix.core.alpha/callback #(<- s) [s])))
+#?(:clj
+    (defmacro <sub [s]
+      `(let [s# ~s
+             k# ~(str (gensym))]
+         (subscribe-ref (uix.core.alpha/callback #(<- s# k#) [s#])))))
 
 (def event-handlers (volatile! {}))
 (def fx-handlers (volatile! {}))

@@ -104,6 +104,17 @@
            f*# (memoize (fn [~argsym] (adapt (apply f# ~argsym) ~mexpr)))]
        (fn [& args#] @(f*# args#)))))
 
+(defmacro xf-amemo [args & body]
+  (let [argsym (gensym)
+        m (assoc (meta args) :args argsym)
+        mexpr (if &env
+                `(when ~'^boolean goog.DEBUG ~m)
+                m)]
+    `(let [f# (fn ~args ~@body)
+           f*# (xframe.core.alpha/memoize-last-by first second
+                 (fn [~argsym] (adapt (apply f# ~argsym) ~mexpr)))]
+       (fn [key# args#] @(f*# key# args#)))))
+
 (defmacro defamemo [f args & body]
   `(def ~f (amemo ~args ~@body)))
 
