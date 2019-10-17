@@ -94,10 +94,25 @@
   (let [handler (get @event-handlers name)
         _ (assert handler (str "Event handler " name " is not found"))
         effects (handler @db event)]
-    (doseq-loop [[event args] effects]
+    (when-let [db' (:db effects)]
+      (let [handler (get @fx-handlers :db)]
+        (handler nil [nil db'])))
+    (doseq-loop [[event args] (dissoc effects :db)]
       (let [handler (get @fx-handlers event)]
         (assert handler (str "Effect handler " event " is not found"))
-        (handler @db [event args])))))
+        #?(:clj
+           (try
+             (handler @db [event args])
+             (catch Exception e
+               (binding [*out* *err*]
+                 (println (str "Effect handler " event " failed with arguments: ") args)
+                 (println e))))
+           :cljs
+           (try
+             (handler @db [event args])
+             (catch :default e
+               (.error js/console (str "Effect handler " event " failed") args)
+               (.error js/console e))))))))
 
 (defn reg-event-db [name f]
   (vswap! event-handlers assoc name (fn [a b] {:db (f a b)})))
