@@ -26,7 +26,7 @@
   #?(:cljs (:require-macros [xframe.core.alpha :refer [reg-sub]]))
   (:require [uix.core.alpha :as uix]
             [xframe.core.adapton :as adapton]
-            [clojure.string :as str]))
+            [uix.lib :refer [doseq-loop]]))
 
 (defonce ^:dynamic db (adapton/aref {}))
 
@@ -94,7 +94,7 @@
   (let [handler (get @event-handlers name)
         _ (assert handler (str "Event handler " name " is not found"))
         effects (handler @db event)]
-    (doseq [[event args] effects]
+    (doseq-loop [[event args] effects]
       (let [handler (get @fx-handlers event)]
         (assert handler (str "Effect handler " event " is not found"))
         (handler @db [event args])))))

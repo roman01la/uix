@@ -6,6 +6,7 @@
             #?(:cljs [react :as r])
             [uix.compiler.alpha :as compiler]
             [uix.compiler.aot :as uixr]
+            [uix.lib :refer [doseq-loop]]
             [uix.hooks.alpha :as hooks]))
 
 #?(:cljs
@@ -42,9 +43,9 @@
                        (constructor this props)))
                    nil)]
         (set! (.-prototype ctor) (.create js/Object (.-prototype r/Component)))
-        (doseq [[k v] static]
+        (doseq-loop [[k v] static]
           (aset ctor (name k) v))
-        (doseq [[k v] prototype]
+        (doseq-loop [[k v] prototype]
           (aset (.-prototype ctor) (name k) v))
         ctor)))
 
