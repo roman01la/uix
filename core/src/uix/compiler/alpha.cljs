@@ -4,8 +4,7 @@
             [goog.object :as gobj]
             [uix.hooks.alpha :as hooks]
             [clojure.string :as str]
-            [cljs-bean.core :as bean]
-            [uix.core.refresh :as refresh]))
+            [cljs-bean.core :as bean]))
 
 (def ^:dynamic *default-compare-args* #(= (.-argv %1) (.-argv %2)))
 
@@ -376,8 +375,6 @@
           rf-memo (react/memo rf *default-compare-args*)]
       (when ^boolean goog.DEBUG
         (with-name f rf rf-memo)
-        (refresh/register rf (.-displayName rf))
-        (refresh/register rf-memo (.-displayName rf-memo))
         (when (exists? js/__REACT_DEVTOOLS_GLOBAL_HOOK__)
           (set! (.-uixf rf) f)))
       (cache-react-fn f rf-memo)
@@ -390,8 +387,6 @@
           rf-memo (react/memo rf *default-compare-args*)]
       (when ^boolean goog.DEBUG
         (with-name f rf rf-memo)
-        (refresh/register rf (.-displayName rf))
-        (refresh/register rf-memo (.-displayName rf-memo))
         (when (exists? js/__REACT_DEVTOOLS_GLOBAL_HOOK__)
           (set! (.-uixf rf) f)))
       (cache-react-fn f rf-memo)
