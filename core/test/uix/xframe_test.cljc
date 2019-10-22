@@ -2,6 +2,19 @@
   (:require [clojure.test :refer [deftest is testing run-tests]]
             [xframe.core.alpha :as xf]))
 
+(deftest test-memoize-last-by
+  (let [calls-n (atom 0)
+        f (fn [[x y]]
+            (swap! calls-n inc)
+            (+ x y))
+        f' (xf/memoize-last-by first next f)]
+    (is (= 5 (f' 1 2 3)))
+    (is (= 1 @calls-n))
+    (is (= 5 (f' 1 2 3)))
+    (is (= 1 @calls-n))
+    (is (= 6 (f' 1 2 4)))
+    (is (= 2 @calls-n))))
+
 (deftest test-reg-sub
 
   (testing "db subscription"

@@ -32,19 +32,23 @@
     (.add (.-sup a-sub) this))
   (-edge! [this a-sub]
     (.delete sub a-sub)
-    (.delete (get-sup a-sub) this))
-  (compute [this]
-    (if clean?
+    (.delete (get-sup ^not-native a-sub) this))
+  (compute [^not-native this]
+    (if ^boolean clean?
       result
       (do
         (-> (.from js/Array sub) (.forEach #(-edge! this %)))
         (set! clean? true)
-        (set! result (thunk))
+        (try
+          (set! result (thunk))
+          (catch :default e
+            (set! result e)
+            (.error js/console (str "Subscription " (into [(:name ameta)] (:args ameta)) " failed to compute"))))
         (recur))))
   (dirty! [this]
-    (when clean?
+    (when ^boolean clean?
       (set! clean? false)
-      (-> (.from js/Array sup) (.forEach #(dirty! %)))))
+      (-> (.from js/Array sup) (.forEach #(dirty! ^not-native %)))))
   (set-thunk! [this new-thunk]
     (set! thunk new-thunk))
   (set-result! [this new-result]
@@ -54,10 +58,10 @@
   (-deref [this]
     (let [prev-adapting (volatile! @curr-adapting)
           _ (vreset! curr-adapting this)
-          result (compute this)
+          result (compute ^not-native this)
           _ (vreset! curr-adapting @prev-adapting)]
-      (when @curr-adapting
-        (+edge! @curr-adapting this))
+      (when ^boolean @curr-adapting
+        (+edge! ^not-native @curr-adapting this))
       result))
 
   IReset

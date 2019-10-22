@@ -1,16 +1,36 @@
-(ns xframe.core.alpha
+(ns ^:figwheel-hooks xframe.core.alpha
   "EXPERIMENTAL: Global state management based on Adapton
-  https://github.com/roman01la/adapton"
+  https://github.com/roman01la/adapton
+
+  How it works:
+  - App db is Adapton ref node
+  - A subscription is Adapton thunk node
+  - Subscriptions graph is a graph of Adapton nodes maintained by Adapton itself
+
+  1. When UI is rendered `<sub` calls register listeners on Adapton nodes (subscriptions)
+  2. When app db is updated, xFrame calls all listeners currently registered
+  3. Listeners evaluate Adapton nodes, which triggers evaluation of the graph up to the root node (app db)
+
+  1. Initial Adapton graph + subscriptions in UI
+  db +---> A +---> B +---> [B]
+   +
+   +---> C +---> D
+
+  2. db is updated, calling subscription listener [B]
+  db +====> A +====> B +====> [B]
+   +
+   +---> C +---> D
+  
+  Alternatives:
+  - https://github.com/salsa-rs/salsa"
   #?(:cljs (:require-macros [xframe.core.alpha :refer [reg-sub]]))
   (:require [uix.core.alpha :as uix]
             [xframe.core.adapton :as adapton]
-            [clojure.string :as str]))
+            [uix.lib :refer [doseq-loop]]))
 
-;; TODO: reset graph when hot-reloading
+(defonce ^:dynamic db (adapton/aref {}))
 
-(defonce db (adapton/aref {}))
-
-(def ^:private subs-registry (atom {}))
+(defonce ^:private subs-registry (atom {}))
 
 (defn -reg-sub [name f]
   (swap! subs-registry assoc name f))
@@ -55,19 +75,50 @@
      :value (adapton/get-result a)}))
 
 #?(:clj
+    (defn memoize-last-by [key-f args-f f]
+      (let [mem (atom {})]
+        (fn [& args]
+          (let [k (key-f args)
+                args (args-f args)
+                e (find @mem k)]
+            (if (and e (= args (first (val e))))
+              (second (val e))
+              (let [ret (f args)]
+                (swap! mem assoc k (list args ret))
+                ret))))))
+   :cljs
+    (defn memoize-last-by [key-f args-f f]
+      (let [mem (volatile! {})
+            lookup-sentinel #js {}]
+        (fn [& args]
+          (let [k (key-f args)
+                args (args-f args)
+                v (get @mem k lookup-sentinel)]
+            (if (or (identical? v lookup-sentinel)
+                    (not= args (aget v 0)))
+              (let [ret (f args)]
+                (vswap! mem assoc k #js [args ret])
+                ret)
+              (aget v 1)))))))
+
+#?(:clj
    (defmacro reg-sub [name [_ args & body]]
-     (let [f (-> (munge name) (str/replace "." "-") symbol)]
-       `(do
-          (adapton/defamemo ~(with-meta f {:name name}) ~args ~@body)
-          (-reg-sub ~name ~f)))))
+     `(->> (adapton/xf-amemo ~(with-meta args {:name name}) ~@body)
+           (-reg-sub ~name))))
 
-(defn <- [[name & args]]
-  (let [f (get @subs-registry name)]
-    (assert f (str "Subscription " name " is not found"))
-    (apply f args)))
+(defn <-
+  ([s]
+   (<- s nil))
+  ([[name & args] key]
+   (let [f (get @subs-registry name)]
+     (assert f (str "Subscription " name " is not found"))
+     (f key args))))
 
-(defn <sub [s]
-  (subscribe-ref (uix.core.alpha/callback #(<- s) [s])))
+#?(:clj
+    (defmacro <sub [s]
+      `(let [s# ~s
+             k# ~(str (gensym))]
+         (subscribe-ref (uix.core.alpha/callback #(<- s# k#) [s#])))))
 
 (def event-handlers (volatile! {}))
 (def fx-handlers (volatile! {}))
@@ -76,10 +127,25 @@
   (let [handler (get @event-handlers name)
         _ (assert handler (str "Event handler " name " is not found"))
         effects (handler @db event)]
-    (doseq [[event args] effects]
+    (when-let [db' (:db effects)]
+      (let [handler (get @fx-handlers :db)]
+        (handler nil [nil db'])))
+    (doseq-loop [[event args] (dissoc effects :db)]
       (let [handler (get @fx-handlers event)]
         (assert handler (str "Effect handler " event " is not found"))
-        (handler @db [event args])))))
+        #?(:clj
+           (try
+             (handler @db [event args])
+             (catch Exception e
+               (binding [*out* *err*]
+                 (println (str "Effect handler " event " failed with arguments: ") args)
+                 (println e))))
+           :cljs
+           (try
+             (handler @db [event args])
+             (catch :default e
+               (.error js/console (str "Effect handler " event " failed") args)
+               (.error js/console e))))))))
 
 (defn reg-event-db [name f]
   (vswap! event-handlers assoc name (fn [a b] {:db (f a b)})))
@@ -90,11 +156,17 @@
 (defn reg-fx [name f]
   (vswap! fx-handlers assoc name f))
 
-(reg-sub ::db
-  (fn []
-    @db))
+(defn reg-db-sub []
+  (reg-sub ::db (fn [] @db)))
+
+(reg-db-sub)
 
 (reg-fx :db
   (fn [_ [_ db*]]
     (reset! db db*)
     (notify-listeners!)))
+
+#?(:cljs
+   (defn ^:before-load reset-db []
+     (set! db (adapton/aref @db))
+     (reg-db-sub)))
