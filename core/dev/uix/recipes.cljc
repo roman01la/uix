@@ -34,6 +34,10 @@
        [:div
         [recipe]])]))
 
-#?(:cljs (uix.dom/hydrate [root] js/root))
+#?(:cljs
+   (do
+     (defonce react-root (uix.dom/create-root js/root))
+     (uix.dom/render-root [root] react-root)))
+
 
 #?(:cljs (loader/set-loaded! :recipes))

@@ -167,12 +167,6 @@
              deps)
      :clj (f)))
 
-#?(:cljs
-    (def batched-update
-      (if (exists? js/ReactDOM)
-        (.-unstable_batchedUpdates js/ReactDOM)
-        (fn [f] (f)))))
-
 ;; == Subscription ==
 ;; https://github.com/facebook/react/tree/master/packages/use-subscription
 (defn subscribe [{:keys [get-current-value subscribe]}]
@@ -197,14 +191,12 @@
                        check-for-updates (fn []
                                            (when-not ^boolean @did-unsubscribe?
                                              (let [value (get-current-value)]
-                                               (batched-update
-                                                 (fn []
-                                                   (set-state
-                                                     #(if (or (not (identical? (gobj/get % "get-current-value") get-current-value))
-                                                              (not (identical? (gobj/get % "subscribe") subscribe))
-                                                              (= (gobj/get % "value") value))
-                                                        %
-                                                        (.assign js/Object #js {} % #js {:value value}))))))))
+                                               (set-state
+                                                 #(if (or (not (identical? (gobj/get % "get-current-value") get-current-value))
+                                                          (not (identical? (gobj/get % "subscribe") subscribe))
+                                                          (= (gobj/get % "value") value))
+                                                    %
+                                                    (.assign js/Object #js {} % #js {:value value}))))))
                        unsubscribe (subscribe check-for-updates)]
                    (check-for-updates)
                    (fn []

@@ -14,7 +14,7 @@
      :clj nil))
 
 (defn create-root [node]
-  #?(:cljs (rdom/unstable_createRoot node)
+  #?(:cljs (rdom/createRoot node)
      :clj nil))
 
 (defn render-root [element root]

@@ -1,6 +1,12 @@
 ^{:watch-dirs ["src" "dev"]}
 {:output-dir "resources/public/out"
  :asset-path "out"
+ :foreign-libs [{:file "src/react/react.production.min.js"
+                 :provides ["react"]
+                 :global-exports {react React}}
+                {:file "src/react/react-dom.production.min.js"
+                 :provides ["react-dom"]
+                 :global-exports {react-dom ReactDOM}}]
  :modules    {:recipes
               {:entries   #{uix.recipes}
                :output-to "resources/public/out/recipes.js"}
