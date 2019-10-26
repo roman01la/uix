@@ -122,13 +122,26 @@
 
 (def repos-resource (uix/as-resource fetch-repos))
 
+(defn use-resource [f]
+  (let [s (uix/state f)
+        r @s]
+    #?(:cljs
+       (reify
+         IReset
+         (-reset! [this new-res]
+           (reset! s new-res))
+         IDeref
+         (-deref [this]
+           @r)))))
+
+
 (defn recipe []
-  (let [repos-res (uix/state #(repos-resource nil))
+  (let [repos-res (use-resource #(repos-resource nil))
         on-submit #(reset! repos-res (repos-resource %))]
     [:<>
      [form {:on-submit on-submit}]
      [:# {:fallback [:div "Loading repos..."]}
-      [repos-list @repos-res]]]))
+      [repos-list repos-res]]]))
 
 
 ;; Init database
