@@ -76,9 +76,20 @@
            (.then #(xf/dispatch [on-ok %]))))))
 
 ;; UI components
-(defn repo-item [idx]
-  (let [{:keys [name description]} (<sub [:repos/nth-item idx])
-        open? (uix/state false)]
+
+(defn form [{:keys [on-submit]}]
+  (let [uname (<sub [:repos/value])]
+    [:form {:on-submit #(do
+                          (.preventDefault %)
+                          (on-submit uname))}
+     [:input {:value uname
+              :placeholder "GitHub username"
+              :on-change #(xf/dispatch [:set-value (.. % -target -value)])}]
+     [:button
+      "Fetch repos"]]))
+
+(defn repo-item [{:keys [name description]}]
+  (let [open? (uix/state false)]
     [:div {:on-click #(swap! open? not)
            :style {:padding 8
                    :margin "8px 0"
@@ -92,37 +103,32 @@
        [:div {:style {:margin "8px 0 0"}}
         description])]))
 
-(defui form []
-  (let [uname (<sub [:repos/value])]
-    [:form {:on-submit #(do
-                          (.preventDefault %)
-                          (xf/dispatch [:fetch-repos uname]))}
-     [:input {:value uname
-              :placeholder "GitHub username"
-              :on-change #(xf/dispatch [:set-value (.. % -target -value)])}]
-     [:button
-      "Fetch repos"]]))
-
-(defn repos-list []
-  (let [repos-count (<sub [:repos/count])]
-    (when (pos? repos-count)
+(defn repos-list [repos-res]
+  (let [repos @repos-res]
+    (when (seq repos)
       [:div {:style {:width 240
                      :height 400
                      :overflow-y :auto}}
-       (for [idx (range repos-count)]
-         ^{:key idx} [repo-item idx])])))
+       (for [item repos]
+         ^{:key (:name item)} [repo-item item])])))
+
+(defn fetch-repos [uname]
+  #?(:cljs
+     (if (nil? uname)
+       (.resolve js/Promise [])
+       (-> (js/fetch (str "https://api.github.com/users/" uname "/repos"))
+           (.then #(.json %))
+           (.then bean/->clj)))))
+
+(def repos-resource (uix/as-resource fetch-repos))
 
 (defn recipe []
-  (let [loading? (<sub [:repos/loading?])
-        error (<sub [:repos/error])]
+  (let [repos-res (uix/state #(repos-resource nil))
+        on-submit #(reset! repos-res (repos-resource %))]
     [:<>
-     [form]
-     (when loading?
-       [:div "Loading repos..."])
-     (when error
-       [:div {:style {:color "red"}}
-        (.-message error)])
-     [repos-list]]))
+     [form {:on-submit on-submit}]
+     [:# {:fallback [:div "Loading repos..."]}
+      [repos-list @repos-res]]]))
 
 
 ;; Init database

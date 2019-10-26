@@ -265,3 +265,79 @@
 (defn add-transform-fn [f]
   "Injects attributes transforming function for Hiccup elements pre-transformations"
   (compiler/add-transform-fn f))
+
+(defprotocol ISuspendableResource
+  (request-resource [this])
+  (handle-result [this result])
+  (handle-error [this error]))
+
+#?(:cljs
+   (deftype Resource [^:mutable status ^:mutable result f ^:mutable suspender]
+     ISuspendableResource
+     (request-resource [this]
+       (let [p (f)]
+         (.then p #(handle-result this %) #(handle-error this %))
+         (set! suspender p)
+         this))
+     (handle-result [this r]
+       (set! status :success)
+       (set! result r))
+     (handle-error [this error]
+       (set! status :error)
+       (set! result error))
+
+     IDeref
+     (-deref [this]
+       (request-resource this)
+       (case status
+         :pending (throw suspender)
+         :error (throw result)
+         :success result)))
+   :clj
+   (deftype Resource [^:volatile-mutable status ^:volatile-mutable result f suspender]
+     ISuspendableResource
+     (request-resource [this]
+       (try
+         (handle-result this (f))
+         (catch Exception e
+           (handle-error this e)))
+       this)
+     (handle-result [this r]
+       (set! status :success)
+       (set! result r))
+     (handle-error [this error]
+       (set! status :error)
+       (set! result error))
+
+     clojure.lang.IDeref
+     (deref [this]
+       (request-resource this)
+       result)))
+
+#?(:cljs
+    (defn memoize-last
+      "Caches the last result of f"
+      [f]
+      (let [mem (atom lookup-sentinel)]
+        (fn [& args]
+          (let [v @mem]
+            (if (or (identical? v lookup-sentinel)
+                    (not= (nth v 0) args))
+              (let [ret (apply f args)]
+                (reset! mem [args ret])
+                ret)
+              (nth v 1)))))))
+
+(defn as-resource
+  "Takes promise returning f and returns an instance of Resource that suspends
+  rendering when the promise is in :pending state. Caches the last result."
+  [f]
+  #?(:clj
+     (fn [& args]
+       (Resource. :pending nil #(apply f args) nil))
+
+     :cljs
+     (let [f* (memoize-last f)]
+       (memoize-last
+         (fn [& args]
+           (Resource. :pending nil #(apply f* args) nil))))))
