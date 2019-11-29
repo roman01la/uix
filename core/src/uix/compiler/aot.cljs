@@ -7,16 +7,11 @@
 (def suspense react/Suspense)
 (def fragment react/Fragment)
 
-(defn debug-warn [c]
-  (->> (str "Only pre-compiled Hiccup should be used in pre-compiled components. Check " (.-displayName c) " component.")
-       (.error js/console)))
-
 (defn fn-to-react-fn [f]
   (let [rf (fn -rf [props]
              (let [ret (apply f (.-argv props))]
-               (if ^boolean goog.DEBUG
-                 (do (debug-warn -rf)
-                     (r/as-element ret))
+               (if (vector? ret)
+                 (r/as-element ret)
                  ret)))
         rf-memo (react/memo rf r/*default-compare-args*)]
     (when (and ^boolean goog.DEBUG (exists? js/__REACT_DEVTOOLS_GLOBAL_HOOK__))
