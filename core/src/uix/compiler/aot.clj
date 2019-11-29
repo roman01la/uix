@@ -449,13 +449,10 @@
 
 (defmethod compile-element :component [v]
   (let [[tag & args] v
-        m (meta v)
-        attrs (cond-> {}
-                (:key m) (assoc :key (:key m))
-                (:ref m) (assoc :ref `(uix.compiler.alpha/unwrap-ref ~(:ref m))))
-        attrs (to-js (compile-attrs attrs))
         args (mapv compile-html* args)]
-    `(component-element ~tag ~attrs [~@args])))
+    `(do
+       (set! (.-compiled? ~tag) true)
+       (uix.compiler.alpha/component-element ~tag (cljs.core/-with-meta [~tag ~@args] ~(meta v))))))
 
 (defmethod compile-element :fragment [v]
   (let [[_ attrs children] (normalize-element v)

@@ -316,10 +316,14 @@
     (make-element argv tag js-props first-child)))
 
 (defn cached-react-fn [f]
-  (.-cljsReact f))
+  (if ^boolean (.-compiled? f)
+    (.-cljsReactCompiled f)
+    (.-cljsReact f)))
 
 (defn cache-react-fn [f rf]
-  (set! (.-cljsReact f) rf))
+  (if ^boolean (.-compiled? f)
+    (set! (.-cljsReactCompiled f) rf)
+    (set! (.-cljsReact f) rf)))
 
 (defn symbol-for [s]
   (js* "Symbol.for(~{})" s))
