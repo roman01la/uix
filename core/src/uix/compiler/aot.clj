@@ -7,10 +7,6 @@
             [cljs.env :as env]
             [uix.compiler.alpha :as compiler]))
 
-(def ^:dynamic *skip-check?*) ;; skips type check at usage place
-(def ^:dynamic *skip-fn-check?*) ;; skips type check at declaration place
-(def ^:dynamic *defui?*) ;; skips type check at declaration place
-(def ^:dynamic *specked-args*) ;; arguments of a specked fn
 (def ^:dynamic *cljs-env*) ;; cljs compiler's env
 
 (defn unevaluated? [expr]
@@ -91,47 +87,6 @@
           sym (register-constant! *cljs-env* (with-meta hiccup {:ast ast}))]
       (symbol (str "cljs.core." (cljsc/munge sym))))
     compiled))
-
-;; EXPERIMENTAL: inference
-
-(def inlineable-types #{'number 'string 'clj-nil 'boolean})
-
-(defn infer-type
-  "Infers type of expr"
-  [expr env]
-  (->> (ana/analyze env expr)
-       ana/no-warn
-       (ana/infer-tag env)))
-
-(defn has-spec?
-  "Checks if there's a spec defined for sym"
-  [sym]
-  (->> (ana/resolve-symbol sym)
-       ana/no-warn
-       (contains? @s/registry-ref)))
-
-(defn maybe-check
-  "Wraps x with interpret call when x is not an argument of a specked function"
-  [x]
-  (if (and (bound? #'*specked-args*)
-           (contains? *specked-args* x))
-    x
-    `(maybe-interpret ~x)))
-
-(defmacro maybe-interpret
-  "Infers type of expr and wraps expr with interpret call if the type is not one of the inlineable-types,
-  otherwise returns expr"
-  [expr]
-  (let [tag (infer-type expr &env)]
-    (if (contains? inlineable-types tag)
-      expr
-      (binding [*out* *err*]
-        (println "WARNING: Interpreting " expr " by default, mark it as ^:inline or ^:interpret. Inferred tag " tag)
-        (let [{:keys [line file]} (meta expr)]
-          (when (and line file)
-            (println (str file ":" line))))
-        (println "")
-        `(uix.compiler.alpha/as-element ~expr)))))
 
 (declare compile-html*)
 
@@ -401,12 +356,7 @@
             (partition 2 clauses))))
 
 (defmethod compile-form :default [expr]
-  (cond
-    (-> expr meta :inline) expr
-    (-> expr meta :interpret) `(uix.compiler.alpha/as-element ~expr)
-    (and (true? *skip-fn-check?*) (symbol? expr)) (maybe-check expr)
-    (true? *skip-check?*) expr
-    :else `(maybe-interpret ~expr)))
+  expr)
 
 (defn check-attrs [v attrs children expr]
   (if (and (nil? attrs) (symbol? (first children)))
@@ -504,8 +454,7 @@
                 (:key m) (assoc :key (:key m))
                 (:ref m) (assoc :ref `(uix.compiler.alpha/unwrap-ref ~(:ref m))))
         attrs (to-js (compile-attrs attrs))
-        args (binding [*skip-check?* (if *defui?* (has-spec? tag) true)]
-               (mapv compile-html* args))]
+        args (mapv compile-html* args)]
     `(component-element ~tag ~attrs [~@args])))
 
 (defmethod compile-element :fragment [v]
@@ -557,17 +506,13 @@
 (defn compile-html
   "Compiles Hiccup expr into React.js calls"
   [expr env]
-  (binding [*defui?* false
-            *cljs-env* env]
+  (binding [*cljs-env* env]
     (compile-html* expr)))
 
 
 (defmacro compile-defui
   "Compiles Hiccup component defined with defui macro into React component"
   [sym body]
-  (binding [*defui?* true
-            *cljs-env* &env
-            *skip-fn-check?* (has-spec? sym)
-            *specked-args* (->> &env :locals keys set)]
+  (binding [*cljs-env* &env]
     `(do ~@(mapv compile-html* body))))
 
