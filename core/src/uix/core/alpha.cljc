@@ -1,6 +1,7 @@
 (ns uix.core.alpha
   "Public API"
   (:refer-clojure :exclude [ref memoize])
+  #?(:cljs (:require-macros [uix.core.alpha]))
   (:require #?(:clj [clojure.spec.alpha :as s])
             #?(:clj [uix.specs.alpha])
             #?(:cljs [react :as r])
