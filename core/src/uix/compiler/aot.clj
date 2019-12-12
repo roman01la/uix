@@ -173,9 +173,6 @@
 
 (defmulti compile-config-kv (fn [name value] name))
 
-(defmethod compile-config-kv :ref [_ value]
-  `(uix.compiler.alpha/unwrap-ref ~value))
-
 (defn join-classes-map [m]
   (->> m
        (reduce-kv

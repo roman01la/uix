@@ -256,8 +256,6 @@
       (gobj/set js-props "key" key))
     (when-some [-ref (unwrap-ref (get props :ref))]
       (gobj/set js-props "ref" -ref))
-    (when-some [-ref (unwrap-ref (get (-meta argv) :ref))]
-      (gobj/set js-props "ref" -ref))
     (make-element argv component js-props first-child)))
 
 (defn fragment-element [^not-native argv]
@@ -310,8 +308,6 @@
     (when-some [key (get-key (-meta argv))]
       (gobj/set js-props "key" key))
     (when-some [-ref (unwrap-ref (get props :ref))]
-      (gobj/set js-props "ref" -ref))
-    (when-some [-ref (unwrap-ref (get (-meta argv) :ref))]
       (gobj/set js-props "ref" -ref))
     (make-element argv tag js-props first-child)))
 
@@ -410,8 +406,6 @@
     (set! (.-argv js-props) v)
     (when-some [key (key-from-vec v)]
       (gobj/set js-props "key" key))
-    (when-some [-ref (unwrap-ref (get (-meta v) :ref))]
-      (gobj/set js-props "ref" -ref))
     (react/createElement el js-props)))
 
 (defn vec-to-elem [^not-native v]
