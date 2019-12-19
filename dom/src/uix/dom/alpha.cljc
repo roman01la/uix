@@ -65,12 +65,12 @@
 
 (defn render-to-string [element]
   "Renders to HTML string to be used with React"
-  #?(:clj compiler/render-to-string
+  #?(:clj (compiler/render-to-string element)
      :cljs (.renderToString js/ReactDOMServer (compiler/as-element element))))
 
 (defn render-to-static-markup [element]
   "Renders to HTML string"
-  #?(:clj compiler/render-to-static-markup
+  #?(:clj (compiler/render-to-static-markup element)
      :cljs (.renderToStaticMarkup js/ReactDOMServer (compiler/as-element element))))
 
 #?(:clj
