@@ -228,3 +228,4 @@ once in the directory. Otherwise the Node.js version you use is in the `.nvmrc` 
 
 ## Who’s using UIx
 - Video editor (private)
+- [Zeal (REPL meets Clipboard Manager)](https://github.com/den1k/zeal)
