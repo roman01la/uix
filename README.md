@@ -231,3 +231,4 @@ once in the directory. Otherwise the Node.js version you use is in the `.nvmrc` 
 - Fitness App (private)
 - [Zeal (REPL meets Clipboard Manager)](https://github.com/den1k/zeal)
 - [Floor Planner](http://floor-planner.surge.sh/)
+- [Happy Paw mobile web app](https://github.com/roman01la/happy-paw)
