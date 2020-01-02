@@ -19,13 +19,13 @@ There are no versioned releases yet, use `deps.edn` to depend on the code via gi
 ```clj
 {:deps {uix.core {:git/url "https://github.com/roman01la/uix.git"
                   :deps/root "core"
-                  :sha "{{commit hash}}"}
+                  :sha "{{replace with commit hash}}"}
         uix.dom {:git/url "https://github.com/roman01la/uix.git"
                  :deps/root "dom"
-                 :sha "{{commit hash}}"}
+                 :sha "{{replace with commit hash}}"}
         uix.rn {:git/url "https://github.com/roman01la/uix.git"
                 :deps/root "rn"
-                :sha "{{commit hash}}"}}}
+                :sha "{{replace with commit hash}}"}}}
 ```
 
 ```clj
