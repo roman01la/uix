@@ -184,15 +184,6 @@
   #?(:cljs (r/useContext v)
      :clj v))
 
-;; == Reducer hook ==
-(defn reducer
-  ([f initial-state]
-   (reducer f initial-state nil))
-  ([f initial-state init-f]
-   #?(:cljs (let [f' (r/useCallback #(f %1 %2) #js [])]
-              (r/useReducer f' initial-state init-f))
-      :clj (if init-f (init-f initial-state) initial-state))))
-
 ;; == Imperative Handle hook ==
 (defn imperative-handle [ref create-handle deps]
   #?(:cljs (with-deps-check [prev-deps*]
