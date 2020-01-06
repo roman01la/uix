@@ -437,7 +437,7 @@
         attrs (cond-> attrs
                 :always (set-id-class id-class)
                 (:key m) (assoc :key (:key m))
-                (:ref m) (assoc :ref `(uix.compiler.alpha/unwrap-ref ~(:ref m))))
+                (:ref attrs) (assoc :ref `(uix.compiler.alpha/unwrap-ref ~(:ref attrs))))
         js-attrs (compile-attrs attrs)
         children (mapv compile-html* children)
         ret (check-attrs v attrs children
@@ -485,7 +485,7 @@
         m (meta v)
         attrs (cond-> attrs
                 (:key m) (assoc :key (:key m))
-                (:ref m) (assoc :ref `(uix.compiler.alpha/unwrap-ref ~(:ref m))))
+                (:ref attrs) (assoc :ref `(uix.compiler.alpha/unwrap-ref ~(:ref attrs))))
         attrs (to-js (compile-attrs attrs))
         children (mapv compile-html* children)]
     (check-attrs v attrs children
