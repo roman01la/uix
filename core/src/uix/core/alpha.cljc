@@ -153,8 +153,7 @@
 
   See: https://reactjs.org/docs/hooks-reference.html#useeffect"
   ([setup-fn]
-   #?(:cljs (effect! setup-fn js/undefined)
-      :clj (effect! setup-fn nil)))
+   (hooks/effect! setup-fn))
   ([setup-fn deps]
    (hooks/effect! setup-fn deps)))
 
@@ -163,29 +162,28 @@
 
   See: https://reactjs.org/docs/hooks-reference.html#uselayouteffect"
   ([setup-fn]
-   #?(:cljs (layout-effect! setup-fn js/undefined)
-      :clj (layout-effect! setup-fn nil)))
+   (hooks/layout-effect! setup-fn))
   ([setup-fn deps]
    (hooks/layout-effect! setup-fn deps)))
 
 (defn memo
   "Takes function f and optional vector of dependencies, and returns memoized f."
   ([f]
-   (memo f nil))
+   (hooks/memo f))
   ([f deps]
    (hooks/memo f deps)))
 
 (defn ref
   "Takes optional initial value and returns React's ref hook wrapped in atom-like type."
   ([]
-   (ref nil))
+   (hooks/ref nil))
   ([value]
    (hooks/ref value)))
 
 (defn callback
   "Takes function f and optional vector of dependencies, and returns f."
   ([f]
-   (callback f nil))
+   (hooks/callback f))
   ([f deps]
    (hooks/callback f deps)))
 
@@ -201,13 +199,13 @@
    (defmacro with-effect
      "Convenience macro for effect hook."
      [deps & body]
-     `(hooks/with-effect ~deps ~body)))
+     `(hooks/with-effect ~deps ~@body)))
 
 #?(:clj
    (defmacro with-layout-effect
      "Convenience macro for layout effect hook."
      [deps & body]
-     `(hooks/with-layout-effect ~deps ~body)))
+     `(hooks/with-layout-effect ~deps ~@body)))
 
 
 #?(:clj

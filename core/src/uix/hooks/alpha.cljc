@@ -39,19 +39,15 @@
        (pr-writer {:val value} writer opts)
        (-write writer "]"))))
 
-#?(:cljs
-   (defn state [value]
-     (let [[value set-value] (r/useState value)
-           sh (r/useMemo #(StateHook. value set-value) #js [])]
-       (r/useMemo (fn []
-                    (set! (.-value sh) value)
-                    (set! (.-set-value sh) set-value)
-                    sh)
-                  #js [value set-value])))
-
-   :clj
-   (defn state [value]
-     (atom value)))
+(defn state [value]
+  #?(:cljs (let [[value set-value] (r/useState value)
+                 sh (r/useMemo #(StateHook. value set-value) #js [])]
+             (r/useMemo (fn []
+                          (set! (.-value sh) value)
+                          (set! (.-set-value sh) set-value)
+                          sh)
+                        #js [value set-value]))
+     :clj (atom value)))
 
 (defprotocol IRef
   (unwrap [this]))
@@ -112,60 +108,103 @@
         ~f)))
 
 ;; == Effect hook ==
-(defn effect! [setup-fn deps]
-  #?(:cljs (with-deps-check [prev-deps*]
-             (r/useEffect
-              (fn []
-                (reset! prev-deps* deps)
-                (let [ret (setup-fn)]
-                  (if (fn? ret) ret js/undefined)))
-              (maybe-js-deps @prev-deps*))
-             deps)
-     :clj nil))
+(defn effect!
+  ([setup-fn]
+   #?(:cljs (r/useEffect
+              #(let [ret (setup-fn)]
+                 (if (fn? ret) ret js/undefined)))))
+  ([setup-fn deps]
+   #?(:cljs (with-deps-check [prev-deps*]
+              (r/useEffect
+               (fn []
+                 (reset! prev-deps* deps)
+                 (let [ret (setup-fn)]
+                   (if (fn? ret) ret js/undefined)))
+               (maybe-js-deps @prev-deps*))
+              deps))))
 
 #?(:clj
    (defmacro with-effect
      "Takes optional vector of dependencies and body to be executed in an effect."
-     [deps body]
+     [deps & body]
      (let [[deps setup-fn] (if (vector? deps)
                              [deps body]
                              [nil (cons deps body)])]
        `(effect! #(do ~@setup-fn) ~deps))))
 
 ;; == Layout effect hook ==
-(defn layout-effect! [setup-fn deps]
-  #?(:cljs (with-deps-check [prev-deps*]
-             (r/useLayoutEffect
-              (fn []
-                (reset! prev-deps* deps)
-                (let [ret (setup-fn)]
-                  (if (fn? ret) ret js/undefined)))
-              (maybe-js-deps @prev-deps*))
-             deps)
-     :clj nil))
+(defn layout-effect!
+  ([setup-fn]
+   #?(:cljs (r/useLayoutEffect
+              #(let [ret (setup-fn)]
+                 (if (fn? ret) ret js/undefined)))))
+  ([setup-fn deps]
+   #?(:cljs (with-deps-check [prev-deps*]
+              (r/useLayoutEffect
+               (fn []
+                 (reset! prev-deps* deps)
+                 (let [ret (setup-fn)]
+                   (if (fn? ret) ret js/undefined)))
+               (maybe-js-deps @prev-deps*))
+              deps))))
 
 #?(:clj
    (defmacro with-layout-effect
      "Takes optional vector of dependencies and body to be executed in a layout effect."
-     [deps body]
+     [deps & body]
      (let [[deps setup-fn] (if (vector? deps)
                              [deps body]
                              [nil (cons deps body)])]
        `(layout-effect! #(do ~@setup-fn) ~deps))))
 
 ;; == Callback hook ==
-(defn callback [f deps]
-  #?(:cljs (with-deps-check [prev-deps*]
-             (r/useCallback f (maybe-js-deps @prev-deps*))
-             deps)
-     :clj f))
+(defn callback
+  ([f]
+   #?(:cljs (r/useCallback f)
+      :clj f))
+  ([f deps]
+   #?(:cljs (with-deps-check [prev-deps*]
+              (r/useCallback f (maybe-js-deps @prev-deps*))
+              deps)
+      :clj f)))
 
 ;; == Memo hook ==
-(defn memo [f deps]
+(defn memo
+  ([f]
+   #?(:cljs (r/useMemo f)
+      :clj (f)))
+  ([f deps]
+   #?(:cljs (with-deps-check [prev-deps*]
+              (r/useMemo f (maybe-js-deps @prev-deps*))
+              deps)
+      :clj (f))))
+
+;; == Context hook ==
+(defn context [v]
+  #?(:cljs (r/useContext v)
+     :clj v))
+
+;; == Reducer hook ==
+(defn reducer
+  ([f initial-state]
+   (reducer f initial-state nil))
+  ([f initial-state init-f]
+   #?(:cljs (let [f' (r/useCallback #(f %1 %2) #js [])]
+              (r/useReducer f' initial-state init-f))
+      :clj (if init-f (init-f initial-state) initial-state))))
+
+;; == Imperative Handle hook ==
+(defn imperative-handle [ref create-handle deps]
   #?(:cljs (with-deps-check [prev-deps*]
-             (r/useMemo f (maybe-js-deps @prev-deps*))
-             deps)
-     :clj (f)))
+             (r/useImperativeHandle ref create-handle (maybe-js-deps @prev-deps*))
+             deps)))
+
+;; == Debug hook ==
+(defn debug
+  ([v]
+   (debug v nil))
+  ([v fmt]
+   #?(:cljs (r/useDebugValue v fmt))))
 
 #?(:cljs
     (def batched-update
