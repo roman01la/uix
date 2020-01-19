@@ -14,11 +14,11 @@
     (is (= (as-string [ui]) "<span>0</span><span>1</span>"))))
 
 (when ^boolean goog.DEBUG
-  (deftest test-format-display-name
-    (is (= (uixc/format-display-name (.-name js-equal?))
+  (deftest test-default-format-display-name
+    (is (= (uixc/default-format-display-name (.-name js-equal?))
            "uix.test-utils/js-equal?"))
     (let [f-hello (fn [])]
-      (is (= (uixc/format-display-name (.-name f-hello))
+      (is (= (uixc/default-format-display-name (.-name f-hello))
              "f-hello"))))
 
   (deftest test-with-name
@@ -40,7 +40,40 @@
           rf-memo (fn [])]
       (uixc/with-name f rf rf-memo)
       (is (not (exists? (.-displayName rf))))
-      (is (not (exists? (.-displayName rf-memo)))))))
+      (is (not (exists? (.-displayName rf-memo)))))
+
+    (set! uixc/*format-display-name* (fn [s orig] (str "[" s "=>" (orig s) "]")))
+    (let [f (fn <some-component> [])
+          rf (fn [])
+          rf-memo (fn [])]
+      (uixc/with-name f rf rf-memo)
+      (is (= (.-displayName rf) "[uix$compiler_test$_LT_some_component_GT_=>uix.compiler-test/<some-component>]"))
+      (is (= (.-displayName rf-memo) "memo([uix$compiler_test$_LT_some_component_GT_=>uix.compiler-test/<some-component>])")))
+    (let [f (fn <some-component> [])
+          rf (fn [])
+          rf-memo (fn [])]
+      (set! (.-displayName f) "[custom name!]")
+      (uixc/with-name f rf rf-memo)
+      (is (= (.-displayName rf) "[[custom name!]=>[custom name!]]"))
+      (is (= (.-displayName rf-memo) "memo([[custom name!]=>[custom name!]])")))
+
+    ; nil returned from *format-display-name* means no name
+    (set! uixc/*format-display-name* (fn [_s _orig]))
+    (let [f (fn <some-component> [])
+          rf (fn [])
+          rf-memo (fn [])]
+      (uixc/with-name f rf rf-memo)
+      (is (not (exists? (.-displayName rf))))
+      (is (not (exists? (.-displayName rf-memo)))))
+    (let [f (fn <some-component> [])
+          rf (fn [])
+          rf-memo (fn [])]
+      (set! (.-displayName f) "[custom name!]")
+      (uixc/with-name f rf rf-memo)
+      (is (not (exists? (.-displayName rf))))
+      (is (not (exists? (.-displayName rf-memo)))))
+
+    (set! uixc/*format-display-name* nil)))
 
 (deftest test-parse-tag
   (is (= (js->clj (uixc/parse-tag (name :div#id.class)))

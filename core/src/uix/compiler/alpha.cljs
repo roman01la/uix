@@ -7,6 +7,7 @@
             [cljs-bean.core :as bean]))
 
 (def ^:dynamic *default-compare-args* #(= (.-argv %1) (.-argv %2)))
+(def ^:dynamic *format-display-name* nil)
 
 (defn unwrap-ref [-ref]
   (if (implements? hooks/IRef -ref)
@@ -339,16 +340,22 @@
 (defn ^string demunge-name [^string s]
   (demunge s))
 
+(defn default-format-display-name [^string s]
+  (if (some? s)
+    (let [^js/Array parts (.split s #"\$")
+          last-idx (dec ^number (.-length parts))
+          ^string name-part (aget parts last-idx)]
+      (if (== 1 (.-length parts))
+        (demunge-name name-part)
+        (-> ^js/Array (.slice parts 0 last-idx)
+            ^string (.join ".")
+            (str "/" name-part)
+            demunge-name)))))
+
 (defn format-display-name [^string s]
-  (let [^js/Array parts (.split s #"\$")
-        last-idx (dec ^number (.-length parts))
-        ^string name-part (aget parts last-idx)]
-    (if (== 1 (.-length parts))
-      (demunge-name name-part)
-      (-> ^js/Array (.slice parts 0 last-idx)
-          ^string (.join ".")
-          (str "/" name-part)
-          demunge-name))))
+  (if *format-display-name*
+    (*format-display-name* s default-format-display-name)
+    (default-format-display-name s)))
 
 (defn effective-component-name [f]
   (or (when-some [display-name (.-displayName f)]
@@ -359,8 +366,10 @@
           name))))
 
 (defn with-name [^js f ^js rf rf-memo]
-  (when-some [component-name (effective-component-name f)]
-    (let [display-name (format-display-name component-name)]
+  (let [component-name (effective-component-name f)
+        display-name (format-display-name component-name)]
+    (when (some? display-name)
+      (assert (string? display-name))
       (set! (.-displayName rf) display-name)
       (set! (.-displayName rf-memo) (str "memo(" display-name ")")))))
 
