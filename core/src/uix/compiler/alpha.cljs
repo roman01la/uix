@@ -359,9 +359,17 @@
           (str "/" name-part)
           demunge-name))))
 
+(defn effective-component-name [f]
+  (or (when-some [display-name (.-displayName f)]
+        (if (string? display-name)
+          display-name))
+      (when-some [name (.-name f)]
+        (if (string? name)
+          name))))
+
 (defn with-name [^js f ^js rf rf-memo]
-  (when (string? (.-name f))
-    (let [display-name (format-display-name (.-name f))]
+  (when-some [component-name (effective-component-name f)]
+    (let [display-name (format-display-name component-name)]
       (set! (.-displayName rf) display-name)
       (set! (.-displayName rf-memo) (str "memo(" display-name ")")))))
 
