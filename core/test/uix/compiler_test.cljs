@@ -22,58 +22,61 @@
              "f-hello"))))
 
   (deftest test-with-name
-    (let [f (fn <some-component> [])
-          rf (fn [])
-          rf-memo (fn [])]
-      (uixc/with-name f rf rf-memo)
-      (is (= (.-displayName rf) "uix.compiler-test/<some-component>"))
-      (is (= (.-displayName rf-memo) "memo(uix.compiler-test/<some-component>)")))
-    (let [f (fn <some-component> [])
-          rf (fn [])
-          rf-memo (fn [])]
-      (set! (.-displayName f) "[custom name!]")
-      (uixc/with-name f rf rf-memo)
-      (is (= (.-displayName rf) "[custom name!]"))
-      (is (= (.-displayName rf-memo) "memo([custom name!])")))
-    (let [f (js-obj)
-          rf (fn [])
-          rf-memo (fn [])]
-      (uixc/with-name f rf rf-memo)
-      (is (not (exists? (.-displayName rf))))
-      (is (not (exists? (.-displayName rf-memo)))))
+    (binding [uixc/*format-display-name* uixc/*format-display-name*]
+      (let [f (fn <some-component> [])
+            rf (fn [])
+            rf-memo (fn [])]
+        (uixc/with-name f rf rf-memo)
+        (is (= (.-displayName rf) "uix.compiler-test/<some-component>"))
+        (is (= (.-displayName rf-memo) "memo(uix.compiler-test/<some-component>)")))
+      (let [f (fn <some-component> [])
+            rf (fn [])
+            rf-memo (fn [])]
+        (set! (.-displayName f) "[custom name!]")
+        (uixc/with-name f rf rf-memo)
+        (is (= (.-displayName rf) "[custom name!]"))
+        (is (= (.-displayName rf-memo) "memo([custom name!])")))
+      (let [f (js-obj)
+            rf (fn [])
+            rf-memo (fn [])]
+        (uixc/with-name f rf rf-memo)
+        (is (not (exists? (.-displayName rf))))
+        (is (not (exists? (.-displayName rf-memo)))))
 
-    (set! uixc/*format-display-name* (fn [s orig] (str "[" s "=>" (orig s) "]")))
-    (let [f (fn <some-component> [])
-          rf (fn [])
-          rf-memo (fn [])]
-      (uixc/with-name f rf rf-memo)
-      (is (= (.-displayName rf) "[uix$compiler_test$_LT_some_component_GT_=>uix.compiler-test/<some-component>]"))
-      (is (= (.-displayName rf-memo) "memo([uix$compiler_test$_LT_some_component_GT_=>uix.compiler-test/<some-component>])")))
-    (let [f (fn <some-component> [])
-          rf (fn [])
-          rf-memo (fn [])]
-      (set! (.-displayName f) "[custom name!]")
-      (uixc/with-name f rf rf-memo)
-      (is (= (.-displayName rf) "[[custom name!]=>[custom name!]]"))
-      (is (= (.-displayName rf-memo) "memo([[custom name!]=>[custom name!]])")))
+      (set! uixc/*format-display-name* (fn [s] (str "[" s "=>" (uixc/default-format-display-name s) "]")))
+      (let [f (fn <some-component> [])
+            rf (fn [])
+            rf-memo (fn [])]
+        (uixc/with-name f rf rf-memo)
+        (is (= (.-displayName rf) "[uix$compiler_test$_LT_some_component_GT_=>uix.compiler-test/<some-component>]"))
+        (is (= (.-displayName rf-memo) "memo([uix$compiler_test$_LT_some_component_GT_=>uix.compiler-test/<some-component>])")))
+      (let [f (fn <some-component> [])
+            rf (fn [])
+            rf-memo (fn [])]
+        (set! (.-displayName f) "[custom name!]")
+        (uixc/with-name f rf rf-memo)
+        (is (= (.-displayName rf) "[[custom name!]=>[custom name!]]"))
+        (is (= (.-displayName rf-memo) "memo([[custom name!]=>[custom name!]])")))
 
-    ; nil returned from *format-display-name* means no name
-    (set! uixc/*format-display-name* (fn [_s _orig]))
-    (let [f (fn <some-component> [])
-          rf (fn [])
-          rf-memo (fn [])]
-      (uixc/with-name f rf rf-memo)
-      (is (not (exists? (.-displayName rf))))
-      (is (not (exists? (.-displayName rf-memo)))))
-    (let [f (fn <some-component> [])
-          rf (fn [])
-          rf-memo (fn [])]
-      (set! (.-displayName f) "[custom name!]")
-      (uixc/with-name f rf rf-memo)
-      (is (not (exists? (.-displayName rf))))
-      (is (not (exists? (.-displayName rf-memo)))))
+      ; nil returned from *format-display-name* means no name
+      (set! uixc/*format-display-name* (fn [_s _orig]))
+      (let [f (fn <some-component> [])
+            rf (fn [])
+            rf-memo (fn [])]
+        (uixc/with-name f rf rf-memo)
+        (is (not (exists? (.-displayName rf))))
+        (is (not (exists? (.-displayName rf-memo)))))
+      (let [f (fn <some-component> [])
+            rf (fn [])
+            rf-memo (fn [])]
+        (set! (.-displayName f) "[custom name!]")
+        (uixc/with-name f rf rf-memo)
+        (is (not (exists? (.-displayName rf))))
+        (is (not (exists? (.-displayName rf-memo)))))
 
-    (set! uixc/*format-display-name* nil)))
+      (set! uixc/*format-display-name* nil)
+      (is (thrown-with-msg? js/Error #"\*format-display-name\* is not bound"
+                            (uixc/with-name (js-obj) (js-obj) (js-obj)))))))
 
 (deftest test-parse-tag
   (is (= (js->clj (uixc/parse-tag (name :div#id.class)))
