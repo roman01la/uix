@@ -336,17 +336,8 @@
 (defn react-type? [t]
   (or (lazy? t) (memo? t)))
 
-(def fmt-dash-regex (js/RegExp. "_" "g"))
-(def fmt-qmark-regex (js/RegExp. "_QMARK_" "g"))
-(def fmt-bang-regex (js/RegExp. "_BANG_" "g"))
-(def fmt-star-regex (js/RegExp. "_STAR_" "g"))
-
 (defn ^string demunge-name [^string s]
-  (-> s
-      (.replace fmt-qmark-regex "?")
-      (.replace fmt-bang-regex "!")
-      (.replace fmt-star-regex "*")
-      (.replace fmt-dash-regex "-")))
+  (demunge s))
 
 (defn format-display-name [^string s]
   (let [^js/Array parts (.split s #"\$")
