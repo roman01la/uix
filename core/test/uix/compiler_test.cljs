@@ -19,7 +19,28 @@
            "uix.test-utils/js-equal?"))
     (let [f-hello (fn [])]
       (is (= (uixc/format-display-name (.-name f-hello))
-             "f-hello")))))
+             "f-hello"))))
+
+  (deftest test-with-name
+    (let [f (fn <some-component> [])
+          rf (fn [])
+          rf-memo (fn [])]
+      (uixc/with-name f rf rf-memo)
+      (is (= (.-displayName rf) "uix.compiler-test/<some-component>"))
+      (is (= (.-displayName rf-memo) "memo(uix.compiler-test/<some-component>)")))
+    (let [f (fn <some-component> [])
+          rf (fn [])
+          rf-memo (fn [])]
+      (set! (.-displayName f) "[custom name!]")
+      (uixc/with-name f rf rf-memo)
+      (is (= (.-displayName rf) "[custom name!]"))
+      (is (= (.-displayName rf-memo) "memo([custom name!])")))
+    (let [f (js-obj)
+          rf (fn [])
+          rf-memo (fn [])]
+      (uixc/with-name f rf rf-memo)
+      (is (not (exists? (.-displayName rf))))
+      (is (not (exists? (.-displayName rf-memo)))))))
 
 (deftest test-parse-tag
   (is (= (js->clj (uixc/parse-tag (name :div#id.class)))
