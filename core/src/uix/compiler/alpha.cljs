@@ -7,7 +7,6 @@
             [cljs-bean.core :as bean]))
 
 (def ^:dynamic *default-compare-args* #(= (.-argv %1) (.-argv %2)))
-(def ^:dynamic *format-display-name* nil)
 
 (defn unwrap-ref [-ref]
   (if (implements? hooks/IRef -ref)
@@ -337,31 +336,28 @@
 (defn react-type? [t]
   (or (lazy? t) (memo? t)))
 
-(defn ^string demunge-name [^string s]
-  (demunge s))
-
 (defn default-format-display-name [^string s]
-  (if (some? s)
-    (let [^js/Array parts (.split s #"\$")
-          last-idx (dec ^number (.-length parts))
-          ^string name-part (aget parts last-idx)]
-      (if (== 1 (.-length parts))
-        (demunge-name name-part)
-        (-> ^js/Array (.slice parts 0 last-idx)
-            ^string (.join ".")
-            (str "/" name-part)
-            demunge-name)))))
+  (let [^js/Array parts (.split s #"\$")
+        last-idx (dec ^number (.-length parts))
+        ^string name-part (aget parts last-idx)]
+    (if (== 1 (.-length parts))
+      (demunge name-part)
+      (-> ^js/Array (.slice parts 0 last-idx)
+          ^string (.join ".")
+          (str "/" name-part)
+          demunge))))
 
-(set! *format-display-name* default-format-display-name)
 
-(defn format-display-name [^string s]
+(def ^:dynamic *format-display-name* default-format-display-name)
+
+(defn format-display-name [s]
   (if (fn? *format-display-name*)
     (*format-display-name* s)
     (throw (ex-info "unexpected uix.compiler.alpha/*format-display-name* is not bound to a function"
                     {:bound-value *format-display-name*
                      :value-type (goog/typeOf *format-display-name*)}))))
 
-(defn effective-component-name [f]
+(defn effective-component-name [^js f]
   (or (when-some [display-name (.-displayName f)]
         (if (string? display-name)
           display-name))
@@ -369,11 +365,9 @@
         (if (string? name)
           name))))
 
-(defn with-name [^js f ^js rf rf-memo]
-  (let [component-name (effective-component-name f)
-        display-name (format-display-name component-name)]
-    (when (some? display-name)
-      (assert (string? display-name))
+(defn with-name [^js f ^js rf ^js rf-memo]
+  (when-let [component-name (effective-component-name f)]
+    (when-some [display-name (format-display-name component-name)]
       (set! (.-displayName rf) display-name)
       (set! (.-displayName rf-memo) (str "memo(" display-name ")")))))
 

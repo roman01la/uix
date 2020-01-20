@@ -74,9 +74,12 @@
         (is (not (exists? (.-displayName rf))))
         (is (not (exists? (.-displayName rf-memo)))))
 
-      (set! uixc/*format-display-name* nil)
-      (is (thrown-with-msg? js/Error #"\*format-display-name\* is not bound"
-                            (uixc/with-name (js-obj) (js-obj) (js-obj)))))))
+      (let [f (fn <some-component> [])
+            rf (fn [])
+            rf-memo (fn [])]
+        (set! uixc/*format-display-name* nil)
+        (is (thrown-with-msg? js/Error #"\*format-display-name\* is not bound"
+                              (uixc/with-name f rf rf-memo)))))))
 
 (deftest test-parse-tag
   (is (= (js->clj (uixc/parse-tag (name :div#id.class)))
