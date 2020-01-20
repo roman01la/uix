@@ -352,10 +352,14 @@
             (str "/" name-part)
             demunge-name)))))
 
+(set! *format-display-name* default-format-display-name)
+
 (defn format-display-name [^string s]
-  (if *format-display-name*
-    (*format-display-name* s default-format-display-name)
-    (default-format-display-name s)))
+  (if (fn? *format-display-name*)
+    (*format-display-name* s)
+    (throw (ex-info "unexpected uix.compiler.alpha/*format-display-name* is not bound to a function"
+                    {:bound-value *format-display-name*
+                     :value-type (goog/typeOf *format-display-name*)}))))
 
 (defn effective-component-name [f]
   (or (when-some [display-name (.-displayName f)]
