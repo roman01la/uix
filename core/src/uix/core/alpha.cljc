@@ -10,6 +10,8 @@
             [uix.lib :refer [doseq-loop]]
             [uix.hooks.alpha :as hooks]))
 
+;; See https://twitter.com/roman01la/status/1182405182057058314?s=20
+;; for context
 #?(:cljs
    (when (and ^boolean goog.DEBUG
               (exists? js/__REACT_DEVTOOLS_GLOBAL_HOOK__))
