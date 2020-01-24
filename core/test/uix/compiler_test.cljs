@@ -118,14 +118,19 @@
 
 (deftest test-dash-to-camel
   (are [dash camel] (= (uixc/dash-to-camel dash) camel)
+                    ; keywords
                     :key "key"
                     :name1-name2-name3 "name1Name2Name3"
                     :data-name "data-name"
                     :aria-name "aria-name"
+                    ; symbols
                     'key "key"
                     'name1-name2-name3 "name1Name2Name3"
                     'data-name "data-name"
-                    'aria-name "aria-name"))
+                    'aria-name "aria-name"
+                    ; quoting
+                    :'name1-name2-name3 "name1-name2-name3"
+                    (symbol "'name1-name2-name3") "name1-name2-name3"))
 
 (deftest cached-prop-name
   (is (= "className" (uixc/cached-prop-name :class))))
