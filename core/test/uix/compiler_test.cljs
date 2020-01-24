@@ -1,5 +1,5 @@
 (ns uix.compiler-test
-  (:require [clojure.test :refer [deftest is testing run-tests]]
+  (:require [clojure.test :refer [deftest is are testing run-tests]]
             [uix.compiler.alpha :as uixc]
             [uix.test-utils :refer [as-string js-equal? with-error symbol-for]]))
 
@@ -115,6 +115,17 @@
 (deftest test-add-transform-fn
   (uixc/add-transform-fn identity)
   (is (= @uixc/transform-fns #{identity})))
+
+(deftest test-dash-to-camel
+  (are [dash camel] (= (uixc/dash-to-camel dash) camel)
+                    :key "key"
+                    :name1-name2-name3 "name1Name2Name3"
+                    :data-name "data-name"
+                    :aria-name "aria-name"
+                    'key "key"
+                    'name1-name2-name3 "name1Name2Name3"
+                    'data-name "data-name"
+                    'aria-name "aria-name"))
 
 (deftest cached-prop-name
   (is (= "className" (uixc/cached-prop-name :class))))
