@@ -41,25 +41,11 @@
 (defn add-transform-fn [f]
   (swap! transform-fns conj f))
 
-(defn ^string capitalize [^string s]
-  (if (< (.-length s) 2)
-    (str/upper-case s)
-    (str ^string (str/upper-case (subs s 0 1)) ^string (subs s 1))))
-
 (defn ^string dash-to-camel [dashed]
-  (let [name-str (-name dashed)
-        parts (.split name-str #"-")
-        ^string start (aget parts 0)
-        parts (.slice parts 1)]
-    (if (or (= start "aria") (= start "data"))
+  (let [name-str (-name dashed)]
+    (if (re-matches #"^(aria-|data-).*" name-str)
       name-str
-      (str start (-> parts
-                     (array-reduce
-                       (fn [a p]
-                         (.push a (capitalize p))
-                         a)
-                       #js [])
-                     ^string (.join ""))))))
+      (str/replace name-str #"-(\w)" #(str/upper-case (second %))))))
 
 (defn cached-prop-name [k]
   (if (named? k)
