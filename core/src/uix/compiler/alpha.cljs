@@ -42,11 +42,13 @@
   (swap! transform-fns conj f))
 
 (defn ^string dash-to-camel [dashed]
-  (let [name-str (-name dashed)]
-    (cond
-      (some? (re-matches #"^(aria-|data-).*" name-str)) name-str
-      (= (subs name-str 0 1) "'") (subs name-str 1)
-      :else (str/replace name-str #"-(\w)" #(str/upper-case (second %))))))
+  (if (string? dashed)
+    dashed
+    (let [name-str (-name dashed)]
+      (cond
+        (some? (re-matches #"^(aria-|data-).*" name-str)) name-str
+        (= (subs name-str 0 1) "'") (subs name-str 1)
+        :else (str/replace name-str #"-(\w)" #(str/upper-case (second %)))))))
 
 (defn cached-prop-name [k]
   (if (named? k)

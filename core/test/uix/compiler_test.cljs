@@ -128,6 +128,11 @@
                     'name1-name2-name3 "name1Name2Name3"
                     'data-name "data-name"
                     'aria-name "aria-name"
+                    ; strings
+                    "key" "key"
+                    "name1-name2-name3" "name1-name2-name3"
+                    "data-name" "data-name"
+                    "aria-name" "aria-name"
                     ; quoting
                     :'name1-name2-name3 "name1-name2-name3"
                     (symbol "'name1-name2-name3") "name1-name2-name3"))
