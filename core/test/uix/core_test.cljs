@@ -1,9 +1,19 @@
 (ns uix.core-test
   (:require [clojure.test :refer [deftest is async testing run-tests]]
             [uix.core.alpha :as uix.core :refer-macros [require-lazy html defui]]
+            [uix.lib]
             [react :as r]
             [uix.test-utils :as t]
             [cljs-bean.core :as bean]))
+
+(deftest test-lib
+  (is (= (seq (uix.lib/re-seq* (re-pattern "foo") "foo bar foo baz foo zot"))
+         (list "foo" "foo" "foo")))
+
+  (is (= (map vec (uix.lib/re-seq* (re-pattern "f(.)o") "foo bar foo baz foo zot"))
+         (list ["foo" "o"] ["foo" "o"] ["foo" "o"])))
+
+  (is (= '("") (seq (uix.lib/re-seq* #"\s*" "")))))
 
 (deftest test-strict-mode
   (is (= (uix.core/strict-mode 1) [:> r/StrictMode 1])))

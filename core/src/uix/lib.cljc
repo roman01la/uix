@@ -11,3 +11,23 @@
                ~@body)
              (when (seq xs#)
                (recur (first xs#) (next xs#))))))))
+
+#?(:cljs
+   (defn re-seq*
+     "Similar to cljs.core/re-seq, but eager and faster"
+     [re s]
+     (loop [s s
+            matches (.exec re s)
+            ret #js []]
+       (let [match-str (aget matches 0)
+             match-vals (if (== (.-length matches) 1)
+                          match-str
+                          matches)
+             post-idx (+ (.-index matches) (max 1 (.-length match-str)))
+             s (subs s post-idx)]
+         (.push ret match-vals)
+         (if (<= post-idx (.-length s))
+           (if-some [next-matches (.exec re s)]
+             (recur s next-matches ret)
+             ret)
+           ret)))))
