@@ -55,22 +55,22 @@
 
 (defn cached-prop-name [k]
   (if (named? k)
-    (if-some [k' (aget prop-name-cache (-name ^not-native k))]
-      k'
-      (let [name-str (-name ^not-native k)
-            v (dash-to-camel name-str)]
-        (aset prop-name-cache name-str v)
-        v))
+    (let [name-str (-name ^not-native k)]
+      (if-some [k' (aget prop-name-cache name-str)]
+        k'
+        (let [v (dash-to-camel name-str)]
+          (aset prop-name-cache name-str v)
+          v)))
     k))
 
 (defn cached-custom-prop-name [k]
   (if (named? k)
-    (if-some [k' (aget custom-prop-name-cache (-name ^not-native k))]
-      k'
-      (let [name-str (-name ^not-native k)
-            v (dash-to-camel name-str)]
-        (aset custom-prop-name-cache name-str v)
-        v))
+    (let [name-str (-name ^not-native k)]
+      (if-some [k' (aget custom-prop-name-cache name-str)]
+        k'
+        (let [v (dash-to-camel name-str)]
+          (aset custom-prop-name-cache name-str v)
+          v)))
     k))
 
 (defn convert-interop-prop-value [k v]
@@ -157,13 +157,16 @@
   ([])
   ([class]
    (cond
-     (map? class)                                           ;; {c1 true c2 false}
+     ;; {c1 true c2 false}
+     (map? class)
      (class-names-map class)
 
-     (coll? class)                                          ;; [c1 c2 c3]
+     ;; [c1 c2 c3]
+     (or (array? class) (coll? class))
      (class-names-coll class)
 
-     (keyword? class)                                       ;; :c1
+     ;; :c1
+     (keyword? class)
      (-name ^not-native class)
 
      :else class))
@@ -181,16 +184,14 @@
   other props. Parsed tag is JS object with :id and :class properties."
   [props id-class]
   (let [id (aget id-class 1)
-        classes (aget id-class 2)
-        classes (when ^boolean classes
-                  (array-seq classes))]
+        classes ^js/Array (aget id-class 2)]
     (cond-> props
             ;; Only use ID from tag keyword if no :id in props already
             (and (some? id) (nil? (get props :id)))
             (assoc :id id)
 
             ;; Merge classes
-            (not (nil? classes))
+            (and (some? classes) (pos? (.-length classes)))
             (assoc :class (class-names classes (get props :class))))))
 
 (defn convert-props [props id-class ^boolean shallow?]
@@ -228,7 +229,7 @@
   (if-some [s (aget tag-name-cache x)]
     s
     (let [v (parse-tag x)]
-      (gobj/set tag-name-cache x v)
+      (aset tag-name-cache x v)
       v)))
 
 (defn key-from-vec [v]
@@ -368,10 +369,8 @@
 (defn fn-to-react-fn [^js f]
   (if (react-type? f)
     f
-    (let [rf #(let [argv ^not-native (.-argv %)
-                    tag (-nth argv 0)
-                    args (subvec argv 1)]
-                (as-element (apply tag args)))
+    (let [rf #(let [argv ^not-native (.-argv %)]
+                (as-element (apply (-nth argv 0) (subvec argv 1))))
           rf-memo (react/memo rf *default-compare-args*)]
       (when (and ^boolean goog.DEBUG (exists? js/__REACT_DEVTOOLS_GLOBAL_HOOK__))
         (set! (.-uixf rf) f))
@@ -401,12 +400,11 @@
   #(as-element (f (bean/bean %))))
 
 (defn component-element [tag v]
-  (let [js-props #js {}
-        el (as-component tag)]
+  (let [js-props #js {}]
     (set! (.-argv js-props) v)
     (when-some [key (key-from-vec v)]
       (gobj/set js-props "key" key))
-    (react/createElement el js-props)))
+    (react/createElement (as-component tag) js-props)))
 
 (defn vec-to-elem [^not-native v]
   (let [tag (-nth v 0 nil)]
@@ -415,7 +413,7 @@
       (keyword-identical? :# tag) (suspense-element v)
       (keyword-identical? :-> tag) (portal-element v)
       (keyword-identical? :> tag) (interop-element v)
-      (hiccup-tag? tag) (-> (cached-parse (name tag))
+      (hiccup-tag? tag) (-> (cached-parse (-name ^not-native tag))
                             (native-element v 1))
       :else (component-element tag v))))
 
