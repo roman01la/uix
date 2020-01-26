@@ -116,8 +116,8 @@
   (uixc/add-transform-fn identity)
   (is (= @uixc/transform-fns #{identity})))
 
-(deftest test-dash-to-camel
-  (are [dash camel] (= (uixc/dash-to-camel dash) camel)
+(deftest test-cached-prop-name
+  (are [dash camel] (= (uixc/cached-prop-name dash) camel)
                     ; keywords
                     :key "key"
                     :name1-name2-name3 "name1Name2Name3"
@@ -132,10 +132,7 @@
                     "key" "key"
                     "name1-name2-name3" "name1-name2-name3"
                     "data-name" "data-name"
-                    "aria-name" "aria-name"
-                    ; quoting
-                    :'name1-name2-name3 "name1-name2-name3"
-                    (symbol "'name1-name2-name3") "name1-name2-name3"))
+                    "aria-name" "aria-name"))
 
 (deftest cached-prop-name
   (is (= "className" (uixc/cached-prop-name :class))))

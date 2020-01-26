@@ -17,7 +17,8 @@
   (not (identical? "object" (goog/typeOf x))))
 
 (defn named? [x]
-  (keyword? x))
+  (or (keyword? x)
+      (symbol? x)))
 
 (defn hiccup-tag? [x]
   (keyword? x))
@@ -41,14 +42,25 @@
 (defn add-transform-fn [f]
   (swap! transform-fns conj f))
 
+(defn ^string capitalize [^string s]
+  (if (< (.-length s) 2)
+    (str/upper-case s)
+    (str ^string (str/upper-case (subs s 0 1)) ^string (subs s 1))))
+
 (defn ^string dash-to-camel [dashed]
-  (if (string? dashed)
-    dashed
-    (let [name-str (-name dashed)]
-      (cond
-        (some? (re-matches #"^(aria-|data-).*" name-str)) name-str
-        (= (subs name-str 0 1) "'") (subs name-str 1)
-        :else (str/replace name-str #"-(\w)" #(str/upper-case (second %)))))))
+  (let [name-str (-name dashed)
+        parts (.split name-str #"-")
+        ^string start (aget parts 0)
+        parts (.slice parts 1)]
+    (if (or (= start "aria") (= start "data"))
+      name-str
+      (str start (-> parts
+                     (array-reduce
+                       (fn [a p]
+                         (.push a (capitalize p))
+                         a)
+                       #js [])
+                     ^string (.join ""))))))
 
 (defn cached-prop-name [k]
   (if (named? k)
@@ -78,7 +90,7 @@
                             #js [])
 
                    (convert-prop-value-shallow v))
-    (named? v) (-name ^not-native v)
+    (keyword? v) (-name ^not-native v)
     :else v))
 
 (defn kv-conv [o k v]
@@ -106,7 +118,7 @@
 (defn convert-prop-value [x]
   (cond
     (js-val? x) x
-    (named? x) (-name ^not-native x)
+    (keyword? x) (-name ^not-native x)
     (map? x) (reduce-kv kv-conv #js {} x)
     (coll? x) (clj->js x)
     (ifn? x) #(apply x %&)
@@ -120,7 +132,7 @@
 (defn convert-custom-prop-value [x]
   (cond
     (js-val? x) x
-    (named? x) (-name ^not-native x)
+    (keyword? x) (-name ^not-native x)
     (map? x) (reduce-kv custom-kv-conv #js {} x)
     (coll? x) (clj->js x)
     (ifn? x) #(apply x %&)
@@ -129,7 +141,7 @@
 (defn class-names-coll [class]
   (let [^js/Array classes (reduce (fn [^js/Array a c]
                                     (when ^boolean c
-                                      (->> (if (named? c) (-name ^not-native c) c)
+                                      (->> (if (keyword? c) (-name ^not-native c) c)
                                            (.push a)))
                                     a)
                                   #js []
@@ -140,7 +152,7 @@
 (defn class-names-map [class]
   (let [^js/Array classes (reduce-kv (fn [^js/Array a b ^boolean c]
                                        (when c
-                                         (->> (if (named? b) (-name ^not-native b) b)
+                                         (->> (if (keyword? b) (-name ^not-native b) b)
                                               (.push a)))
                                        a)
                                   #js []
@@ -158,7 +170,7 @@
      (coll? class) ;; [c1 c2 c3]
      (class-names-coll class)
 
-     (named? class) ;; :c1
+     (keyword? class) ;; :c1
      (-name ^not-native class)
 
      :else class))
@@ -419,7 +431,7 @@
     (js-val? x) x
     (vector? x) (vec-to-elem x)
     (seq? x) (expand-seq x)
-    (named? x) (-name ^not-native x)
+    (keyword? x) (-name ^not-native x)
     (satisfies? IPrintWithWriter x) (pr-str x)
     :else x))
 
