@@ -17,7 +17,8 @@
   (not (identical? "object" (goog/typeOf x))))
 
 (defn named? [x]
-  (keyword? x))
+  (or (keyword? x)
+      (symbol? x)))
 
 (defn hiccup-tag? [x]
   (keyword? x))
@@ -89,7 +90,7 @@
                             #js [])
 
                    (convert-prop-value-shallow v))
-    (named? v) (-name ^not-native v)
+    (keyword? v) (-name ^not-native v)
     :else v))
 
 (defn kv-conv [o k v]
@@ -117,7 +118,7 @@
 (defn convert-prop-value [x]
   (cond
     (js-val? x) x
-    (named? x) (-name ^not-native x)
+    (keyword? x) (-name ^not-native x)
     (map? x) (reduce-kv kv-conv #js {} x)
     (coll? x) (clj->js x)
     (ifn? x) #(apply x %&)
@@ -131,7 +132,7 @@
 (defn convert-custom-prop-value [x]
   (cond
     (js-val? x) x
-    (named? x) (-name ^not-native x)
+    (keyword? x) (-name ^not-native x)
     (map? x) (reduce-kv custom-kv-conv #js {} x)
     (coll? x) (clj->js x)
     (ifn? x) #(apply x %&)
@@ -140,7 +141,7 @@
 (defn class-names-coll [class]
   (let [^js/Array classes (reduce (fn [^js/Array a c]
                                     (when ^boolean c
-                                      (->> (if (named? c) (-name ^not-native c) c)
+                                      (->> (if (keyword? c) (-name ^not-native c) c)
                                            (.push a)))
                                     a)
                                   #js []
@@ -151,7 +152,7 @@
 (defn class-names-map [class]
   (let [^js/Array classes (reduce-kv (fn [^js/Array a b ^boolean c]
                                        (when c
-                                         (->> (if (named? b) (-name ^not-native b) b)
+                                         (->> (if (keyword? b) (-name ^not-native b) b)
                                               (.push a)))
                                        a)
                                   #js []
@@ -169,7 +170,7 @@
      (coll? class) ;; [c1 c2 c3]
      (class-names-coll class)
 
-     (named? class) ;; :c1
+     (keyword? class) ;; :c1
      (-name ^not-native class)
 
      :else class))
@@ -430,7 +431,7 @@
     (js-val? x) x
     (vector? x) (vec-to-elem x)
     (seq? x) (expand-seq x)
-    (named? x) (-name ^not-native x)
+    (keyword? x) (-name ^not-native x)
     (satisfies? IPrintWithWriter x) (pr-str x)
     :else x))
 
