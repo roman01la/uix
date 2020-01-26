@@ -4,7 +4,8 @@
             [goog.object :as gobj]
             [uix.hooks.alpha :as hooks]
             [clojure.string :as str]
-            [cljs-bean.core :as bean]))
+            [cljs-bean.core :as bean]
+            [uix.lib]))
 
 (def ^:dynamic *default-compare-args* #(= (.-argv %1) (.-argv %2)))
 
@@ -211,18 +212,21 @@
 (def re-tag #"[#.]?[^#.]+")
 
 (defn parse-tag [tag]
-  (loop [matches (re-seq re-tag tag)
+  (loop [matches ^js/Array (uix.lib/re-seq* re-tag tag)
          tag "div"
          id nil
          ^js/Array classes #js []]
-    (let [val (first matches)
-          nval (next matches)]
+    (let [val (aget matches 0)
+          nval (.slice matches 1)]
       (if ^boolean val
-        (if (= (aget val 0) "#")
+        (cond
+          (identical? (aget val 0) "#")
           (recur nval tag (.slice val 1) classes)
-          (if (= (aget val 0) ".")
-            (recur nval tag id (.concat classes #js [(.slice val 1)]))
-            (recur nval val id classes)))
+
+          (identical? (aget val 0) ".")
+          (recur nval tag id (.concat classes #js [(.slice val 1)]))
+
+          :else (recur nval val id classes))
         #js [tag id classes (str/includes? tag "-")]))))
 
 (defn cached-parse [x]

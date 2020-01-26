@@ -24,10 +24,10 @@
                           match-str
                           matches)
              post-idx (+ (.-index matches) (max 1 (.-length match-str)))
-             s (subs s post-idx)]
+             next-s (subs s post-idx)]
          (.push ret match-vals)
          (if (<= post-idx (.-length s))
-           (if-some [next-matches (.exec re s)]
-             (recur s next-matches ret)
+           (if-some [next-matches (.exec re next-s)]
+             (recur next-s next-matches ret)
              ret)
            ret)))))
