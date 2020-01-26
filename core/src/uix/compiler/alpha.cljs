@@ -42,41 +42,34 @@
 (defn add-transform-fn [f]
   (swap! transform-fns conj f))
 
-(defn ^string capitalize [^string s]
-  (if (< (.-length s) 2)
-    (str/upper-case s)
-    (str ^string (str/upper-case (subs s 0 1)) ^string (subs s 1))))
+(def ^:private cc-regexp (js/RegExp. "-(\\w)" "g"))
 
-(defn ^string dash-to-camel [dashed]
-  (let [name-str (-name dashed)
-        parts (.split name-str #"-")
-        ^string start (aget parts 0)
-        parts (.slice parts 1)]
-    (if (or (= start "aria") (= start "data"))
-      name-str
-      (str start (-> parts
-                     (array-reduce
-                       (fn [a p]
-                         (.push a (capitalize p))
-                         a)
-                       #js [])
-                     ^string (.join ""))))))
+(defn- cc-fn [s]
+  (str/upper-case (aget s 1)))
+
+(defn ^string dash-to-camel [^string name-str]
+  (if (or (str/starts-with? name-str "aria-")
+          (str/starts-with? name-str "data-"))
+    name-str
+    (.replace name-str cc-regexp cc-fn)))
 
 (defn cached-prop-name [k]
   (if (named? k)
     (if-some [k' (aget prop-name-cache (-name ^not-native k))]
       k'
-      (let [v (dash-to-camel k)]
-        (gobj/set prop-name-cache (-name ^not-native k) v)
+      (let [name-str (-name ^not-native k)
+            v (dash-to-camel name-str)]
+        (aset prop-name-cache name-str v)
         v))
     k))
 
 (defn cached-custom-prop-name [k]
   (if (named? k)
-    (if-some [k' (aget custom-prop-name-cache (-name k))]
+    (if-some [k' (aget custom-prop-name-cache (-name ^not-native k))]
       k'
-      (let [v (dash-to-camel k)]
-        (gobj/set custom-prop-name-cache (-name ^not-native k) v)
+      (let [name-str (-name ^not-native k)
+            v (dash-to-camel name-str)]
+        (aset custom-prop-name-cache name-str v)
         v))
     k))
 
@@ -155,8 +148,8 @@
                                          (->> (if (keyword? b) (-name ^not-native b) b)
                                               (.push a)))
                                        a)
-                                  #js []
-                                  class)]
+                                     #js []
+                                     class)]
     (when (pos? (.-length classes))
       (.join classes " "))))
 
@@ -164,13 +157,13 @@
   ([])
   ([class]
    (cond
-     (map? class) ;; {c1 true c2 false}
+     (map? class)                                           ;; {c1 true c2 false}
      (class-names-map class)
 
-     (coll? class) ;; [c1 c2 c3]
+     (coll? class)                                          ;; [c1 c2 c3]
      (class-names-coll class)
 
-     (keyword? class) ;; :c1
+     (keyword? class)                                       ;; :c1
      (-name ^not-native class)
 
      :else class))
