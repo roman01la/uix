@@ -6,6 +6,7 @@
             [uix.recipes.popup :as popup]
             [uix.recipes.interop :as interop]
             [uix.recipes.error-boundary :as error-boundary]
+            [uix.recipes.context :as context]
             [uix.core.alpha :as uix]
             [uix.dom.alpha :as uix.dom]
             #?(:cljs [cljs.loader :as loader])))
@@ -17,7 +18,8 @@
    :global-state global-state/recipe
    :popup popup/recipe
    :interop interop/recipe
-   :error-boundary error-boundary/recipe})
+   :error-boundary error-boundary/recipe
+   :context context/recipe})
 
 (defn root []
   (let [current-recipe* (uix/state :state-hook)]

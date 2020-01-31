@@ -197,6 +197,9 @@
   [{:keys [get-current-value subscribe] :as subscription}]
   (hooks/subscribe subscription))
 
+(defn context [v]
+  (hooks/context v))
+
 #?(:clj
    (defmacro with-effect
      "Convenience macro for effect hook."
