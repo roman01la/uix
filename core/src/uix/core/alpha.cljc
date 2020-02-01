@@ -197,17 +197,21 @@
   [{:keys [get-current-value subscribe] :as subscription}]
   (hooks/subscribe subscription))
 
+#?(:cljs
+   (defn create-context [v]
+     (react/createContext v)))
+
 #?(:clj
    (defmacro defcontext
      "cljs: Creates React context with initial value set to `value`.
      clj: Create dynamic var bound to `value`."
      ([name]
       (if &env
-        `(def ~(with-meta name {:dynamic true}) (react/createContext nil))
+        `(def ~(with-meta name {:dynamic true}) (create-context nil))
         `(def ~(with-meta name {:dynamic true}))))
      ([name value]
       (if &env
-        `(def ~(with-meta name {:dynamic true}) (react/createContext ~value))
+        `(def ~(with-meta name {:dynamic true}) (create-context ~value))
         `(def ~(with-meta name {:dynamic true}) ~value)))))
 
 (defn context
