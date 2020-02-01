@@ -1,6 +1,6 @@
 (ns uix.core-test
   (:require [clojure.test :refer [deftest is async testing run-tests]]
-            [uix.core.alpha :as uix.core :refer-macros [require-lazy html defui]]
+            [uix.core.alpha :as uix.core :refer-macros [require-lazy html defui defcontext]]
             [uix.lib]
             [react :as r]
             [uix.test-utils :as t]
@@ -95,6 +95,19 @@
                               x))))]
     (async done
       (t/render [err-b done 1 [child]]))))
+
+(deftest test-context
+  (defcontext *ctx* 0)
+  (let [child-component (fn [done]
+                          (let [v (uix.core/context *ctx*)]
+                            (is (== v 1))
+                            (done)
+                            v))
+        component (fn [done]
+                    (uix.core/context-provider [*ctx* 1]
+                      [child-component done]))]
+    (async done
+      (t/render [component done]))))
 
 (defn -main []
   (run-tests))

@@ -197,8 +197,36 @@
   [{:keys [get-current-value subscribe] :as subscription}]
   (hooks/subscribe subscription))
 
-(defn context [v]
+#?(:clj
+   (defmacro defcontext
+     "cljs: Creates React context with initial value set to `value`.
+     clj: Create dynamic var bound to `value`."
+     ([name]
+      (if &env
+        `(def ~(with-meta name {:dynamic true}) (react/createContext nil))
+        `(def ~(with-meta name {:dynamic true}))))
+     ([name value]
+      (if &env
+        `(def ~(with-meta name {:dynamic true}) (react/createContext ~value))
+        `(def ~(with-meta name {:dynamic true}) ~value)))))
+
+(defn context
+  "Takes React context and returns its current value"
+  [v]
   (hooks/context v))
+
+#?(:clj
+   (defmacro context-provider
+     "Takes a binding form where `ctx` is React context and `value` is a supplied value
+     and any number of and child components.
+     cljs: Injects provided value into the context for current components sub-tree.
+     clj: Creates new bindings for `ctx` with supplied `value`, see clojure.core/binding "
+     [[ctx value] & children]
+     (if &env
+       (into [:> `(.-Provider ~ctx) {:value value}]
+             children)
+       `(binding [~ctx ~value]
+          ~(into [:<>] children)))))
 
 #?(:clj
    (defmacro with-effect

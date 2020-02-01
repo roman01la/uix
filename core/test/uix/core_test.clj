@@ -76,3 +76,10 @@
     [:span child])
   (is (= "<div>1</div>" (compiler/render-to-static-markup [multi-c :div 1])))
   (is (= "<span>1</span>" (compiler/render-to-static-markup [multi-c :span 1]))))
+
+(deftest test-context
+  (core/defcontext *ctx* 0)
+  (is (== *ctx* 0))
+  (core/context-provider [*ctx* 1]
+    (is (== *ctx* 1)))
+  (is (== *ctx* 0)))

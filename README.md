@@ -56,6 +56,7 @@ There are no versioned releases yet, use `deps.edn` to depend on the code via gi
 - [Interop between UIx and JS components](https://github.com/roman01la/uix/blob/master/core/dev/uix/recipes/interop.cljc)
 - [Popups](https://github.com/roman01la/uix/blob/master/core/dev/uix/recipes/popup.cljc)
 - [Error Boundaries](https://github.com/roman01la/uix/blob/master/core/dev/uix/recipes/error_boundary.cljc)
+- [React Context](https://github.com/roman01la/uix/blob/master/core/dev/uix/recipes/context.cljc)
 
 - Build front-end `clojure -A:dev -m figwheel.main -O advanced -bo dev:prod`
 - Run server `clojure -A:dev -m uix.server`
@@ -227,6 +228,7 @@ _Note: to ensure you're using the right Node.js version, you can use [nvm](https
 once in the directory. Otherwise the Node.js version you use is in the `.nvmrc` file. See nvm repo for more documentation._
 
 ## Who’s using UIx
+
 - Video editor (private)
 - Fitness App (private)
 - [Zeal (REPL meets Clipboard Manager)](https://github.com/den1k/zeal)
