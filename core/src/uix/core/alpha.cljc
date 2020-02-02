@@ -33,6 +33,10 @@
   #?(:cljs [:> r/StrictMode child]
      :clj child))
 
+(defn profiler [child {:keys [id on-render] :as attrs}]
+  #?(:cljs [:> r/Profiler attrs child]
+     :clj child))
+
 #?(:cljs
     (defn create-class
       "Creates class based React component"
