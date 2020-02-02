@@ -136,7 +136,9 @@
   Returns memoized `f`.
 
   When `should-update?` is not provided uses default comparator
-  that compares props with clojure.core/="
+  that compares props with clojure.core/=
+
+  UIx components are memoized by default"
   ([f]
    (memoize f #?(:cljs compiler/*default-compare-args*
                  :clj nil)))
@@ -144,6 +146,11 @@
    #?(:cljs (react/memo #(compiler/as-element (apply f (next (.-argv %))))
                         should-update?)
       :clj f)))
+
+(defn no-memoize!
+  "Disables memoization of the `f` component"
+  [f]
+  #?(:cljs (set! (.-uix-no-memo f) true)))
 
 (defn state
   "Takes initial value and returns React's state hook wrapped in atom-like type."

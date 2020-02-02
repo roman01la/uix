@@ -4,7 +4,8 @@
             [uix.lib]
             [react :as r]
             [uix.test-utils :as t]
-            [cljs-bean.core :as bean]))
+            [cljs-bean.core :as bean]
+            [clojure.string :as str]))
 
 (deftest test-lib
   (is (= (seq (uix.lib/re-seq* (re-pattern "foo") "foo bar foo baz foo zot"))
@@ -108,6 +109,15 @@
                       [child-component done]))]
     (async done
       (t/render [component done]))))
+
+(deftest test-no-memoize
+  (let [f (fn [])
+        _ (uix.core/no-memoize! f)
+        el (uix.core/as-element [f])]
+    (is (= true (.-uix-no-memo f)))
+    (when ^boolean goog.DEBUG
+      (is (not (str/starts-with? (.. ^js el -type -displayName) "memo("))))
+    (is (not (identical? (.for js/Symbol "react.memo") (aget (.-type el) "$$typeof"))))))
 
 (defn -main []
   (run-tests))

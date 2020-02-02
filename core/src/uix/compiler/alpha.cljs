@@ -368,14 +368,17 @@
   (when-let [component-name (effective-component-name f)]
     (when-some [display-name (format-display-name component-name)]
       (set! (.-displayName rf) display-name)
-      (set! (.-displayName rf-memo) (str "memo(" display-name ")")))))
+      (when-not ^boolean (.-uix-no-memo f)
+        (set! (.-displayName rf-memo) (str "memo(" display-name ")"))))))
 
 (defn fn-to-react-fn [^js f]
   (if (react-type? f)
     f
     (let [rf #(let [argv ^not-native (.-argv %)]
                 (as-element (apply (-nth argv 0) (subvec argv 1))))
-          rf-memo (react/memo rf *default-compare-args*)]
+          rf-memo (if-not ^boolean (.-uix-no-memo f)
+                    (react/memo rf *default-compare-args*)
+                    rf)]
       (when (and ^boolean goog.DEBUG (exists? js/__REACT_DEVTOOLS_GLOBAL_HOOK__))
         (set! (.-uixf rf) f))
       (when ^boolean goog.DEBUG
@@ -387,7 +390,9 @@
   (if-some [cached-fn (cached-react-fn f)]
     cached-fn
     (let [rf #(as-element (apply f (subvec (.-argv %) 1)))
-          rf-memo (react/memo rf *default-compare-args*)]
+          rf-memo (if-not ^boolean (.-uix-no-memo f)
+                    (react/memo rf *default-compare-args*)
+                    rf)]
       (when (and ^boolean goog.DEBUG (exists? js/__REACT_DEVTOOLS_GLOBAL_HOOK__))
         (set! (.-uixf rf) f))
       (when ^boolean goog.DEBUG

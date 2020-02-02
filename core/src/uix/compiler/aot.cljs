@@ -13,7 +13,9 @@
                (if (vector? ret)
                  (r/as-element ret)
                  ret)))
-        rf-memo (react/memo rf r/*default-compare-args*)]
+        rf-memo (if-not ^boolean (.-uix-no-memo f)
+                  (react/memo rf r/*default-compare-args*)
+                  rf)]
     (when (and ^boolean goog.DEBUG (exists? js/__REACT_DEVTOOLS_GLOBAL_HOOK__))
       (set! (.-uixf rf) f))
     (when ^boolean goog.DEBUG
