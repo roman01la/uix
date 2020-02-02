@@ -4,7 +4,7 @@
             ["react-dom/server" :as rserver]
             [react :as react]
             [uix.compiler.alpha :as uixc]
-            [uix.core.alpha :refer-macros [html]]
+            [uix.core.alpha :refer [html]]
             [uix.dom.alpha :as uix.dom]
             [uix.hiccup :as hiccup]
             [uix.react :refer [Editor]]))

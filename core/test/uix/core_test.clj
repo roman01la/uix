@@ -1,7 +1,8 @@
 (ns uix.core-test
   (:require [clojure.test :refer :all]
             [uix.core.alpha :as core]
-            [uix.compiler.alpha :as compiler]))
+            [uix.compiler.alpha :as compiler]
+            [uix.core.lazy-loader :refer [require-lazy]]))
 
 (deftest test-strict-mode
   (is (= 1 (core/strict-mode 1))))
@@ -18,7 +19,7 @@
 (deftest test-as-react
   (is (= identity (core/as-react identity))))
 
-(core/require-lazy '[clojure.string :refer [blank?]])
+(require-lazy '[clojure.string :refer [blank?]])
 
 (deftest test-require-lazy
   (testing "Should refer a var from ns"
@@ -26,7 +27,7 @@
 
   (testing "Should fail to alias ns"
     (try
-      (macroexpand-1 '(core/require-lazy '[clojure.string :as str]))
+      (macroexpand-1 '(require-lazy '[clojure.string :as str]))
       (catch Exception e
         (is (some? e))))))
 

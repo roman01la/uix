@@ -1,5 +1,5 @@
 (ns uix.hiccup
-  (:require [uix.core.alpha :refer-macros [html]]))
+  (:require [uix.core.alpha :refer [html]]))
 
 (defn input-field [{:keys [field-type type placeholder size]
                     :or {field-type :input}}]

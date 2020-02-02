@@ -140,7 +140,8 @@ Compiles Hiccup into inlined React elements at compile-time and hoists constant 
 Loading React components on-demand as Closure modules. See [code splitting](https://clojurescript.org/guides/code-splitting) guide and how lazy loading is used in React with Suspense: [guide](https://reactjs.org/docs/code-splitting.html).
 
 ```clj
-(uix/require-lazy '[uix.components :refer [ui-list]])
+(uix.core.lazy-loader/require-lazy
+  '[uix.components :refer [ui-list]])
 
 [:# {:fallback "Loading..."}
   (when show?

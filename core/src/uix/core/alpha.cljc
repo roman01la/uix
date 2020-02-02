@@ -2,9 +2,7 @@
   "Public API"
   (:refer-clojure :exclude [ref memoize])
   #?(:cljs (:require-macros [uix.core.alpha]))
-  (:require #?(:clj [clojure.spec.alpha :as s])
-            #?(:clj [uix.specs.alpha])
-            #?(:cljs [react :as r])
+  (:require #?(:cljs [react :as r])
             [uix.compiler.alpha :as compiler]
             [uix.compiler.aot :as uixr]
             [uix.lib :refer [doseq-loop]]
@@ -250,34 +248,6 @@
      "Convenience macro for layout effect hook."
      [deps & body]
      `(hooks/with-layout-effect ~deps ~@body)))
-
-
-#?(:clj
-   (s/fdef require-lazy
-     :args (s/cat :form :lazy/libspec)))
-
-#?(:clj
-   (defmacro require-lazy
-     "require-like macro, returns lazy-loaded React components.
-
-     (require-lazy '[my.ns.components :refer [c1 c2]])"
-     [form]
-     (if-not &env
-       `(clojure.core/require ~form)
-       (let [m (s/conform :lazy/libspec form)]
-         (when (not= m :clojure.spec.alpha/invalid)
-           (let [{:keys [lib refer]} (:libspec m)
-                 module (->> (str lib)
-                             (re-find #"\.([a-z0-9-]+)")
-                             second
-                             keyword)]
-             `(do
-                ~@(for [sym refer]
-                    (let [qualified-sym (symbol (str lib "/" sym))
-                          as-lazy `(uix.compiler.alpha/as-lazy-component (deref (cljs.core/resolve '~qualified-sym)))
-                          export `(cljs.core/js-obj "default" ~as-lazy)
-                          on-load `(fn [ok# fail#] (cljs.loader/load ~module #(ok# ~export)))]
-                      `(def ~sym (~'js/React.lazy (fn [] (~'js/Promise. ~on-load)))))))))))))
 
 #?(:clj
    (defmacro html
