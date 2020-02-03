@@ -8,6 +8,7 @@
 (deftest test-static-value?
   (is (aot/static-value? 1))
   (is (aot/static-value? 'cljs.core.uix_hoisted_))
+  (is (= false (aot/static-value? 'x)))
   (is (aot/static-value? [1 :k "s"])))
 
 (deftest test-static-element?

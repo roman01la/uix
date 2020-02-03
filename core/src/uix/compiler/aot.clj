@@ -52,11 +52,11 @@
                 (fn [_] emit-constants-table))
 
 (defn static-value? [v]
-  (if (coll? v)
-    (every? static-value? v)
-    (or (literal? v)
-        (and (symbol? v)
-             (.startsWith ^String (str v) "cljs.core.uix_hoisted_")))))
+  (cond
+    (seq? v) (= (first v) `quote)
+    (coll? v) (every? static-value? v)
+    (symbol? v) (.startsWith ^String (str v) "cljs.core.uix_hoisted_")
+    :else (not (symbol? v))))
 
 (defn static-element? [tag attrs children]
   (and (not (:ref attrs))
