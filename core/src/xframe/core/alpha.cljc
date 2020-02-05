@@ -116,9 +116,19 @@
 
 #?(:clj
     (defmacro <sub [s]
-      `(let [s# ~s
-             k# ~(str (gensym))]
-         (subscribe-ref (uix.core.alpha/callback #(<- s# k#) [s#])))))
+      (let [get-state-sym (gensym "get-state")
+            s-sym (gensym "s")
+            ret `(subscribe-ref (uix.core.alpha/callback ~get-state-sym [~s-sym]))]
+        `(let [~s-sym ~s
+               k# ~(str (gensym))
+               ~get-state-sym #(<- ~s-sym k#)]
+           ~(if &env
+              `(if ~(with-meta 'goog.DEBUG {:tag 'boolean})
+                 (if (-> (.. ~'js/__REACT_DEVTOOLS_GLOBAL_HOOK__ -renderers) (.get 1) .getCurrentFiber)
+                   ~ret
+                   (~get-state-sym))
+                 ~ret)
+              ret)))))
 
 (def event-handlers (volatile! {}))
 (def fx-handlers (volatile! {}))
