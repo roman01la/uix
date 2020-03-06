@@ -445,12 +445,17 @@
 (defn make-element [^not-native argv component js-props first-child]
   (case (- (-count argv) first-child)
     0 (react/createElement component js-props)
-    1 (->> (as-element (-nth argv first-child nil))
-           (react/createElement component js-props))
+    1 (let [child (-nth argv first-child nil)
+            child (if (fn? child)
+                    child
+                    (as-element child))]
+        (react/createElement component js-props child))
     (.apply react/createElement nil
             (reduce-kv (fn [^js/Array a k v]
                          (when (>= k first-child)
-                           (.push a (as-element v)))
+                           (.push a (if (fn? v)
+                                      v
+                                      (as-element v))))
                          a)
                        #js [component js-props]
                        argv))))
