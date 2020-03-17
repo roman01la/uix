@@ -6,6 +6,8 @@ Discuss at [#uix on Clojurians Slack](http://clojurians.net/). Bug reports, feat
 
 [Try it live](https://roman01la.github.io/uix/)
 
+[Docs and Guides](https://roman01la.gitbook.io/uix/)
+
 [API Documentation](https://roman01la.github.io/uix/docs/)
 
 <a href="https://www.patreon.com/bePatron?c=1239559">
