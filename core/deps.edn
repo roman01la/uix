@@ -31,4 +31,6 @@
                                clj-diffmatchpatch {:mvn/version "0.0.9.3"}}}
            :ci {:extra-paths ["dev"]
                 :extra-deps {cljfmt {:mvn/version "0.6.4"}}}
-           :example {:main-opts ["-m" "cljs.main" "-co" "example.cljs.edn" "-c" "uix.example"]}}}
+           :example {:main-opts ["-m" "cljs.main" "-co" "example.cljs.edn" "-c" "uix.example"]}
+           :release {:extra-deps {appliedscience/deps-library {:mvn/version "0.3.4"}}
+                     :main-opts ["-m" "deps-library.release"]}}}
