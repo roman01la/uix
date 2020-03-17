@@ -4,4 +4,6 @@
                   :deps/root "core"
                   :sha "f38330e6cc092c1f9142e319cb058cfd76e2a6a9"}}
  :paths ["src"]
- :aliases {:dev {:extra-deps {uix.core {:local/root "../core"}}}}}
+ :aliases {:dev {:extra-deps {uix.core {:local/root "../core"}}}
+           :release {:extra-deps {appliedscience/deps-library {:mvn/version "0.3.4"}}
+                     :main-opts ["-m" "deps-library.release"]}}}
