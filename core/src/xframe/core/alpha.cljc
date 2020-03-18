@@ -177,6 +177,14 @@
     (reset! db db*)
     (notify-listeners!)))
 
+(reg-fx :dispatch
+  (fn [_ [_ event]]
+    (dispatch event)))
+
+(reg-fx :dispatch-n
+  (fn [_ [_ events]]
+    (run! dispatch events)))
+
 #?(:cljs
    (defn ^:before-load reset-db []
      (set! db (adapton/aref @db))
