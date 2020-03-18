@@ -16,7 +16,11 @@ Discuss at [#uix on Clojurians Slack](http://clojurians.net/). Bug reports, feat
 
 [![CircleCI](https://circleci.com/gh/roman01la/uix.svg?style=svg)](https://circleci.com/gh/roman01la/uix)
 
-There are no versioned releases yet, use `deps.edn` to depend on the code via git deps.
+Clojars updates are pushed occasionally, depend via Git deps to get the most recent updates.
+
+[![Clojars Project](https://img.shields.io/clojars/v/uix/core.svg)](https://clojars.org/uix/core)
+[![Clojars Project](https://img.shields.io/clojars/v/uix/dom.svg)](https://clojars.org/uix/dom)
+[![Clojars Project](https://img.shields.io/clojars/v/uix/rn.svg)](https://clojars.org/uix/rn)
 
 ```clj
 {:deps {uix.core {:git/url "https://github.com/roman01la/uix.git"
