@@ -159,6 +159,11 @@
   [value]
   (hooks/state value))
 
+(defn cursor-in
+  "Takes ref type value and path vector and returns ref type cursor value watching into original ref"
+  [ref path]
+  (hooks/cursor-in ref path))
+
 (defn effect!
   "Takes a function to be executed in an effect and optional vector of dependencies.
 

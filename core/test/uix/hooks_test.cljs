@@ -19,6 +19,18 @@
     (async done
       (t/render [f-state done]))))
 
+(deftest test-cursor-in-hook
+  (let [f-state (fn [done]
+                  (let [state (core/state {:x 1})
+                        x (core/cursor-in state [:x])]
+                    (is (instance? hooks/Cursor x))
+                    (is (or (== @x 1) (== @x 2)))
+                    (if (== @x 2)
+                      (done)
+                      (swap! x inc))))]
+    (async done
+      (t/render [f-state done]))))
+
 (deftest test-state-hook-identity
   (let [f-state (fn [done]
                   (let [xs (core/state [])]

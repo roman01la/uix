@@ -6,6 +6,9 @@
 (deftest test-state
   (is (= 1 @(core/state 1))))
 
+(deftest test-cursor-in
+  (is (= 1 @(core/cursor-in (core/state {:x 1}) [:x]))))
+
 (deftest test-ref
   (is (= nil @(core/ref)))
   (is (= 1 @(core/ref 1))))

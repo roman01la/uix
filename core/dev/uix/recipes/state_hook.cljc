@@ -8,23 +8,9 @@
   might not be immediately available when dereferenced."
   (:require [uix.core.alpha :as uix]))
 
-#?(:cljs
-   (do
-     (deftype Cursor [ref path]
-       IDeref
-       (-deref [o]
-         (get-in @ref path))
-       IReset
-       (-reset! [o new-value]
-         (swap! ref update-in path (constantly new-value))))))
-
-(defn derive-state [ref path]
-  #?(:clj (atom (get-in @ref path))
-     :cljs (uix/memo #(Cursor. ref path) [ref path])))
-
 (defn recipe []
   (let [state* (uix/state {:value "Hello!"})
-        value* (derive-state state* [:value])]
+        value* (uix/cursor-in state* [:value])]
     [:div
      [:input {:value @value*
               :on-change #(reset! value* (.. % -target -value))}]

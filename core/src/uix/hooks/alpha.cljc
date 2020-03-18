@@ -242,3 +242,41 @@
                      (unsubscribe))))
                #js [get-current-value subscribe])
              ret-value)))
+
+;; == Derived state hook ==
+#?(:cljs
+   (deftype Cursor [ref path]
+     Object
+     (equiv [this other]
+       (-equiv this other))
+
+     IHash
+     (-hash [o] (goog/getUid o))
+
+     IDeref
+     (-deref [o]
+       (get-in @ref path))
+
+     IReset
+     (-reset! [o new-value]
+       (swap! ref update-in path (constantly new-value)))
+
+     ISwap
+     (-swap! [o f]
+       (-reset! o (f (-deref o))))
+     (-swap! [o f a]
+       (-reset! o (f (-deref o) a)))
+     (-swap! [o f a b]
+       (-reset! o (f (-deref o) a b)))
+     (-swap! [o f a b xs]
+       (-reset! o (apply f (-deref o) a b xs)))
+
+     IPrintWithWriter
+     (-pr-writer [o writer opts]
+       (-write writer "#object [uix.hooks.alpha.Cursor ")
+       (pr-writer {:val (-deref o)} writer opts)
+       (-write writer "]"))))
+
+(defn cursor-in [ref path]
+  #?(:clj (atom (get-in @ref path))
+     :cljs (memo #(Cursor. ref path) [ref path])))
