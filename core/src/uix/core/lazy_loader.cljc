@@ -1,7 +1,8 @@
 (ns uix.core.lazy-loader
   #?(:cljs (:require-macros [uix.core.lazy-loader]))
   #?(:clj (:require [clojure.spec.alpha :as s]
-                    [uix.specs.alpha])
+                    [uix.specs.alpha]
+                    [uix.lib])
      :cljs (:require [cljs.loader]
                      [react])))
 
@@ -21,7 +22,7 @@
 
      (require-lazy '[my.ns.components :refer [c1 c2]])"
      [form]
-     (if-not &env
+     (if-not (uix.lib/cljs-env? &env)
        `(clojure.core/require ~form)
        (let [m (s/conform :lazy/libspec form)]
          (when (not= m :clojure.spec.alpha/invalid)

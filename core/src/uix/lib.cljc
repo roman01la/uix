@@ -31,3 +31,6 @@
              (recur next-s next-matches ret)
              ret)
            ret)))))
+#?(:clj
+   (defn cljs-env? [env]
+     (boolean (:ns env))))

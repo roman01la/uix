@@ -122,7 +122,7 @@
         `(let [~s-sym ~s
                k# ~(str (gensym))
                ~get-state-sym #(<- ~s-sym k#)]
-           ~(if &env
+           ~(if (uix.lib/cljs-env? &env)
               `(if ~(with-meta 'goog.DEBUG {:tag 'boolean})
                  (if (and ~'js/__REACT_DEVTOOLS_GLOBAL_HOOK__
                           (-> (.. ~'js/__REACT_DEVTOOLS_GLOBAL_HOOK__ -renderers) (.get 1) .getCurrentFiber))

@@ -220,11 +220,11 @@
      "cljs: Creates React context with initial value set to `value`.
      clj: Create dynamic var bound to `value`."
      ([name]
-      (if &env
+      (if (uix.lib/cljs-env? &env)
         `(def ~(with-meta name {:dynamic true}) (create-context nil))
         `(def ~(with-meta name {:dynamic true}))))
      ([name value]
-      (if &env
+      (if (uix.lib/cljs-env? &env)
         `(def ~(with-meta name {:dynamic true}) (create-context ~value))
         `(def ~(with-meta name {:dynamic true}) ~value)))))
 
@@ -240,7 +240,7 @@
      cljs: Injects provided value into the context for current components sub-tree.
      clj: Creates new bindings for `ctx` with supplied `value`, see clojure.core/binding "
      [[ctx value] & children]
-     (if &env
+     (if (uix.lib/cljs-env? &env)
        (into [:> `(.-Provider ~ctx) {:value value}]
              children)
        `(binding [~ctx ~value]
@@ -268,7 +268,7 @@
    (defmacro defui
      "Compiles UIx component into React component at compile-time."
      [sym args & body]
-     (if-not &env
+     (if-not (uix.lib/cljs-env? &env)
        `(defn ~sym ~args ~@body)
        `(defn ~sym ~args
           (uixr/compile-defui ~sym ~body)))))

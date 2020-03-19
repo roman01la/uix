@@ -1,4 +1,5 @@
-(ns xframe.core.adapton)
+(ns xframe.core.adapton
+  (:require [uix.lib]))
 
 (def ^:private curr-adapting (volatile! false))
 
@@ -97,7 +98,7 @@
 (defmacro amemo [args & body]
   (let [argsym (gensym)
         m (assoc (meta args) :args argsym)
-        mexpr (if &env
+        mexpr (if (uix.lib/cljs-env? &env)
                 `(when ~'^boolean goog.DEBUG ~m)
                 m)]
     `(let [f# (fn ~args ~@body)
@@ -107,7 +108,7 @@
 (defmacro xf-amemo [args & body]
   (let [argsym (gensym)
         m (assoc (meta args) :args argsym)
-        mexpr (if &env
+        mexpr (if (uix.lib/cljs-env? &env)
                 `(when ~'^boolean goog.DEBUG ~m)
                 m)]
     `(let [f# (fn ~args ~@body)
