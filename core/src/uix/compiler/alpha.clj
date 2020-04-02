@@ -280,10 +280,12 @@
                             (vec c)))
                         (:class attrs))
         classes (if (and tag-classes attrs-classes)
-                  [tag-classes attrs-classes]
-                  (or tag-classes attrs-classes))]
-    [tag tag-id classes attrs children]))
-
+                  (flatten [tag-classes attrs-classes])
+                  (or tag-classes attrs-classes))
+        attrs (cond-> attrs
+                      classes (assoc :class classes)
+                      tag-id (assoc :id tag-id))]
+    [tag attrs children]))
 
 ;;; render attributes
 
@@ -423,8 +425,7 @@
                 (symbol? tag)
                 (string? tag))
     (throw (ex-info "Tag should be keyword, string or symbol" {:tag tag})))
-  (let [[tag id classes attrs children] (normalize-element element)
-        attrs (assoc attrs :id id :class classes)
+  (let [[tag attrs children] (normalize-element element)
         select-value (get-value attrs)]
     (append! sb "<" tag)
 

@@ -28,6 +28,18 @@
      (testing "Map of class -> boolean"
        (is (= (render [:div {:class {:c1 true :c2 false}}]) "<div class=\"c1\"></div>")))))
 
+#?(:clj
+   (deftest test-46
+     (is (= (render [:div#id "hi"]) "<div id=\"id\">hi</div>"))
+     (is (= (render [:div#id {:id 1} "hi"]) "<div id=\"id\">hi</div>"))
+     (is (= (render [:div {:id 1} "hi"]) "<div id=\"1\">hi</div>"))
+
+     (is (= (render [:div.a.b "hi"]) "<div class=\"a b\">hi</div>"))
+     (is (= (render [:div.a.b {:class "c"} "hi"]) "<div class=\"a b c\">hi</div>"))
+     (is (= (render [:div {:class "c"} "hi"]) "<div class=\"c\">hi</div>"))
+     (is (= (render [:div {:class ["c"]} "hi"]) "<div class=\"c\">hi</div>"))
+     (is (= (render [:div.a.b {:class ["c"]} "hi"]) "<div class=\"a b c\">hi</div>"))))
+
 ;; Adapted from https://github.com/tonsky/rum/blob/gh-pages/test/rum/test/server_render.cljc
 
 (defn comp-simple []
