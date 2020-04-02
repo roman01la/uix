@@ -534,6 +534,3 @@
   (let [sb (make-stream-builder on-chunk)
         state (volatile! :state/static)]
     (-render-html src state sb)))
-
-(render-to-static-markup
-  [:div.a.b {:class ["c"]} "hi"])
