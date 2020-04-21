@@ -4,7 +4,7 @@ _Idiomatic ClojureScript interface to modern React.js_
 
 Discuss at [#uix on Clojurians Slack](http://clojurians.net/). Bug reports, feature requests and PRs are welcome.
 
-[Try it live](https://roman01la.github.io/uix/)
+[Try it in online REPL](https://roman01la.github.io/uix/)
 
 [Docs and Guides](https://roman01la.gitbook.io/uix/)
 
