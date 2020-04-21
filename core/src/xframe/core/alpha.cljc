@@ -20,7 +20,7 @@
   db +====> A +====> B +====> [B]
    +
    +---> C +---> D
-  
+
   Alternatives:
   - https://github.com/salsa-rs/salsa"
   #?(:cljs (:require-macros [xframe.core.alpha :refer [reg-sub]]))
@@ -124,7 +124,7 @@
                ~get-state-sym #(<- ~s-sym k#)]
            ~(if (uix.lib/cljs-env? &env)
               `(if ~(with-meta 'goog.DEBUG {:tag 'boolean})
-                 (if (and ~'js/__REACT_DEVTOOLS_GLOBAL_HOOK__
+                 (if (and (some? js/window.__REACT_DEVTOOLS_GLOBAL_HOOK__)
                           (-> (.. ~'js/__REACT_DEVTOOLS_GLOBAL_HOOK__ -renderers) (.get 1) .getCurrentFiber))
                    ~ret
                    (~get-state-sym))
