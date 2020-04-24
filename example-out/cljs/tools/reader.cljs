@@ -905,7 +905,7 @@
 (defn read
   "Reads the first object from an IPushbackReader.
    Returns the object read. If EOF, throws if eof-error? is true.
-   Otherwise returns sentinel. If no stream is providen, *in* will be used.
+   Otherwise returns sentinel. If no stream is provided, *in* will be used.
 
    Opts is a persistent map with valid keys:
     :read-cond - :allow to process reader conditionals, or
@@ -940,11 +940,16 @@
 (defn read+string
   "Like read, and taking the same args. reader must be a SourceLoggingPushbackReader.
   Returns a vector containing the object read and the (whitespace-trimmed) string read."
-  ([reader & args]
-   (let [buf (fn [reader] (str (:buffer @(.-frames reader))))
-         offset (count (buf reader))
-         o (log-source reader (if (= 1 (count args))
-                                (read (first args) reader)
-                                (apply read reader args)))
-         s (.trim (subs (buf reader) offset))]
+  ([stream] (read+string stream true nil))
+  ([stream eof-error? eof-value]
+   (let [buf (fn [reader] (str (:buffer @(.-frames stream))))
+         offset (count (buf stream))
+         o (log-source stream (read stream eof-error? eof-value))
+         s (.trim (subs (buf stream) offset))]
+     [o s]))
+  ([opts stream]
+   (let [buf (fn [reader] (str (:buffer @(.-frames stream))))
+         offset (count (buf stream))
+         o (log-source stream (read opts stream))
+         s (.trim (subs (buf stream) offset))]
      [o s])))

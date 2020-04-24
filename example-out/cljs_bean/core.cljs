@@ -8,18 +8,22 @@
 
 (def ^:private lookup-sentinel #js {})
 
+(defn- primitive? [x]
+  (or (number? x)
+      (string? x)
+      (boolean? x)
+      (nil? x)))
+
 (defn- ->val [x prop->key key->prop]
   (cond
-    (number? x) x
-    (string? x) x
-    (boolean? x) x
-    (nil? x) x
+    (primitive? x) x
     (object? x) (Bean. nil x prop->key key->prop true nil nil nil)
     (array? x) (ArrayVector. nil prop->key key->prop x nil)
     :else x))
 
 (defn- unwrap [x]
   (cond
+    (primitive? x) x
     (instance? Bean x) (.-obj x)
     (instance? ArrayVector x) (.-arr x)
     :else x))
@@ -46,11 +50,12 @@
     (and (string? k) (identical? prop->key identity))))
 
 (defn- compatible-value? [v recursive?]
-  (and (not (or (and (map? v) (not (instance? Bean v)))
-                (and (vector? v) (not (instance? ArrayVector v)))))
-       (not (and recursive?
-                 (or (object? v)
-                     (array? v))))))
+  (or (primitive? v)
+      (and (not (or (and (map? v) (not (instance? Bean v)))
+                    (and (vector? v) (not (instance? ArrayVector v)))))
+           (not (and recursive?
+                     (or (object? v)
+                         (array? v)))))))
 
 (defn- snapshot? [k v prop->key recursive?]
   (not (and (compatible-key? k prop->key)

@@ -86,9 +86,9 @@
         :else d))))
 
 (defn hash-scope [s]
-  #?(:clj  (or (:identity s) (System/identityHashCode s))
-     :cljs (hash-combine (-hash ^not-native (:name s))
-             (shadow-depth s))))
+  (hash-combine #?(:clj  (hash (:name s))
+                   :cljs (-hash ^not-native (:name s)))
+    (shadow-depth s)))
 
 (declare munge)
 
@@ -201,7 +201,7 @@
                     (sorted-map))))))))))
   (emit* ast))
 
-(defn emits 
+(defn emits
   ([])
   ([^Object a]
    (cond
@@ -587,12 +587,12 @@
 (defn emit-js-array [items comma-sep]
   (emits "[" (comma-sep items) "]"))
 
-(defmethod emit* :js-object 
+(defmethod emit* :js-object
   [{:keys [keys vals env]}]
   (emit-wrap env
     (emit-js-object (map vector keys vals) identity)))
 
-(defmethod emit* :js-array 
+(defmethod emit* :js-array
   [{:keys [items env]}]
   (emit-wrap env
     (emit-js-array items comma-sep)))
@@ -799,41 +799,44 @@
              (pr-str define))))))
 
 (defmethod emit* :def
-  [{:keys [name var init env doc jsdoc export test var-ast]}]
+  [{:keys [name var init env doc goog-define jsdoc export test var-ast]}]
   ;; We only want to emit if an init is supplied, this is to avoid dead code
   ;; elimination issues. The REPL is the exception to this rule.
   (when (or init (:def-emits-var env))
     (let [mname (munge name)]
-     (emit-comment env doc (concat jsdoc (:jsdoc init)))
-     (when (= :return (:context env))
-         (emitln "return ("))
-     (when (:def-emits-var env)
-       (emitln "(function (){"))
-     (emits var)
-     (when init
-       (emits " = "
-         (if-let [define (get-define mname jsdoc)]
-           define
-           init)))
-     (when (:def-emits-var env)
-       (emitln "; return (")
-       (emits (merge
-                {:op  :the-var
-                 :env (assoc env :context :expr)}
-                var-ast))
-       (emitln ");})()"))
-     (when (= :return (:context env))
-         (emitln ")"))
-     ;; NOTE: JavaScriptCore does not like this under advanced compilation
-     ;; this change was primarily for REPL interactions - David
-     ;(emits " = (typeof " mname " != 'undefined') ? " mname " : undefined")
-     (when-not (= :expr (:context env)) (emitln ";"))
-     (when export
-       (emitln "goog.exportSymbol('" (munge export) "', " mname ");"))
-     (when (and ana/*load-tests* test)
-       (when (= :expr (:context env))
-         (emitln ";"))
-       (emitln var ".cljs$lang$test = " test ";")))))
+      (emit-comment env doc (concat
+                              (when goog-define
+                                [(str "@define {" goog-define "}")])
+                              jsdoc (:jsdoc init)))
+      (when (= :return (:context env))
+        (emitln "return ("))
+      (when (:def-emits-var env)
+        (emitln "(function (){"))
+      (emits var)
+      (when init
+        (emits " = "
+          (if-let [define (get-define mname jsdoc)]
+            define
+            init)))
+      (when (:def-emits-var env)
+        (emitln "; return (")
+        (emits (merge
+                 {:op  :the-var
+                  :env (assoc env :context :expr)}
+                 var-ast))
+        (emitln ");})()"))
+      (when (= :return (:context env))
+        (emitln ")"))
+      ;; NOTE: JavaScriptCore does not like this under advanced compilation
+      ;; this change was primarily for REPL interactions - David
+      ;(emits " = (typeof " mname " != 'undefined') ? " mname " : undefined")
+      (when-not (= :expr (:context env)) (emitln ";"))
+      (when export
+        (emitln "goog.exportSymbol('" (munge export) "', " mname ");"))
+      (when (and ana/*load-tests* test)
+        (when (= :expr (:context env))
+          (emitln ";"))
+        (emitln var ".cljs$lang$test = " test ";")))))
 
 (defn emit-apply-to
   [{:keys [name params env]}]
@@ -957,13 +960,17 @@
       (emitln "})()"))))
 
 (defmethod emit* :fn
-  [{variadic :variadic? :keys [name env methods max-fixed-arity recur-frames loop-lets]}]
+  [{variadic :variadic? :keys [name env methods max-fixed-arity recur-frames in-loop loop-lets]}]
   ;;fn statements get erased, serve no purpose and can pollute scope if named
   (when-not (= :statement (:context env))
-    (let [loop-locals (->> (concat (mapcat :params (filter #(and % @(:flag %)) recur-frames))
-                                   (mapcat :params loop-lets))
-                           (map munge)
-                           seq)]
+    (let [recur-params (mapcat :params (filter #(and % @(:flag %)) recur-frames))
+          loop-locals
+          (->> (concat recur-params
+                 ;; need to capture locals only if in recur fn or loop
+                 (when (or in-loop (seq recur-params))
+                   (mapcat :params loop-lets)))
+               (map munge)
+               seq)]
       (when loop-locals
         (when (= :return (:context env))
             (emits "return "))
@@ -1126,7 +1133,7 @@
         protocol (:protocol info)
         tag      (ana/infer-tag env (first (:args expr)))
         proto? (and protocol tag
-                 (or (and ana/*cljs-static-fns* protocol (= tag 'not-native)) 
+                 (or (and ana/*cljs-static-fns* protocol (= tag 'not-native))
                      (and
                        (or ana/*cljs-static-fns*
                            (:protocol-inline env))
@@ -1136,17 +1143,21 @@
                                 (not ('#{any clj clj-or-nil clj-nil number string boolean function object array js} tag))
                                 (when-let [ps (:protocols (ana/resolve-existing-var env tag))]
                                   (ps protocol)))))))
+        first-arg-tag (ana/infer-tag env (first (:args expr)))
         opt-not? (and (= (:name info) 'cljs.core/not)
-                      (= (ana/infer-tag env (first (:args expr))) 'boolean))
+                      (= first-arg-tag 'boolean))
+        opt-count? (and (= (:name info) 'cljs.core/count)
+                        (boolean ('#{string array} first-arg-tag)))
         ns (:ns info)
-        js? (or (= ns 'js) (= ns 'Math))
+        ftag (ana/infer-tag env f)
+        js? (or (= ns 'js) (= ns 'Math) (:foreign info)) ;; foreign - i.e. global / Node.js library
         goog? (when ns
                 (or (= ns 'goog)
                     (when-let [ns-str (str ns)]
                       (= (get (string/split ns-str #"\.") 0 nil) "goog"))
                     (not (contains? (::ana/namespaces @env/*compiler*) ns))))
 
-        keyword? (or (= 'cljs.core/Keyword (ana/infer-tag env f))
+        keyword? (or (= 'cljs.core/Keyword ftag)
                      (let [f (ana/unwrap-quote f)]
                        (and (= (-> f :op) :const)
                             (keyword? (-> f :form)))))
@@ -1193,6 +1204,9 @@
        opt-not?
        (emits "(!(" (first args) "))")
 
+       opt-count?
+       (emits "((" (first args) ").length)")
+
        proto?
        (let [pimpl (str (munge (protocol-prefix protocol))
                         (munge (name (:name info))) "$arity$" (count args))]
@@ -1231,7 +1245,7 @@
 
 (defmethod emit* :set!
   [{:keys [target val env]}]
-  (emit-wrap env (emits target " = " val)))
+  (emit-wrap env (emits "(" target " = " val ")")))
 
 (defn emit-global-export [ns-name global-exports lib]
   (emitln (munge ns-name) "."
@@ -1803,8 +1817,7 @@
 (defn emit-externs
   ([externs]
    (emit-externs [] externs (atom #{})
-     (when env/*compiler*
-       (::ana/externs @env/*compiler*))))
+     (when env/*compiler* (ana/get-externs))))
   ([prefix externs top-level known-externs]
    (loop [ks (seq (keys externs))]
      (when ks
