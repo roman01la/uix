@@ -1,14 +1,14 @@
 {:deps {org.clojure/clojure {:mvn/version "1.10.1"}
-        org.clojure/clojurescript {:mvn/version "1.10.597"}
-        cljs-bean {:mvn/version "1.4.0"}
-        cljsjs/react {:mvn/version "16.9.0-0"
+        org.clojure/clojurescript {:mvn/version "1.10.739"}
+        cljs-bean {:mvn/version "1.5.0"}
+        cljsjs/react {:mvn/version "16.13.1-0"
                       :exclusions [cljsjs/react-dom-server]}}
  :paths ["src"]
  :aliases {:dev {:extra-paths ["dev" "resources"]
                  :extra-deps {uix.dom {:local/root "../dom"}
                               com.bhauman/figwheel-main {:mvn/version "0.2.1-SNAPSHOT"}
                               cljsjs/emotion {:mvn/version "10.0.6-0"}
-                              cljsjs/react-dom-server {:mvn/version "16.9.0-0"}
+                              cljsjs/react-dom-server {:mvn/version "16.13.1-0"}
                               codox {:mvn/version "0.10.6"}
                               codox-theme-rdash {:mvn/version "0.1.2"}
                               aleph {:mvn/version "0.4.6"}
@@ -27,7 +27,7 @@
            :bench-ssr {:main-opts ["-m" "uix.benchmark"]}
            :test {:extra-paths ["test"]
                   :extra-deps {uix.dom {:local/root "../dom"}
-                               cljsjs/react-dom-server {:mvn/version "16.9.0-0"}
+                               cljsjs/react-dom-server {:mvn/version "16.13.1-0"}
                                clj-diffmatchpatch {:mvn/version "0.0.9.3"}}}
            :ci {:extra-paths ["dev"]
                 :extra-deps {cljfmt {:mvn/version "0.6.4"}}}
