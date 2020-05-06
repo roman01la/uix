@@ -34,7 +34,7 @@ jobs:
 
       - run: cd core && yarn install --frozen-lockfile
 
-      - run: cd core && scripts/test
+      - run: cd core && scripts/test-ci
 
       - save_cache:
           paths:
