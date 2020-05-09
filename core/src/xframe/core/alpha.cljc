@@ -127,7 +127,8 @@
                  (if (and ~'(exists? js/__REACT_DEVTOOLS_GLOBAL_HOOK__)
                           (-> (.. ~'js/__REACT_DEVTOOLS_GLOBAL_HOOK__ -renderers) (.get 1) .getCurrentFiber))
                    ~ret
-                   (~get-state-sym))
+                   ;; TODO: Put back get-state-sym
+                   ~ret)
                  ~ret)
               ret)))))
 
