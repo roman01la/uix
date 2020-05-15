@@ -9,15 +9,19 @@ const puppeteer = require('puppeteer');
   const page = await browser.newPage();
 
   page.on("console", m => {
-    console.log(...m.args().map(a => a._remoteObject.value));
+    if (m.type() === "error") {
+      console.error(`${m.text()} in ${m.location().url}:${m.location().lineNumber}`);
+    } else {
+      console.log(...m.args().map(a => a._remoteObject.value));
+    }
   });
 
-  await page.exposeFunction('testsFailed', n => {
+  await page.exposeFunction("testsFailed", n => {
       failures = n;
     }
   );
 
-  await page.exposeFunction('testsDone', async () => {
+  await page.exposeFunction("testsDone", async () => {
       await browser.close();
 
       if (failures > 0) {

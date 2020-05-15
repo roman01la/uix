@@ -1,7 +1,7 @@
 (ns uix.core-test
   (:require [clojure.test :refer [deftest is async testing run-tests]]
             [uix.core.alpha :as uix.core :refer [html defui defcontext]]
-            [uix.core.lazy-loader :refer [require-lazy]]
+            ;[uix.core.lazy-loader :refer [require-lazy]]
             [uix.lib]
             [react :as r]
             [uix.test-utils :as t]
