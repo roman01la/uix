@@ -1,5 +1,5 @@
 {:deps {org.clojure/clojure {:mvn/version "1.10.1"}
-        org.clojure/clojurescript {:mvn/version "1.10.739"}
+        org.clojure/clojurescript {:mvn/version "1.10.764"}
         cljs-bean {:mvn/version "1.5.0"}
         cljsjs/react {:mvn/version "16.13.1-0"
                       :exclusions [cljsjs/react-dom-server]}}
