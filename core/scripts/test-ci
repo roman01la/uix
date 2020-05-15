@@ -16,3 +16,12 @@ clojure -A:test -m cljs.main -c uix.test-runner
 
 echo "Running ClojureScript dev tests..."
 scripts/test.js $(pwd)
+
+echo "Building ClojureScript prod tests..."
+rm -rf out
+clojure -A:test -m cljs.main -O advanced \
+  -co '{:infer-externs true :closure-defines {goog.DEBUG false}}' \
+  -c uix.test-runner
+
+echo "Running ClojureScript prod tests..."
+scripts/test.js $(pwd)
