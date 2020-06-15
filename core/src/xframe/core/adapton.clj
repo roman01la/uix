@@ -63,7 +63,8 @@
   clojure.lang.IAtom
   (reset [this v]
     (set-result! this v)
-    (dirty! this))
+    (dirty! this)
+    result)
 
   (swap [this f]
     (.reset this (f (.deref this))))

@@ -67,7 +67,8 @@
   IReset
   (-reset! [this v]
     (set-result! this v)
-    (dirty! this))
+    (dirty! this)
+    result)
 
   ISwap
   (-swap! [this f]

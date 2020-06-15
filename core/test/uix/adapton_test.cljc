@@ -7,6 +7,16 @@
   #?(:clj  (.getTime (Date.))
      :cljs (.getTime (js/Date.))))
 
+(deftest test-reset!
+  (let [r1 (ad/aref :foo)]
+    (is (= :bar (reset! r1 :bar)))
+    (is (= :baz (reset! r1 :baz)))))
+
+(deftest test-swap!
+  (let [r1 (ad/aref 0)]
+    (is (= 1 (swap! r1 inc)))
+    (is (= 2 (swap! r1 inc)))))
+
 (deftest test-aref
   (let [r1 (ad/aref 8)
         r2 (ad/aref 10)
