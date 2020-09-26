@@ -515,22 +515,22 @@
     :nop))
 
 (defn render-to-string [src]
-  (let [sb (make-static-builder)
+  (let [^StaticBuilder sb (make-static-builder)
         state (volatile! :state/root)]
     (-render-html src state sb)
     (str (.sb sb))))
 
 (defn render-to-static-markup [src]
-  (let [sb (make-static-builder)]
+  (let [^StaticBuilder sb (make-static-builder)]
     (-render-html src (volatile! :state/static) sb)
     (str (.sb sb))))
 
 (defn render-to-stream [src {:keys [on-chunk]}]
-  (let [sb (make-stream-builder on-chunk)
+  (let [^StreamBuilder sb (make-stream-builder on-chunk)
         state (volatile! :state/root)]
     (-render-html src state sb)))
 
 (defn render-to-static-stream [src {:keys [on-chunk]}]
-  (let [sb (make-stream-builder on-chunk)
+  (let [^StreamBuilder sb (make-stream-builder on-chunk)
         state (volatile! :state/static)]
     (-render-html src state sb)))
