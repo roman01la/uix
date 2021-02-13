@@ -21,17 +21,18 @@
 
      IReset
      (-reset! [o new-value]
-       (set-value new-value))
+       (set-value new-value)
+       new-value)
 
      ISwap
      (-swap! [o f]
-       (set-value f))
+       (-reset! o (f (-deref o))))
      (-swap! [o f a]
-       (set-value #(f % a)))
+       (-reset! o (f (-deref o) a)))
      (-swap! [o f a b]
-       (set-value #(f % a b)))
+       (-reset! o (f (-deref o) a b)))
      (-swap! [o f a b xs]
-       (set-value #(apply f % a b xs)))
+       (-reset! o (apply f (-deref o) a b xs)))
 
      IPrintWithWriter
      (-pr-writer [o writer opts]
@@ -259,7 +260,7 @@
 
      IReset
      (-reset! [o new-value]
-       (swap! ref update-in path (constantly new-value)))
+       (get-in (swap! ref update-in path (constantly new-value)) path))
 
      ISwap
      (-swap! [o f]

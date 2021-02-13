@@ -15,7 +15,7 @@
                     (is (or (== @state 1) (== @state 2)))
                     (if (== @state 2)
                       (done)
-                      (swap! state inc))))]
+                      (is (== 2 (swap! state inc))))))]
     (async done
       (t/render [f-state done]))))
 
@@ -27,7 +27,7 @@
                     (is (or (== @x 1) (== @x 2)))
                     (if (== @x 2)
                       (done)
-                      (swap! x inc))))]
+                      (is (== 2 (swap! x inc))))))]
     (async done
       (t/render [f-state done]))))
 
@@ -47,7 +47,7 @@
                 (let [ref (core/ref 1)]
                   (is (instance? hooks/RefHook ref))
                   (is (== @ref 1))
-                  (swap! ref inc)
+                  (is (== 2 (swap! ref inc)))
                   (is (== @ref 2))
                   (done)))]
     (async done
