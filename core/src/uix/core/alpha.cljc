@@ -244,7 +244,7 @@
        (into [:> `(.-Provider ~ctx) {:value value}]
              children)
        `(binding [~ctx ~value]
-          ~(into [:<>] children)))))
+          ~(into [:uix.core.alpha/bind-context `(fn [f#] (binding [~ctx ~value] (f#)))] children)))))
 
 #?(:clj
    (defmacro with-effect

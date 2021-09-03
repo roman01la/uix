@@ -479,6 +479,9 @@
   (when-not (empty? element)
     (let [tag (nth element 0 nil)]
       (cond
+        (identical? :uix.core.alpha/bind-context tag)
+        (let [binder (nth element 1 nil)]
+          (binder #(render-fragment! (into [:<>] (drop 2 element)) *state sb)))
         (identical? :<> tag) (render-fragment! element *state sb)
         (identical? :# tag) (render-suspense! element)
         (identical? :-> tag) (render-portal! element)

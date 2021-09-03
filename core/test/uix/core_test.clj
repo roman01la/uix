@@ -84,3 +84,10 @@
   (core/context-provider [*ctx* 1]
     (is (== *ctx* 1)))
   (is (== *ctx* 0)))
+
+(deftest test-context-component
+  (core/defcontext *comp-ctx*)
+  (let [foo (fn [] [:div (core/context *comp-ctx*)])
+        bar (fn [] (core/context-provider [*comp-ctx* 1] [foo]))]
+    (is (= "<div>1</div>"
+           (compiler/render-to-string [bar])))))
