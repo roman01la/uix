@@ -310,12 +310,12 @@
       (gobj/set js-props "ref" -ref))
     (make-element argv tag js-props first-child)))
 
-(defn cached-react-fn [f]
+(defn cached-react-fn [^js f]
   (if ^boolean (.-compiled? f)
     (.-cljsReactCompiled f)
     (.-cljsReact f)))
 
-(defn cache-react-fn [f rf]
+(defn cache-react-fn [^js f rf]
   (if ^boolean (.-compiled? f)
     (set! (.-cljsReactCompiled f) rf)
     (set! (.-cljsReact f) rf)))
