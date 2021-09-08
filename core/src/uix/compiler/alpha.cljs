@@ -312,13 +312,13 @@
 
 (defn cached-react-fn [f]
   (if ^boolean (.-compiled? f)
-    (.-cljsReactCompiled f)
-    (.-cljsReact f)))
+    (.-cljsReactCompiled ^js f)
+    (.-cljsReact ^js f)))
 
 (defn cache-react-fn [f rf]
   (if ^boolean (.-compiled? f)
-    (set! (.-cljsReactCompiled f) rf)
-    (set! (.-cljsReact f) rf)))
+    (set! (.-cljsReactCompiled ^js f) rf)
+    (set! (.-cljsReact ^js f) rf)))
 
 (defn symbol-for [s]
   (js* "Symbol.for(~{})" s))

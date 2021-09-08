@@ -18,7 +18,7 @@
              react-type-setter (fn [v]
                                  (vreset! value v))
              react-type-getter (fn []
-                                 (if-let [uixf (.-uixf @value)]
+                                 (if-let [uixf (.-uixf ^js @value)]
                                    uixf
                                    @value))
              config #js {:get react-type-getter
@@ -152,7 +152,7 @@
 (defn no-memoize!
   "Disables memoization of the `f` component"
   [f]
-  #?(:cljs (set! (.-uix-no-memo f) true)))
+  #?(:cljs (set! (.-uix-no-memo ^js f) true)))
 
 (defn state
   "Takes initial value and returns React's state hook wrapped in atom-like type."
