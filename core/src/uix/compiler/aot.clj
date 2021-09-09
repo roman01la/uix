@@ -446,6 +446,7 @@
 
 (defmethod compile-element :component [v]
   (let [[tag & args] v
+        tag (vary-meta tag assoc :tag 'js)
         args (mapv compile-html* args)]
     `(do
        (set! (.-compiled? ~tag) true)
