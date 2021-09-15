@@ -3,13 +3,13 @@
 set -e
 set -o pipefail
 
-#echo "Installing NPM deps..."
-#yarn install --frozen-lockfile
-#
-#echo "Running Clojure tests..."
-#clojure -A:test -m uix.test-runner
-#
-#echo "<div id=root></div><script src="out/main.js"></script>" > index.html
+echo "Installing NPM deps..."
+yarn install --frozen-lockfile
+
+echo "Running Clojure tests..."
+clojure -A:test -m uix.test-runner
+
+echo "<div id=root></div><script src="out/main.js"></script>" > index.html
 
 echo "Building ClojureScript dev tests..."
 clojure -A:test -m cljs.main -c uix.test-runner
