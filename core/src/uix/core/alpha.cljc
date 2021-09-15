@@ -253,7 +253,7 @@
        `(defn ~sym ~args ~@body)
        `(defn ~sym [props#]
           (let [~args (cljs.core/array (glue-args props#))]
-            (uixr/compile-defui ~body))))))
+            ~@(mapv uixr/compile-html body))))))
 
 (defn as-react
   "Interop with React components. Takes UIx component function and returns same component wrapped into interop layer."
