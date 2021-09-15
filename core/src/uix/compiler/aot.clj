@@ -1,13 +1,6 @@
 (ns uix.compiler.aot
   "Hiccup compiler that translates Hiccup into React.js at compile-time."
-  (:require [clojure.string :as str]
-            [cljs.analyzer :as ana]
-            [cljs.spec.alpha :as s]
-            [cljs.compiler :as cljsc]
-            [cljs.env :as env]
-            [uix.compiler.alpha :as compiler]))
-
-(def ^:dynamic *cljs-env*) ;; cljs compiler's env
+  (:require [clojure.string :as str]))
 
 (defn unevaluated? [expr]
   (or (symbol? expr)
@@ -19,74 +12,6 @@
        (or (not (or (vector? x) (map? x)))
            (and (every? literal? x)
                 (not (keyword? (first x)))))))
-
-;; EXPERIMENTAL: constants hoisting
-
-;; https://github.com/clojure/clojurescript/blob/b38ded99dc0967a48824d55ea644bee86b4eae5b/src/main/clojure/cljs/compiler.cljc#L1786
-(defn emit-constants-table [table]
-  (cljsc/emitln "goog.provide('" (cljsc/munge ana/constants-ns-sym) "');")
-  (cljsc/emitln "goog.require('cljs.core');")
-  (doseq [[sym value] table]
-    (cond
-      (keyword? sym)
-      (do (cljsc/emits "cljs.core." value " = ")
-          (cljsc/emits-keyword sym))
-
-      (symbol? sym)
-      (do (cljsc/emits "cljs.core." value " = ")
-          (cljsc/emits-symbol sym))
-
-      (.startsWith ^String (name value) "uix-hoisted-")
-      (do (cljsc/emits "cljs.core." (cljsc/munge value) " = ")
-          (-> sym meta :ast cljsc/emits))
-
-      :else (throw
-              (ex-info
-                (str "Cannot emit constant for type " (type sym))
-                {:error :invalid-constant-type
-                 :clojure.error/phase :compilation})))
-
-    (cljsc/emits ";\n")))
-
-(alter-var-root #'cljs.compiler/emit-constants-table
-                (fn [_] emit-constants-table))
-
-(defn static-value? [v]
-  (cond
-    (seq? v) (= (first v) `quote)
-    (coll? v) (every? static-value? v)
-    (symbol? v) (.startsWith ^String (str v) "cljs.core.uix_hoisted_")
-    :else (not (symbol? v))))
-
-(defn static-element? [tag attrs children]
-  (and (not (:ref attrs))
-       (static-value? [tag attrs children])))
-
-(defn gen-constant-id [val]
-  (symbol (str "uix-hoisted-" (hash val))))
-
-;; https://github.com/clojure/clojurescript/blob/d79eda372f35e3c79c1f9cec1219266b60d40cb4/src/main/clojure/cljs/analyzer.cljc#L565
-(defn register-constant! [env val]
-  (let [id (gen-constant-id val)]
-    (swap! env/*compiler*
-           (fn [cenv]
-             (-> cenv
-                 (update-in [::ana/constant-table] #(if (get % val) % (assoc % val id)))
-                 (update-in [::ana/namespaces (-> env :ns :name) ::ana/constants]
-                            (fn [{:keys [seen order] :or {seen #{} order []} :as constants}]
-                              (cond-> constants
-                                      (not (contains? seen val))
-                                      (assoc :seen (conj seen val)
-                                             :order (conj order val))))))))
-    id))
-
-(defn maybe-hoist [hiccup compiled tag attrs children]
-  (if (and (-> @env/*compiler* :options :optimize-constants)
-           (static-element? tag attrs children))
-    (let [ast (ana/analyze (assoc *cljs-env* :context :expr) compiled)
-          sym (register-constant! *cljs-env* (with-meta hiccup {:ast ast}))]
-      (symbol (str "cljs.core." (cljsc/munge sym))))
-    compiled))
 
 (declare compile-html*)
 
@@ -101,8 +26,7 @@
          children (drop (inc n) v)
          attrs? (or (nil? attrs) (map? attrs))
          children (if attrs? children (cons attrs children))
-         attrs (if attrs? attrs nil)
-         attrs (reduce (fn [a f] (f a)) attrs @compiler/transform-fns)]
+         attrs (if attrs? attrs nil)]
      [tag attrs children])))
 
 (declare to-js)
@@ -366,54 +290,6 @@
        ~expr)
     expr))
 
-(def empty-js-obj
-  (vary-meta
-   (list 'js* "{}")
-   assoc :tag 'object))
-
-(defn inline-element [type attrs]
-  (let [{:keys [key ref]} attrs
-        attrs (dissoc attrs :key :ref)
-        js-attrs (or (to-js attrs) empty-js-obj)
-        props-sym (gensym "props")
-        react-sym `(~'js* "Symbol.for(~{})" "react.element")
-        react-key (cond
-                    (string? key) key
-                    (nil? key) nil
-                    :else `(str ~key))]
-    (if (string? type)
-      (to-js
-       {:$$typeof react-sym
-        :type type
-        :ref ref
-        :key react-key
-        :props js-attrs
-        :_owner nil})
-      `(let [~props-sym ~js-attrs]
-         (when (.hasOwnProperty ~type "defaultProps")
-           (~'js/Object.assign ~(to-js {}) (aget ~type "defaultProps") ~props-sym))
-         ~(to-js
-           {:$$typeof react-sym
-            :type type
-            :ref ref
-            :key react-key
-            :props props-sym
-            :_owner nil})))))
-
-(defn inline-children [type attrs children]
-  (->>
-   (cond
-     (= 1 (count children))
-     (->> (first children)
-          (assoc attrs :children))
-
-     (pos? (count children))
-     (->> children
-          (assoc attrs :children))
-
-     :else attrs)
-   (inline-element type)))
-
 (defmulti compile-element
   (fn [[tag]]
     (cond
@@ -440,9 +316,7 @@
                 (:ref attrs) (assoc :ref `(uix.compiler.alpha/unwrap-ref ~(:ref attrs))))
         attrs (to-js (compile-attrs attrs))
         children (mapv compile-html* children)
-        #_#_ret (inline-children tag attrs children)
         ret `(>el ~tag ~attrs ~@children)]
-    #_(maybe-hoist v ret tag attrs children)
     ret))
 
 (defmethod compile-element :component [v]
@@ -460,9 +334,7 @@
                 (:key m) (assoc :key (:key m)))
         attrs (to-js (compile-attrs attrs))
         children (mapv compile-html* children)
-        #_#_ret (inline-children `fragment attrs children)
         ret `(>el fragment ~attrs ~@children)]
-    #_(maybe-hoist v ret nil attrs children)
     ret))
 
 (defmethod compile-element :suspense [v]
@@ -474,7 +346,6 @@
         attrs (to-js (compile-attrs attrs))
         children (mapv compile-html* children)
         ret `(>el suspense ~attrs ~children)]
-    #_(maybe-hoist v ret nil attrs children)
     ret))
 
 (defmethod compile-element :portal [v]
@@ -493,22 +364,16 @@
         children (mapv compile-html* children)]
     `(>el ~tag ~attrs ~children)))
 
-(defn compile-html* [expr]
+(defn compile-html
+  "Compiles Hiccup expr into React.js calls"
+  [expr]
   (cond
     (vector? expr) (compile-element expr)
     (literal? expr) expr
     :else (compile-form expr)))
 
-(defn compile-html
-  "Compiles Hiccup expr into React.js calls"
-  [expr env]
-  (binding [*cljs-env* env]
-    (compile-html* expr)))
-
-
 (defmacro compile-defui
   "Compiles Hiccup component defined with defui macro into React component"
-  [sym body]
-  (binding [*cljs-env* &env]
-    `(do ~@(mapv compile-html* body))))
+  [body]
+  `(do ~@(mapv compile-html* body)))
 
