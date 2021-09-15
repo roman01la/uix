@@ -1,13 +1,11 @@
 (ns uix.test-utils
-  (:require [uix.compiler.alpha :as uixc]
-            ["react-dom/server" :as rserver]
+  (:require ["react-dom/server" :as rserver]
             [goog.object :as gobj]
             [clojure.test :refer [is]]
             [uix.dom.alpha :as dom]))
 
-(defn as-string [comp]
-  (-> (uixc/as-element comp)
-      rserver/renderToStaticMarkup))
+(defn as-string [el]
+  (rserver/renderToStaticMarkup el))
 
 (defn js-equal? [a b]
   (gobj/equals a b))

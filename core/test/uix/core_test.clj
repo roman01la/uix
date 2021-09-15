@@ -13,9 +13,6 @@
 (deftest test-memoize
   (is (= identity (core/memoize identity))))
 
-(deftest test-as-element
-  (is (= 1 (core/as-element 1))))
-
 (deftest test-as-react
   (is (= identity (core/as-react identity))))
 

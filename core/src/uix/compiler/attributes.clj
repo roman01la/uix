@@ -81,9 +81,6 @@
 
 (defmethod compile-config-kv :class [name value]
   (cond
-    (or (nil? value) (keyword? value) (string? value))
-    value
-
     (map? value)
     (join-classes-map value)
 
@@ -104,15 +101,19 @@
 
 (defn compile-attrs
   "Takes map of attributes and returns same map with keys translated from Hiccup to React naming conventions"
-  [attrs]
-  (if (map? attrs)
-    (reduce-kv
-      #(assoc %1
-          (case %2
-            :class :className
-            :for :htmlFor
-            (camel-case %2))
-          (compile-config-kv %2 %3))
-      {}
-      attrs)
-    attrs))
+  ([attrs]
+   (compile-attrs attrs nil))
+  ([attrs {:keys [custom-element?]}]
+   (if (map? attrs)
+     (reduce-kv
+       #(assoc %1
+           (if custom-element?
+             (camel-case %2)
+             (case %2
+               :class :className
+               :for :htmlFor
+               (camel-case %2)))
+           (compile-config-kv %2 %3))
+       {}
+       attrs)
+     attrs)))

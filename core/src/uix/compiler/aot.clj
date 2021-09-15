@@ -172,7 +172,7 @@
                 :always (attrs/set-id-class id-class)
                 (:key m) (assoc :key (:key m))
                 (:ref attrs) (assoc :ref `(uix.compiler.alpha/unwrap-ref ~(:ref attrs))))
-        attrs (js/to-js (attrs/compile-attrs attrs))
+        attrs (js/to-js (attrs/compile-attrs attrs {:custom-element? (re-find #"-" tag)}))
         children (mapv compile-html children)
         ret `(>el ~tag ~attrs ~@children)]
     ret))

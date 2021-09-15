@@ -26,11 +26,12 @@
     (is (= @ref 1))))
 
 (deftest test-memoize
-  (let [f (uix.core/memoize (fn [x]
-                              (is (= 1 x))
-                              [:h1 x]))]
+  (uix.core/defui test-memoize-comp [{:keys [x]}]
+    (is (= 1 x))
+    [:h1 x])
+  (let [f (uix.core/memoize test-memoize-comp)]
     (is (t/react-element-of-type? f "react.memo"))
-    (is (= "<h1>1</h1>" (t/as-string [f 1])))))
+    (is (= "<h1>1</h1>" (t/as-string (uix.core/html [f {:x 1}]))))))
 
 #_(deftest test-require-lazy
     (require-lazy '[uix.core.alpha :refer [strict-mode]])
@@ -40,13 +41,9 @@
   (is (t/react-element-of-type? (html [:h1 1]) "react.element")))
 
 (deftest test-defui
-  (defui h1 [child]
-    [:h1 ^:inline child])
-  (is (= (t/as-string [h1 1]) "<h1>1</h1>")))
-
-(deftest test-as-element
-  (is (-> (uix.core/as-element [:h1 1])
-          (t/react-element-of-type? "react.element"))))
+  (defui h1 [{:keys [children]}]
+    [:h1 {} children])
+  (is (= (t/as-string (uix.core/html [h1 {} 1])) "<h1>1</h1>")))
 
 (deftest test-as-react
   (let [ctor (fn [props]
@@ -110,15 +107,6 @@
                       [child-component done]))]
     (async done
       (t/render [component done]))))
-
-(deftest test-no-memoize
-  (let [f (fn [])
-        _ (uix.core/no-memoize! f)
-        el (uix.core/as-element [f])]
-    (is (= true (.-uix-no-memo f)))
-    (when ^boolean goog.DEBUG
-      (is (not (str/starts-with? (.. ^js el -type -displayName) "memo("))))
-    (is (not (identical? (.for js/Symbol "react.memo") (aget (.-type el) "$$typeof"))))))
 
 (defn -main []
   (run-tests))
