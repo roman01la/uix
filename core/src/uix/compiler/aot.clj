@@ -438,11 +438,12 @@
                 :always (set-id-class id-class)
                 (:key m) (assoc :key (:key m))
                 (:ref attrs) (assoc :ref `(uix.compiler.alpha/unwrap-ref ~(:ref attrs))))
-        js-attrs (compile-attrs attrs)
+        attrs (to-js (compile-attrs attrs))
         children (mapv compile-html* children)
-        ret (check-attrs v attrs children
-                         (inline-children tag js-attrs children))]
-    (maybe-hoist v ret tag attrs children)))
+        #_#_ret (inline-children tag attrs children)
+        ret `(>el ~tag ~attrs ~@children)]
+    #_(maybe-hoist v ret tag attrs children)
+    ret))
 
 (defmethod compile-element :component [v]
   (let [[tag & args] v
@@ -459,9 +460,10 @@
                 (:key m) (assoc :key (:key m)))
         attrs (to-js (compile-attrs attrs))
         children (mapv compile-html* children)
-        ret (check-attrs v attrs children
-                         (inline-children `fragment attrs children))]
-    (maybe-hoist v ret nil attrs children)))
+        #_#_ret (inline-children `fragment attrs children)
+        ret `(>el fragment ~attrs ~@children)]
+    #_(maybe-hoist v ret nil attrs children)
+    ret))
 
 (defmethod compile-element :suspense [v]
   (let [[_ attrs children] (normalize-element v)
@@ -471,9 +473,9 @@
                 (:key m) (assoc :key (:key m)))
         attrs (to-js (compile-attrs attrs))
         children (mapv compile-html* children)
-        ret (check-attrs v attrs children
-                         `(>el suspense ~attrs ~children))]
-    (maybe-hoist v ret nil attrs children)))
+        ret `(>el suspense ~attrs ~children)]
+    #_(maybe-hoist v ret nil attrs children)
+    ret))
 
 (defmethod compile-element :portal [v]
   (binding [*out* *err*]
@@ -489,8 +491,7 @@
                 (:ref attrs) (assoc :ref `(uix.compiler.alpha/unwrap-ref ~(:ref attrs))))
         attrs (to-js (compile-attrs attrs))
         children (mapv compile-html* children)]
-    (check-attrs v attrs children
-                 `(>el ~tag ~attrs ~children))))
+    `(>el ~tag ~attrs ~children)))
 
 (defn compile-html* [expr]
   (cond

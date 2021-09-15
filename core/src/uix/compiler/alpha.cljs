@@ -364,41 +364,33 @@
         (if (string? name)
           name))))
 
-(defn with-name [^js f ^js rf ^js rf-memo]
+(defn with-name [^js f ^js rf]
   (when-let [component-name (effective-component-name f)]
     (when-some [display-name (format-display-name component-name)]
-      (set! (.-displayName rf) display-name)
-      (when-not ^boolean (.-uix-no-memo f)
-        (set! (.-displayName rf-memo) (str "memo(" display-name ")"))))))
+      (set! (.-displayName rf) display-name))))
 
 (defn fn-to-react-fn [^js f]
   (if (react-type? f)
     f
     (let [rf #(let [argv ^not-native (.-argv %)]
-                (as-element (apply (-nth argv 0) (subvec argv 1))))
-          rf-memo (if-not ^boolean (.-uix-no-memo f)
-                    (react/memo rf *default-compare-args*)
-                    rf)]
+                (as-element (apply (-nth argv 0) (subvec argv 1))))]
       (when (and ^boolean goog.DEBUG (exists? js/__REACT_DEVTOOLS_GLOBAL_HOOK__))
         (set! (.-uixf rf) f))
       (when ^boolean goog.DEBUG
-        (with-name f rf rf-memo))
-      (cache-react-fn f rf-memo)
-      rf-memo)))
+        (with-name f rf))
+      (cache-react-fn f rf)
+      rf)))
 
 (defn as-lazy-component [f]
   (if-some [cached-fn (cached-react-fn f)]
     cached-fn
-    (let [rf #(as-element (apply f (subvec (.-argv %) 1)))
-          rf-memo (if-not ^boolean (.-uix-no-memo f)
-                    (react/memo rf *default-compare-args*)
-                    rf)]
+    (let [rf #(as-element (apply f (subvec (.-argv %) 1)))]
       (when (and ^boolean goog.DEBUG (exists? js/__REACT_DEVTOOLS_GLOBAL_HOOK__))
         (set! (.-uixf rf) f))
       (when ^boolean goog.DEBUG
-        (with-name f rf rf-memo))
-      (cache-react-fn f rf-memo)
-      rf-memo)))
+        (with-name f rf))
+      (cache-react-fn f rf)
+      rf)))
 
 (defn as-component [tag]
   (if-some [cached-fn (cached-react-fn tag)]
