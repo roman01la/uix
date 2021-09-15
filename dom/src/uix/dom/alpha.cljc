@@ -8,9 +8,7 @@
 (defn render
   "Renders element into DOM node. The first argument is Hiccup or React element."
   [element node]
-  #?(:cljs
-          (-> (compiler/as-element element)
-              (rdom/render node))
+  #?(:cljs (rdom/render element node)
      :clj nil))
 
 (defn create-root [node]
@@ -18,13 +16,13 @@
      :clj nil))
 
 (defn render-root [element root]
-  #?(:cljs (.render root (compiler/as-element element))
+  #?(:cljs (.render root element)
      :clj nil))
 
 (defn hydrate
   "Hydrates server rendered document at `node` with `element`."
   [element node]
-  #?(:cljs (rdom/hydrate (compiler/as-element element) node)
+  #?(:cljs (rdom/hydrate element node)
      :clj nil))
 
 (defn flush-sync! [cb]
@@ -58,7 +56,7 @@
 (defn create-portal
   "Renders Hiccup element into DOM node"
   [child node]
-  #?(:cljs (rdom/createPortal (compiler/as-element child) node)
+  #?(:cljs (rdom/createPortal child node)
      :clj (prn (str "Portal elements are not supported on JVM, skipping: " [:-> child node]))))
 
 ;; react-dom/server top-level API
@@ -66,12 +64,12 @@
 (defn render-to-string [element]
   "Renders to HTML string to be used with React"
   #?(:clj (compiler/render-to-string element)
-     :cljs (.renderToString js/ReactDOMServer (compiler/as-element element))))
+     :cljs (.renderToString js/ReactDOMServer element)))
 
 (defn render-to-static-markup [element]
   "Renders to HTML string"
   #?(:clj (compiler/render-to-static-markup element)
-     :cljs (.renderToStaticMarkup js/ReactDOMServer (compiler/as-element element))))
+     :cljs (.renderToStaticMarkup js/ReactDOMServer element)))
 
 #?(:clj
    (def render-to-stream
@@ -82,7 +80,7 @@
 
 #?(:cljs
    (defn render-to-stream [element]
-     (.renderToNodeStream js/ReactDOMServer (compiler/as-element element))))
+     (.renderToNodeStream js/ReactDOMServer element)))
 
 #?(:clj
    (def render-to-static-stream
@@ -93,4 +91,4 @@
 
 #?(:cljs
    (defn render-to-static-stream [element]
-     (.renderToStaticNodeStream js/ReactDOMServer (compiler/as-element element))))
+     (.renderToStaticNodeStream js/ReactDOMServer element)))

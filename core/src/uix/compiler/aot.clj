@@ -446,12 +446,12 @@
     ret))
 
 (defmethod compile-element :component [v]
-  (let [[tag & args] v
+  (let [[tag props & children] v
         tag (vary-meta tag assoc :tag 'js)
-        args (mapv compile-html* args)]
+        children-compiled (mapv compile-html* children)]
     `(do
        (set! (.-compiled? ~tag) true)
-       (uix.compiler.alpha/component-element ~tag (cljs.core/-with-meta [~tag ~@args] ~(meta v))))))
+       (uix.compiler.alpha/component-element ~tag ~props (cljs.core/array ~@children-compiled)))))
 
 (defmethod compile-element :fragment [v]
   (let [[_ attrs children] (normalize-element v)
