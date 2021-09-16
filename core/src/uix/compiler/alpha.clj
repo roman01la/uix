@@ -4,11 +4,6 @@
   (:require [clojure.string :as str])
   (:import [clojure.lang IPersistentVector ISeq Ratio Keyword]))
 
-(def transform-fns (atom #{}))
-
-(defn add-transform-fn [f]
-  (swap! transform-fns conj f))
-
 (def ^:dynamic *select-value*)
 
 (defprotocol IStringBuilder
@@ -273,7 +268,6 @@
                                  (nil? second))
                            [second rest]
                            [nil (cons second rest)])
-        attrs (reduce (fn [a f] (f a)) attrs @transform-fns)
         attrs-classes (if (vector? (:class attrs))
                         (let [c (filter some? (:class attrs))]
                           (when (seq c)

@@ -8,24 +8,6 @@
             [uix.lib :refer [doseq-loop]]
             [uix.hooks.alpha :as hooks]))
 
-;; See https://twitter.com/roman01la/status/1182405182057058314?s=20
-;; for context
-#?(:cljs
-   (when (and ^boolean goog.DEBUG
-              (exists? js/__REACT_DEVTOOLS_GLOBAL_HOOK__))
-     (defonce __devtools-hook
-       (let [value (volatile! nil)
-             react-type-setter (fn [v]
-                                 (vreset! value v))
-             react-type-getter (fn []
-                                 (if-let [uixf (.-uixf ^js @value)]
-                                   uixf
-                                   @value))
-             config #js {:get react-type-getter
-                         :set react-type-setter}]
-         (.defineProperty js/Object js/window "$type" config)))))
-
-(declare as-element)
 
 ;; React's top-level API
 
@@ -90,8 +72,8 @@
                       (this-as this
                         (let [args (.. this -props -argv)
                               state (.-state this)]
-                          (-> (render-fn state args)
-                              as-element))))
+                          ;; `render-fn` should return compiled Hiccup
+                          (render-fn state args))))
              klass (create-class {:constructor constructor
                                   :static {:displayName display-name
                                            :getDerivedStateFromError derive-state}
@@ -145,14 +127,8 @@
    (memoize f #?(:cljs compiler/*default-compare-args*
                  :clj nil)))
   ([f should-update?]
-   #?(:cljs (react/memo #(compiler/as-element (apply f (next (.-argv %))))
-                        should-update?)
+   #?(:cljs (react/memo f should-update?)
       :clj f)))
-
-(defn no-memoize!
-  "Disables memoization of the `f` component"
-  [f]
-  #?(:cljs (set! (.-uix-no-memo ^js f) true)))
 
 (defn state
   "Takes initial value and returns React's state hook wrapped in atom-like type."
@@ -262,7 +238,12 @@
    (defmacro html
      "Compiles Hiccup into React elements at compile-time."
      [expr]
-     (uixr/compile-html expr &env)))
+     (uixr/compile-html expr)))
+
+#?(:cljs
+   (defn glue-args [^js props]
+     (cond-> (.-argv props)
+             (.-children props) (assoc :children (.-children props)))))
 
 #?(:clj
    (defmacro defui
@@ -270,21 +251,12 @@
      [sym args & body]
      (if-not (uix.lib/cljs-env? &env)
        `(defn ~sym ~args ~@body)
-       `(defn ~sym ~args
-          (uixr/compile-defui ~sym ~body)))))
-
-(defn as-element
-  "Compiles Hiccup into React elements at run-time."
-  [x]
-  #?(:cljs (compiler/as-element x)
-     :clj x))
+       `(defn ~sym [props#]
+          (let [~args (cljs.core/array (glue-args props#))]
+            ~@(mapv uixr/compile-html body))))))
 
 (defn as-react
   "Interop with React components. Takes UIx component function and returns same component wrapped into interop layer."
   [f]
   #?(:cljs (compiler/as-react f)
      :clj f))
-
-(defn add-transform-fn [f]
-  "Injects attributes transforming function for Hiccup elements pre-transformations"
-  (compiler/add-transform-fn f))

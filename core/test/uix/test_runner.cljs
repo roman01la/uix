@@ -2,9 +2,7 @@
   (:require [cljs.test]
             [uix.core-test]
             [uix.compiler-test]
-            [uix.hooks-test]
-            [uix.adapton-test]
-            [uix.xframe-test]))
+            [uix.hooks-test]))
 
 (defmethod cljs.test/report [::cljs.test/default :summary] [m]
   (println "\nRan" (:test m) "tests containing"
@@ -18,6 +16,4 @@
   (cljs.test/empty-env)
   'uix.core-test
   'uix.compiler-test
-  'uix.hooks-test
-  'uix.adapton-test
-  'uix.xframe-test)
+  'uix.hooks-test)

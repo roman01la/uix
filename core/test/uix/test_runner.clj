@@ -3,7 +3,6 @@
             [uix.core-test]
             [uix.hooks-test]
             [uix.ssr-test]
-            [uix.xframe-test]
             [uix.aot-test]))
 
 (defn -main [& args]
@@ -11,5 +10,4 @@
     #_'uix.ssr-test
     'uix.core-test
     'uix.hooks-test
-    'uix.aot-test
-    'uix.xframe-test))
+    'uix.aot-test))
