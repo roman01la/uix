@@ -234,12 +234,6 @@
      [deps & body]
      `(hooks/with-layout-effect ~deps ~@body)))
 
-#?(:clj
-   (defmacro html
-     "Compiles Hiccup into React elements at compile-time."
-     [expr]
-     (uixr/compile-html expr)))
-
 #?(:cljs
    (defn glue-args [^js props]
      (cond-> (.-argv props)
@@ -253,7 +247,7 @@
        `(defn ~sym ~args ~@body)
        `(defn ~sym [props#]
           (let [~args (cljs.core/array (glue-args props#))]
-            ~@(mapv uixr/compile-html body))))))
+            ~@body)))))
 
 (defn as-react
   "Interop with React components. Takes UIx component function and returns same component wrapped into interop layer."
