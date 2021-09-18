@@ -73,7 +73,7 @@
     `(~'js/ReactDOM.createPortal ~child ~node)))
 
 (defmethod compile-element :interop [v]
-  (let [[tag attrs & children] v
+  (let [[_ tag attrs & children] v
         m (meta v)
         attrs (when (some? attrs)
                 (if-not (map? attrs)
