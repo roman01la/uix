@@ -4,17 +4,6 @@
             [uix.compiler.js :as js]
             [uix.compiler.attributes :as attrs]))
 
-(defn check-attrs [v attrs children expr]
-  (if (and (nil? attrs) (symbol? (first children)))
-    `(let [m# ~(first children)]
-       (assert (not (map? m#))
-               (str "Looks like you've passed a dynamic map of props " m#
-                    " in " ~(str v) " form. "
-                    "Dynamic props are not supported in UIx's pre-compilation mode. "
-                    "Make sure to declare props explicitly as map literal."))
-       ~expr)
-    expr))
-
 ;; Compiles Hiccup into React.createElement
 (defmulti compile-element
   (fn [[tag]]
@@ -31,11 +20,17 @@
         id-class (attrs/parse-tag tag)
         tag (first id-class)
         m (meta v)
-        attrs (cond-> attrs
-                :always (attrs/set-id-class id-class)
-                (:key m) (assoc :key (:key m))
-                (:ref attrs) (assoc :ref `(uix.compiler.alpha/unwrap-ref ~(:ref attrs))))
-        attrs (js/to-js (attrs/compile-attrs attrs {:custom-element? (re-find #"-" tag)}))
+        attrs (if-not (map? attrs)
+                `(uix.compiler.attributes/interpret-attrs ~attrs (cljs.core/array ~@id-class) false)
+                (cond-> attrs
+                  :always (attrs/set-id-class id-class)
+                  (:key m) (assoc :key (:key m))
+                  (:ref attrs) (assoc :ref `(uix.compiler.alpha/unwrap-ref ~(:ref attrs)))
+                  (and (some? (:style attrs))
+                       (not (map? (:style attrs))))
+                  (assoc :style `(uix.compiler.attributes/interpret-attrs ~(:style attrs) (cljs.core/array) true))
+                  :always (attrs/compile-attrs {:custom-element? (re-find #"-" tag)})
+                  :always js/to-js))
         ret `(>el ~tag ~attrs ~@children)]
     ret))
 
@@ -47,18 +42,24 @@
 (defmethod compile-element :fragment [v]
   (let [[_ attrs & children] v
         m (meta v)
-        attrs (cond-> attrs
-                (:key m) (assoc :key (:key m)))
-        attrs (js/to-js (attrs/compile-attrs attrs))
+        attrs (if-not (map? attrs)
+                `(uix.compiler.attributes/interpret-attrs ~attrs (cljs.core/array) false)
+                (cond-> attrs
+                  (:key m) (assoc :key (:key m))
+                  :always attrs/compile-attrs
+                  :always js/to-js))
         ret `(>el fragment ~attrs ~@children)]
     ret))
 
 (defmethod compile-element :suspense [v]
   (let [[_ attrs & children] v
         m (meta v)
-        attrs (cond-> attrs
-                (:key m) (assoc :key (:key m)))
-        attrs (js/to-js (attrs/compile-attrs attrs))
+        attrs (if-not (map? attrs)
+                `(uix.compiler.attributes/interpret-attrs ~attrs (cljs.core/array) false)
+                (cond-> attrs
+                  (:key m) (assoc :key (:key m))
+                  :always attrs/compile-attrs
+                  :always js/to-js))
         ret `(>el suspense ~attrs ~children)]
     ret))
 
@@ -71,10 +72,13 @@
 (defmethod compile-element :interop [v]
   (let [[tag attrs & children] v
         m (meta v)
-        attrs (cond-> attrs
-                (:key m) (assoc :key (:key m))
-                (:ref attrs) (assoc :ref `(uix.compiler.alpha/unwrap-ref ~(:ref attrs))))
-        attrs (js/to-js (attrs/compile-attrs attrs))]
+        attrs (if-not (map? attrs)
+                `(uix.compiler.attributes/interpret-attrs ~attrs (cljs.core/array) true)
+                (cond-> attrs
+                  (:key m) (assoc :key (:key m))
+                  (:ref attrs) (assoc :ref `(uix.compiler.alpha/unwrap-ref ~(:ref attrs)))
+                  :always attrs/compile-attrs
+                  :always js/to-js))]
     `(>el ~tag ~attrs ~children)))
 
 (defn compile-html
