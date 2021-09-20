@@ -176,5 +176,5 @@
   (if (map? attrs)
     (convert-props attrs id-class shallow?)
     (do
-      (js/console.error "UIx: a map of DOM attributes is exppected, but got " attrs)
+      (prn "UIx: a map of element attributes is exppected, but got " attrs)
       attrs)))
