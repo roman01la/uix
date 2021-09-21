@@ -24,8 +24,12 @@
 (defn as-react [f]
   #(f (bean/bean %)))
 
-(defn component-element [component-type props children]
-  (let [js-props (if-some [key (:key props)]
+(defn component-element [component-type ^js props-children children]
+  (let [props (aget props-children 0)
+        js-props (if-some [key (:key props)]
                    #js {:key key :argv (dissoc props :key)}
-                   #js {:argv props})]
-    (.apply react/createElement nil (.concat #js [(debug/with-name component-type) js-props] children))))
+                   #js {:argv props})
+        args (if (= 2 (.-length props-children))
+               #js [(debug/with-name component-type) js-props (aget props-children 1)]
+               #js [(debug/with-name component-type) js-props])]
+    (.apply react/createElement nil (.concat args children))))

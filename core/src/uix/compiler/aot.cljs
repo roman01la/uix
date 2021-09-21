@@ -4,6 +4,9 @@
             [uix.compiler.alpha :as r]
             [uix.compiler.attributes]))
 
-(def >el react/createElement)
+(defn >el [tag attrs-children children]
+  (let [args (-> #js [tag] (.concat attrs-children) (.concat children))]
+    (.apply react/createElement nil args)))
+
 (def suspense react/Suspense)
 (def fragment react/Fragment)
