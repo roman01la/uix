@@ -1,5 +1,5 @@
 (ns uix.hiccup
-  (:require [uix.core.alpha :refer [html]]))
+  (:require [uix.core.alpha :refer [defui]]))
 
 (defn input-field [{:keys [field-type type placeholder size]
                     :or {field-type :input}}]
@@ -75,94 +75,87 @@
 
 ;; ==== Pre-compiled components ====
 
-(defn input-field-compiled
+(defui input-field-compiled
   [{:keys [field-type type placeholder size]
     :or {field-type :input}}]
   (if (= field-type :textarea)
-    (html
-      [:textarea
-       {:class ["form-control" (get {:large "form-control-lg"} size)]
-        :type type
-        :placeholder placeholder
-        :style {:border "1px solid blue"
-                :border-radius 3
-                :padding "4px 8px"}}])
-    (html
-      [:input
-       {:class ["form-control" (get {:large "form-control-lg"} size)]
-        :type type
-        :placeholder placeholder
-        :style {:border "1px solid blue"
-                :border-radius 3
-                :padding "4px 8px"}}])))
+    #el [:textarea
+         {:class ["form-control" (get {:large "form-control-lg"} size)]
+          :type type
+          :placeholder placeholder
+          :style {:border "1px solid blue"
+                  :border-radius 3
+                  :padding "4px 8px"}}]
+    #el [:input
+         {:class ["form-control" (get {:large "form-control-lg"} size)]
+          :type type
+          :placeholder placeholder
+          :style {:border "1px solid blue"
+                  :border-radius 3
+                  :padding "4px 8px"}}]))
 
-(defn button-compiled [{:keys [size kind class]} child]
-  (html
-    [:button.btn
-     {:class [(get {:large "btn-lg"} size)
-              (get {:primary "btn-primary"} kind)
-              class]
-      :style {:padding "8px 24px"
-              :color :white
-              :background :blue
-              :font-size "11px"
-              :text-transform :uppercase
-              :text-align :center}}
-     ^:inline child]))
+(defui button-compiled [{:keys [size kind class children]}]
+  #el [:button.btn
+       {:class [(get {:large "btn-lg"} size)
+                (get {:primary "btn-primary"} kind)
+                class]
+        :style {:padding "8px 24px"
+                :color :white
+                :background :blue
+                :font-size "11px"
+                :text-transform :uppercase
+                :text-align :center}}
+       children])
 
-(defn fieldset-compiled [& children]
-  (html
-    [:fieldset.form-group
-     {:style {:padding 8
-              :border :none}}
-     ^:inline children]))
+(defui fieldset-compiled [{:keys [children]}]
+  #el [:fieldset.form-group
+       {:style {:padding 8
+                :border :none}}
+       children])
 
-(defn form-compiled [& children]
-  (html
-    [:form ^:inline children]))
+(defui form-compiled [{:keys [children]}]
+  #el [:form children])
 
-(defn row-compiled [& children]
-  (html [:div.row ^:inline children]))
+(defui row-compiled [{:keys [children]}]
+  #el [:div.row children])
 
-(defn col-compiled [{:keys [md xs offset-md]} & children]
-  (html
-    [:div {:class [(str "col-md-" md)
-                   (str "col-xs-" xs)
-                   (str "offset-md-" offset-md)]}
-     ^:inline children]))
+(defui col-compiled [{:keys [md xs offset-md children]}]
+  #el [:div {:class [(str "col-md-" md)
+                     (str "col-xs-" xs)
+                     (str "offset-md-" offset-md)]}
+       children])
 
-(defn editor-compiled []
-  (html
-    [:div.editor-page
-     [:div.container.page
-      [row-compiled
-       [col-compiled
-        {:md 10
-         :xs 12
-         :offset-md 1}
-        [form-compiled
-         [:fieldset
-          [fieldset-compiled
-           [input-field-compiled
-            {:type "text"
-             :placeholder "Article Title"
-             :size :large}]]
-          [fieldset-compiled
-           [input-field-compiled
-            {:type "text"
-             :placeholder "What's this article about?"}]]
-          [fieldset-compiled
-           [input-field-compiled
-            {:rows "8"
-             :field-type :textarea
-             :placeholder "Write your article (in markdown)"}]]
-          [fieldset-compiled
-           [input-field-compiled
-            {:type "text"
-             :placeholder "Enter tags"}]
-           [:div.tag-list]]
-          [button-compiled
-           {:size :large
-            :kind :primary
-            :class "pull-xs-right"}
-           "Update Article"]]]]]]]))
+(defui editor-compiled []
+  #el [:div.editor-page
+       #el [:div.container.page
+            #el [row-compiled
+                 #el [col-compiled
+                      {:md 10
+                       :xs 12
+                       :offset-md 1}
+                      #el [form-compiled
+                           #el [:fieldset
+                                #el [fieldset-compiled
+                                     #el [input-field-compiled
+                                          {:type "text"
+                                           :placeholder "Article Title"
+                                           :size :large}]]
+                                #el [fieldset-compiled
+                                     #el [input-field-compiled
+                                          {:type "text"
+                                           :placeholder "What's this article about?"}]]
+                                #el [fieldset-compiled
+                                     #el [input-field-compiled
+                                          {:rows "8"
+                                           :field-type :textarea
+                                           :placeholder "Write your article (in markdown)"}]]
+                                #el [fieldset-compiled
+                                     #el [input-field-compiled
+                                          {:type "text"
+                                           :placeholder "Enter tags"}]
+                                     #el [:div.tag-list]]
+                                #el [button-compiled
+                                     {:size :large
+                                      :kind :primary
+                                      :class "pull-xs-right"}
+                                     "Update Article"]]]]]]])

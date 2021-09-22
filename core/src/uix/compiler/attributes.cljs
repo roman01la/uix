@@ -173,8 +173,11 @@
       :else (convert-prop-value props))))
 
 (defn interpret-attrs [attrs id-class shallow?]
-  (if (map? attrs)
-    (convert-props attrs id-class shallow?)
-    (do
-      (prn "UIx: a map of element attributes is exppected, but got " attrs)
-      attrs)))
+  (if (or (map? attrs) (nil? attrs))
+    #js [(convert-props attrs id-class shallow?)]
+    #js [nil attrs]))
+
+(defn interpret-props [props]
+  (if (or (map? props) (nil? props))
+    #js [props]
+    #js [nil props]))
