@@ -19,7 +19,7 @@
                   (:ref attrs) (assoc :ref `(uix.compiler.alpha/unwrap-ref ~(:ref attrs)))
                   (and (some? (:style attrs))
                        (not (map? (:style attrs))))
-                  (assoc :style `(uix.compiler.attributes/interpret-attrs ~(:style attrs) (cljs.core/array) true))
+                  (assoc :style `(uix.compiler.attributes/convert-props ~(:style attrs) (cljs.core/array) true))
                   :always (attrs/compile-attrs {:custom-element? (re-find #"-" tag)})
                   :always js/to-js))
       `(uix.compiler.attributes/interpret-attrs ~attrs (cljs.core/array ~@id-class) false))))
