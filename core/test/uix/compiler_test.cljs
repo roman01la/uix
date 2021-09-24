@@ -3,7 +3,8 @@
             [uix.compiler.alpha :as uixc]
             [uix.test-utils :refer [as-string js-equal? with-error symbol-for]]
             [uix.compiler.debug :as debug]
-            [uix.core.alpha :as uix.core]))
+            [uix.core.alpha :as uix.core]
+            [uix.dom.alpha :as uix.dom]))
 
 (enable-console-print!)
 
@@ -171,7 +172,7 @@
 
 (deftest test-portal
   (try
-    #el [:-> 1 2]
+    (uix.dom/create-portal 1 2)
     (catch :default e
       (is "Target container is not a DOM element." (.-message e)))))
 

@@ -5,6 +5,7 @@
   (:require #?@(:cljs [[react :as r]
                        [uix.compiler.debug :as debug]])
             [uix.compiler.alpha :as compiler]
+            [uix.compiler.aot]
             [uix.lib :refer [doseq-loop]]
             [uix.hooks.alpha :as hooks]))
 
@@ -12,11 +13,11 @@
 ;; React's top-level API
 
 (defn strict-mode [child]
-  #?(:cljs [:> r/StrictMode child]
+  #?(:cljs #el [:> r/StrictMode child]
      :clj child))
 
 (defn profiler [child {:keys [id on-render] :as attrs}]
-  #?(:cljs [:> r/Profiler attrs child]
+  #?(:cljs #el [:> r/Profiler attrs child]
      :clj child))
 
 #?(:cljs

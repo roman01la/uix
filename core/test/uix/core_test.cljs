@@ -1,12 +1,11 @@
 (ns uix.core-test
   (:require [clojure.test :refer [deftest is async testing run-tests]]
-            [uix.core.alpha :as uix.core :refer [html defui defcontext]]
+            [uix.core.alpha :as uix.core :refer [defui defcontext]]
             ;[uix.core.lazy-loader :refer [require-lazy]]
             [uix.lib]
             [react :as r]
             [uix.test-utils :as t]
-            [cljs-bean.core :as bean]
-            [clojure.string :as str]))
+            [cljs-bean.core :as bean]))
 
 (deftest test-lib
   (is (= (seq (uix.lib/re-seq* (re-pattern "foo") "foo bar foo baz foo zot"))
@@ -17,9 +16,6 @@
 
   (is (= '("") (seq (uix.lib/re-seq* #"\s*" "")))))
 
-(deftest test-strict-mode
-  (is (= (uix.core/strict-mode 1) [:> r/StrictMode 1])))
-
 (deftest test-create-ref
   (let [ref (uix.core/create-ref 1)]
     (is (= (type ref) uix.core/ReactRef))
@@ -28,22 +24,22 @@
 (deftest test-memoize
   (uix.core/defui test-memoize-comp [{:keys [x]}]
     (is (= 1 x))
-    [:h1 x])
+    #el [:h1 x])
   (let [f (uix.core/memoize test-memoize-comp)]
     (is (t/react-element-of-type? f "react.memo"))
-    (is (= "<h1>1</h1>" (t/as-string (uix.core/html [f {:x 1}]))))))
+    (is (= "<h1>1</h1>" (t/as-string #el [f {:x 1}])))))
 
 #_(deftest test-require-lazy
     (require-lazy '[uix.core.alpha :refer [strict-mode]])
     (is (t/react-element-of-type? strict-mode "react.lazy")))
 
 (deftest test-html
-  (is (t/react-element-of-type? (html [:h1 1]) "react.element")))
+  (is (t/react-element-of-type? #el [:h1 1] "react.element")))
 
 (deftest test-defui
   (defui h1 [{:keys [children]}]
-    [:h1 {} children])
-  (is (= (t/as-string (uix.core/html [h1 {} 1])) "<h1>1</h1>")))
+    #el [:h1 {} children])
+  (is (= (t/as-string #el [h1 {} 1])) "<h1>1</h1>"))
 
 (deftest test-as-react
   (let [ctor (fn [props]
