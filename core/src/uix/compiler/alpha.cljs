@@ -2,7 +2,8 @@
   "Hiccup and UIx components interpreter. Based on Reagent."
   (:require [react :as react]
             [uix.hooks.alpha :as hooks]
-            [cljs-bean.core :as bean]))
+            [cljs-bean.core :as bean]
+            [uix.compiler.debug :as debug]))
 
 (def ^:dynamic *default-compare-args* #(= (.-argv %1) (.-argv %2)))
 
