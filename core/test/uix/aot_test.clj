@@ -5,9 +5,9 @@
 
 (deftest test-parse-tag
   (is (= (attrs/parse-tag (name :div#id.class))
-         ["div" "id" "class"]))
+         ["div" "id" "class" false]))
   (is (= (attrs/parse-tag (name :custom-tag))
-         ["custom-tag" nil nil])))
+         ["custom-tag" nil nil true])))
 
 (deftest test-class-names
   (is (= (attrs/compile-config-kv :class nil) nil))

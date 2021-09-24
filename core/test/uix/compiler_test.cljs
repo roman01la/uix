@@ -116,7 +116,7 @@
                (as-string #el [:custom-element {:class "foobar"} "foo"])))
 
   (is (re-find #"<custom-element class=\"foobar\">foo</custom-element>"
-               (as-string #el [:custom-element.foobar "foo"]))))
+               (as-string #el [:custom-element.foobar {} "foo"]))))
 
 (deftest test-fragments
   #_(testing "Fragment as array"

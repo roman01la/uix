@@ -74,14 +74,12 @@
                         (let [args (.. this -props -argv)
                               state (.-state this)]
                           ;; `render-fn` should return compiled Hiccup
-                          (render-fn state args))))
-             klass (create-class {:constructor constructor
-                                  :static {:displayName display-name
-                                           :getDerivedStateFromError derive-state}
-                                  :prototype {:componentDidCatch handle-catch
-                                              :render render}})]
-         (fn [& args]
-           (r/createElement klass #js {:argv args})))
+                          (render-fn state args))))]
+         (create-class {:constructor constructor
+                        :static {:displayName display-name
+                                 :getDerivedStateFromError derive-state}
+                        :prototype {:componentDidCatch handle-catch
+                                    :render render}}))
 
       :clj ^::error-boundary {:display-name display-name
                               :render-fn render-fn
@@ -210,6 +208,9 @@
   [v]
   (hooks/context v))
 
+#?(:cljs
+   (def create-element r/createElemenet))
+
 #?(:clj
    (defmacro context-provider
      "Takes a binding form where `ctx` is React context and `value` is a supplied value
@@ -218,10 +219,10 @@
      clj: Creates new bindings for `ctx` with supplied `value`, see clojure.core/binding "
      [[ctx value] & children]
      (if (uix.lib/cljs-env? &env)
-       (into [:> `(.-Provider ~ctx) {:value value}]
-             children)
+       `(create-element (.-Provider ~ctx) (cljs.core/js-obj "value" ~value) ~@children)
        `(binding [~ctx ~value]
-          ~(into [:uix.core.alpha/bind-context `(fn [f#] (binding [~ctx ~value] (f#)))] children)))))
+          [:uix.core.alpha/bind-context (fn [f#] (binding [~ctx ~value] (f#)))
+           ~@children]))))
 
 #?(:clj
    (defmacro with-effect

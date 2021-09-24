@@ -30,19 +30,21 @@
   (let [[tag id class-name] (->> hiccup-tag name (re-matches re-tag) next)
         class-name (when-not (nil? class-name)
                      (str/replace class-name #"\." " "))]
-    (list tag id class-name)))
+    (list tag id class-name (some? (re-find #"-" tag)))))
 
 (defn set-id-class
   "Takes attributes map and parsed tag, and returns attributes merged with class names and id"
   [props [_ id class]]
-  (cond-> props
-          ;; Only use ID from tag keyword if no :id in props already
-          (and (some? id) (nil? (get props :id)))
-          (assoc :id id)
+  (if (or (map? props) (nil? props))
+    (cond-> props
+            ;; Only use ID from tag keyword if no :id in props already
+            (and (some? id) (nil? (get props :id)))
+            (assoc :id id)
 
-          ;; Merge classes
-          class
-          (assoc :class (join-classes [class (get props :class)]))))
+            ;; Merge classes
+            class
+            (assoc :class (join-classes [class (get props :class)])))
+    props))
 
 (defn camel-case
   "Turns kebab-case keyword into camel-case keyword"
