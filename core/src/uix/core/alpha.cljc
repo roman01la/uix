@@ -241,8 +241,7 @@
              (.-children props) (assoc :children (.-children props)))))
 
 #?(:cljs
-   (defn- with-name [f]
-     (debug/with-name f)))
+   (def with-name debug/with-name))
 
 #?(:clj
    (defmacro defui
