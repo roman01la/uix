@@ -12,7 +12,9 @@
 
 (defmethod compile-attrs :element [_ attrs {:keys [meta tag id-class]}]
   (let [attrs (add-key attrs meta)]
-    (if (map? attrs)
+    (cond
+      (nil? attrs) `(cljs.core/array)
+      (map? attrs)
       `(cljs.core/array
          ~(cond-> attrs
                   :always (attrs/set-id-class id-class)
@@ -22,7 +24,7 @@
                   (assoc :style `(uix.compiler.attributes/convert-props ~(:style attrs) (cljs.core/array) true))
                   :always (attrs/compile-attrs {:custom-element? (re-find #"-" tag)})
                   :always js/to-js))
-      `(uix.compiler.attributes/interpret-attrs ~attrs (cljs.core/array ~@id-class) false))))
+      :else `(uix.compiler.attributes/interpret-attrs ~attrs (cljs.core/array ~@id-class) false))))
 
 (defmethod compile-attrs :component [_ props {:keys [meta]}]
   `(uix.compiler.attributes/interpret-props ~(add-key props meta)))

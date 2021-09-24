@@ -5,7 +5,6 @@
   (:require #?@(:cljs [[react :as r]
                        [uix.compiler.debug :as debug]])
             [uix.compiler.alpha :as compiler]
-            [uix.compiler.aot :as uixr]
             [uix.lib :refer [doseq-loop]]
             [uix.hooks.alpha :as hooks]))
 
