@@ -32,5 +32,4 @@
 (defn with-name [^js f]
   (when-let [component-name (effective-component-name f)]
     (when-some [display-name (format-display-name component-name)]
-      (set! (.-displayName f) display-name)))
-  f)
+      (set! (.-displayName f) display-name))))

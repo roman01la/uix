@@ -2,7 +2,8 @@
   "Public API"
   (:refer-clojure :exclude [ref memoize])
   #?(:cljs (:require-macros [uix.core.alpha]))
-  (:require #?(:cljs [react :as r])
+  (:require #?@(:cljs [[react :as r]
+                       [uix.compiler.debug :as debug]])
             [uix.compiler.alpha :as compiler]
             [uix.compiler.aot :as uixr]
             [uix.lib :refer [doseq-loop]]
@@ -239,15 +240,21 @@
      (cond-> (.-argv props)
              (.-children props) (assoc :children (.-children props)))))
 
+#?(:cljs
+   (defn- with-name [f]
+     (debug/with-name f)))
+
 #?(:clj
    (defmacro defui
      "Compiles UIx component into React component at compile-time."
      [sym args & body]
      (if-not (uix.lib/cljs-env? &env)
        `(defn ~sym ~args ~@body)
-       `(defn ~sym [props#]
-          (let [~args (cljs.core/array (glue-args props#))]
-            ~@body)))))
+       `(do
+          (defn ~sym [props#]
+            (let [~args (cljs.core/array (glue-args props#))]
+              ~@body))
+          (with-name ~sym)))))
 
 (defn as-react
   "Interop with React components. Takes UIx component function and returns same component wrapped into interop layer."

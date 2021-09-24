@@ -2,8 +2,7 @@
   "Hiccup and UIx components interpreter. Based on Reagent."
   (:require [react :as react]
             [uix.hooks.alpha :as hooks]
-            [cljs-bean.core :as bean]
-            [uix.compiler.debug :as debug]))
+            [cljs-bean.core :as bean]))
 
 (def ^:dynamic *default-compare-args* #(= (.-argv %1) (.-argv %2)))
 
@@ -30,6 +29,6 @@
                    #js {:key key :argv (dissoc props :key)}
                    #js {:argv props})
         args (if (= 2 (.-length props-children))
-               #js [(debug/with-name component-type) js-props (aget props-children 1)]
-               #js [(debug/with-name component-type) js-props])]
+               #js [component-type js-props (aget props-children 1)]
+               #js [component-type js-props])]
     (.apply react/createElement nil (.concat args children))))
