@@ -30,6 +30,6 @@
                    #js {:key key :argv (dissoc props :key)}
                    #js {:argv props})
         args (if (= 2 (.-length props-children))
-               #js [(debug/with-name component-type) js-props (aget props-children 1)]
-               #js [(debug/with-name component-type) js-props])]
+               #js [component-type js-props (aget props-children 1)]
+               #js [component-type js-props])]
     (.apply react/createElement nil (.concat args children))))

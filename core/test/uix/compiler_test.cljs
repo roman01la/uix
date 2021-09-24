@@ -3,7 +3,8 @@
             [uix.compiler.alpha :as uixc]
             [uix.test-utils :refer [as-string js-equal? with-error symbol-for]]
             [uix.compiler.debug :as debug]
-            [uix.core.alpha :as uix.core]))
+            [uix.core.alpha :as uix.core]
+            [uix.dom.alpha :as uix.dom]))
 
 (enable-console-print!)
 
@@ -12,10 +13,10 @@
 
 (uix.core/defui test-seq-return-comp []
   (for [x (range 2)]
-    [:span {} x]))
+    #el [:span {} x]))
 
 (deftest test-seq-return
-  (is (= (as-string (uix.core/html [test-seq-return-comp])) "<span>0</span><span>1</span>")))
+  (is (= (as-string #el [test-seq-return-comp]) "<span>0</span><span>1</span>")))
 
 (when ^boolean goog.DEBUG
   (deftest test-default-format-display-name
@@ -39,134 +40,131 @@
 
 
 (uix.core/defui to-string-test-comp [props]
-  [:div {} (str "i am " (:foo props))])
+  #el [:div {} (str "i am " (:foo props))])
 
 (deftest to-string-test []
   (is (re-find #"i am foobar"
-               (as-string (uix.core/html [to-string-test-comp {:foo "foobar"}])))))
+               (as-string #el [to-string-test-comp {:foo "foobar"}]))))
 
 (deftest data-aria-test []
   (is (re-find #"data-foo"
-               (as-string (uix.core/html [:div {:data-foo "x"}]))))
+               (as-string #el [:div {:data-foo "x"}])))
   (is (re-find #"aria-labelledby"
-               (as-string (uix.core/html [:div {:aria-labelledby "x"}]))))
+               (as-string #el [:div {:aria-labelledby "x"}])))
   (is (re-find #"enc[tT]ype"
-               (as-string (uix.core/html [:div {"encType" "x"}])))
+               (as-string #el [:div {"encType" "x"}]))
       "Strings are passed through to React, and have to be camelcase.")
   (is (re-find #"enc[tT]ype"
-               (as-string (uix.core/html [:div {:enc-type "x"}])))
+               (as-string #el [:div {:enc-type "x"}]))
       "Strings are passed through to React, and have to be camelcase."))
 
 (deftest dynamic-id-class []
   (is (re-find #"id=.foo"
-               (as-string (uix.core/html [:div#foo {:class "bar"}]))))
+               (as-string #el [:div#foo {:class "bar"}])))
   (is (re-find #"class=.foo bar"
-               (as-string (uix.core/html [:div.foo {:class "bar"}]))))
+               (as-string #el [:div.foo {:class "bar"}])))
   (is (re-find #"class=.foo bar"
-               (as-string (uix.core/html [:div.foo.bar]))))
+               (as-string #el [:div.foo.bar])))
   (is (re-find #"id=.foo"
-               (as-string (uix.core/html [:div#foo.foo.bar]))))
+               (as-string #el [:div#foo.foo.bar])))
   (is (re-find #"class=.xxx bar"
-               (as-string (uix.core/html [:div#foo.xxx.bar]))))
+               (as-string #el [:div#foo.xxx.bar])))
   (is (re-find #"id=.foo"
-               (as-string (uix.core/html [:div.bar {:id "foo"}]))))
+               (as-string #el [:div.bar {:id "foo"}])))
   (is (re-find #"id=.foo"
-               (as-string (uix.core/html [:div.bar.xxx {:id "foo"}]))))
+               (as-string #el [:div.bar.xxx {:id "foo"}])))
   (is (re-find #"id=.foo"
-               (as-string (uix.core/html [:div#bar {:id "foo"}])))
+               (as-string #el [:div#bar {:id "foo"}]))
       "Attributes id overwrites tag id"))
 
 (uix.core/defui null-comp [do-show]
   (when do-show
-    [:div {} "div in test-null-component"]))
+    #el [:div {} "div in test-null-component"]))
 
 (deftest test-null-component
   (is (not (re-find #"test-null-component"
-                    (as-string (uix.core/html [null-comp false])))))
+                    (as-string #el [null-comp false]))))
   (is (re-find #"test-null-component"
-               (as-string (uix.core/html [null-comp true])))))
+               (as-string #el [null-comp true]))))
 
 
 (deftest test-class-from-collection
-  (is (= (as-string (uix.core/html [:p {:class ["a" "b" "c" "d"]}]))
-         (as-string (uix.core/html [:p {:class "a b c d"}]))))
-  #_(is (= (as-string (uix.core/html [:p {:class ["a" nil "b" false "c" nil]}]))
-           (as-string (uix.core/html [:p {:class "a b c"}]))))
-  (is (= (as-string (uix.core/html [:p {:class #{"a" "b" "c"}}]))
-         (as-string (uix.core/html [:p {:class "a b c"}])))))
+  (is (= (as-string #el [:p {:class ["a" "b" "c" "d"]}])
+         (as-string #el [:p {:class "a b c d"}])))
+  #_(is (= (as-string #el [:p {:class ["a" nil "b" false "c" nil]}])
+           (as-string #el [:p {:class "a b c"}])))
+  (is (= (as-string #el [:p {:class #{"a" "b" "c"}}])
+         (as-string #el [:p {:class "a b c"}]))))
 
 (uix.core/defui key-tester []
-  [:div {}
-   (for [i (range 3)]
-     ^{:key i} [:p i])
-   (for [i (range 3)]
-     [:p {:key i} i])])
+  #el [:div {}
+       (for [i (range 3)]
+         ^{:key i} #el [:p i])
+       (for [i (range 3)]
+         #el [:p {:key i} i])])
 
 (deftest test-keys
-  (with-error #(as-string (uix.core/html [key-tester]))))
+  (with-error #(as-string #el [key-tester])))
 
 
 (deftest style-property-names-are-camel-cased
   (is (re-find #"<div style=\"text-align:center(;?)\">foo</div>"
-               (as-string (uix.core/html [:div {:style {:text-align "center"}} "foo"])))))
+               (as-string #el [:div {:style {:text-align "center"}} "foo"]))))
 
 (deftest custom-element-class-prop
   (is (re-find #"<custom-element class=\"foobar\">foo</custom-element>"
-               (as-string (uix.core/html [:custom-element {:class "foobar"} "foo"]))))
+               (as-string #el [:custom-element {:class "foobar"} "foo"])))
 
   (is (re-find #"<custom-element class=\"foobar\">foo</custom-element>"
-               (as-string (uix.core/html [:custom-element.foobar "foo"])))))
+               (as-string #el [:custom-element.foobar {} "foo"]))))
 
 (deftest test-fragments
   #_(testing "Fragment as array"
       (uix.core/defui comp1 []
-        #js [(uix.core/html [:div {} "hello"])
-             (uix.core/html [:div {} "world"])])
+        #js [#el [:div {} "hello"]
+             #el [:div {} "world"]])
       (is (= "<div>hello</div><div>world</div>"
-             (as-string (uix.core/html [comp])))))
+             (as-string #el [comp]))))
 
   (testing "Fragment element, :<>"
     (uix.core/defui comp2 []
-      [:<> {}
-       [:div {} "hello"]
-       [:div {} "world"]
-       [:div {} "foo"]])
+      #el [:<> {}
+           #el [:div {} "hello"]
+           #el [:div {} "world"]
+           #el [:div {} "foo"]])
     (is (= "<div>hello</div><div>world</div><div>foo</div>"
-           (as-string (uix.core/html [comp2])))))
+           (as-string #el [comp2]))))
 
   (testing "Fragment key"
     ;; This would cause React warning if both fragments didn't have key set
     ;; But wont fail the test
     (uix.core/defui comp4 []
-      [:<> {}
-       [:div {} "foo"]])
+      #el [:<> {}
+           #el [:div {} "foo"]])
     (uix.core/defui comp3 []
-      [:div {}
-       (list
-         (uix.core/html
-           [:<> {:key 1}
-            [:div {} "hello"]
-            [:div {} "world"]])
-         (uix.core/html
-           [comp4 {:key 2}])
-         (uix.core/html
-           ^{:key 3}
-           [:<> {}
-            [:div {} "1"]
-            [:div {} "2"]]))])
+      #el [:div {}
+           (list
+             #el [:<> {:key 1}
+                  #el [:div {} "hello"]
+                  #el [:div {} "world"]]
+             #el [comp4 {:key 2}]
+             ^{:key 3}
+             #el [:<> {}
+                  #el [:div {} "1"]
+                  #el [:div {} "2"]])])
     (is (= "<div><div>hello</div><div>world</div><div>foo</div><div>1</div><div>2</div></div>"
-           (as-string (uix.core/html [comp3]))))))
+           (as-string #el [comp3])))))
 
 (deftest test-suspense
-  (is (.-type (uix.core/html [:# {:fallback 1} 2]))
+  (is (.-type #el [:# {:fallback 1} 2])
       (symbol-for "react.suspense")))
 
 (deftest test-interop
   (testing "Interop element type"
-    (is (.-type (uix.core/html [:> inc]))
+    (is (.-type #el [:> inc])
         inc))
   (testing "Shallowly converted props"
-    (let [el (uix.core/html [:> inc {:a 1 :b {:c 2}} :child])
+    (let [el #el [:> inc {:a 1 :b {:c 2}} :child]
           props (.-props el)]
       (is (.-a props) 1)
       (is (.-b props) {:c 2})
@@ -174,7 +172,7 @@
 
 (deftest test-portal
   (try
-    (uix.core/html [:-> 1 2])
+    (uix.dom/create-portal 1 2)
     (catch :default e
       (is "Target container is not a DOM element." (.-message e)))))
 
@@ -182,7 +180,7 @@
     (uix.core/defui test-c [props]
       (is (map? props) true)
       (is "TEXT" (:text props))
-      [:h1 (:text props)])
+      #el [:h1 (:text props)])
     (let [h1 (uixc/as-react test-c)
           el (h1 #js {:text "TEXT"})
           props (.-props el)]

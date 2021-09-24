@@ -5,9 +5,9 @@
 
 (deftest test-parse-tag
   (is (= (attrs/parse-tag (name :div#id.class))
-         ["div" "id" "class"]))
+         ["div" "id" "class" false]))
   (is (= (attrs/parse-tag (name :custom-tag))
-         ["custom-tag" nil nil])))
+         ["custom-tag" nil nil true])))
 
 (deftest test-class-names
   (is (= (attrs/compile-config-kv :class nil) nil))
@@ -33,8 +33,8 @@
 
 (deftest test-compile-html
   (is (= (aot/compile-html [:h1])
-         '(uix.compiler.aot/>el "h1" nil)))
+         '(uix.compiler.aot/>el "h1" (cljs.core/array) (cljs.core/array))))
   (is (= (aot/compile-html '[:> x {} 1 2])
-         '(uix.compiler.aot/>el x nil [1 2])))
+         '(uix.compiler.aot/>el x (cljs.core/array (cljs.core/js-obj)) (cljs.core/array 1 2))))
   (is (= (aot/compile-html '[:> x {:x 1 :ref 2} 1 2])
-         '(uix.compiler.aot/>el x (js* "{'x':~{},'ref':~{}}" 1 (uix.compiler.alpha/unwrap-ref 2)) [1 2]))))
+         '(uix.compiler.aot/>el x (cljs.core/array (js* "{'x':~{},'ref':~{}}" 1 (uix.compiler.alpha/unwrap-ref 2))) (cljs.core/array 1 2)))))

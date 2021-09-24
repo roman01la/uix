@@ -2,9 +2,10 @@
   "Public API"
   (:refer-clojure :exclude [ref memoize])
   #?(:cljs (:require-macros [uix.core.alpha]))
-  (:require #?(:cljs [react :as r])
+  (:require #?@(:cljs [[react :as r]
+                       [uix.compiler.debug :as debug]])
             [uix.compiler.alpha :as compiler]
-            [uix.compiler.aot :as uixr]
+            [uix.compiler.aot]
             [uix.lib :refer [doseq-loop]]
             [uix.hooks.alpha :as hooks]))
 
@@ -12,11 +13,11 @@
 ;; React's top-level API
 
 (defn strict-mode [child]
-  #?(:cljs [:> r/StrictMode child]
+  #?(:cljs #el [:> r/StrictMode child]
      :clj child))
 
 (defn profiler [child {:keys [id on-render] :as attrs}]
-  #?(:cljs [:> r/Profiler attrs child]
+  #?(:cljs #el [:> r/Profiler attrs child]
      :clj child))
 
 #?(:cljs
@@ -73,14 +74,12 @@
                         (let [args (.. this -props -argv)
                               state (.-state this)]
                           ;; `render-fn` should return compiled Hiccup
-                          (render-fn state args))))
-             klass (create-class {:constructor constructor
-                                  :static {:displayName display-name
-                                           :getDerivedStateFromError derive-state}
-                                  :prototype {:componentDidCatch handle-catch
-                                              :render render}})]
-         (fn [& args]
-           (r/createElement klass #js {:argv args})))
+                          (render-fn state args))))]
+         (create-class {:constructor constructor
+                        :static {:displayName display-name
+                                 :getDerivedStateFromError derive-state}
+                        :prototype {:componentDidCatch handle-catch
+                                    :render render}}))
 
       :clj ^::error-boundary {:display-name display-name
                               :render-fn render-fn
@@ -209,6 +208,9 @@
   [v]
   (hooks/context v))
 
+#?(:cljs
+   (def create-element r/createElemenet))
+
 #?(:clj
    (defmacro context-provider
      "Takes a binding form where `ctx` is React context and `value` is a supplied value
@@ -217,10 +219,10 @@
      clj: Creates new bindings for `ctx` with supplied `value`, see clojure.core/binding "
      [[ctx value] & children]
      (if (uix.lib/cljs-env? &env)
-       (into [:> `(.-Provider ~ctx) {:value value}]
-             children)
+       `(create-element (.-Provider ~ctx) (cljs.core/js-obj "value" ~value) ~@children)
        `(binding [~ctx ~value]
-          ~(into [:uix.core.alpha/bind-context `(fn [f#] (binding [~ctx ~value] (f#)))] children)))))
+          [:uix.core.alpha/bind-context (fn [f#] (binding [~ctx ~value] (f#)))
+           ~@children]))))
 
 #?(:clj
    (defmacro with-effect
@@ -239,15 +241,20 @@
      (cond-> (.-argv props)
              (.-children props) (assoc :children (.-children props)))))
 
+#?(:cljs
+   (def with-name debug/with-name))
+
 #?(:clj
    (defmacro defui
      "Compiles UIx component into React component at compile-time."
      [sym args & body]
      (if-not (uix.lib/cljs-env? &env)
        `(defn ~sym ~args ~@body)
-       `(defn ~sym [props#]
-          (let [~args (cljs.core/array (glue-args props#))]
-            ~@body)))))
+       `(do
+          (defn ~sym [props#]
+            (let [~args (cljs.core/array (glue-args props#))]
+              ~@body))
+          (with-name ~sym)))))
 
 (defn as-react
   "Interop with React components. Takes UIx component function and returns same component wrapped into interop layer."

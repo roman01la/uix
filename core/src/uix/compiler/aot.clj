@@ -5,24 +5,29 @@
             [uix.compiler.attributes :as attrs]))
 
 (defn- add-key [props meta]
-  (cond-> props
-          (:key meta) (assoc :key (:key meta))))
+  (if (or (map? props) (nil? props))
+    (cond-> props
+            (:key meta) (assoc :key (:key meta)))
+    props))
 
 (defmulti compile-attrs (fn [tag attrs opts] tag))
 
-(defmethod compile-attrs :element [_ attrs {:keys [meta tag id-class]}]
-  (let [attrs (add-key attrs meta)]
-    (if (map? attrs)
+(defmethod compile-attrs :element [_ attrs {:keys [meta tag-id-class]}]
+  (let [attrs (-> attrs
+                  (add-key meta)
+                  (attrs/set-id-class tag-id-class))]
+    (cond
+      (nil? attrs) `(cljs.core/array)
+      (map? attrs)
       `(cljs.core/array
          ~(cond-> attrs
-                  :always (attrs/set-id-class id-class)
                   (:ref attrs) (assoc :ref `(uix.compiler.alpha/unwrap-ref ~(:ref attrs)))
                   (and (some? (:style attrs))
                        (not (map? (:style attrs))))
                   (assoc :style `(uix.compiler.attributes/convert-props ~(:style attrs) (cljs.core/array) true))
-                  :always (attrs/compile-attrs {:custom-element? (re-find #"-" tag)})
+                  :always (attrs/compile-attrs {:custom-element? (last tag-id-class)})
                   :always js/to-js))
-      `(uix.compiler.attributes/interpret-attrs ~attrs (cljs.core/array ~@id-class) false))))
+      :else `(uix.compiler.attributes/interpret-attrs ~attrs (cljs.core/array ~@tag-id-class) false))))
 
 (defmethod compile-attrs :component [_ props {:keys [meta]}]
   `(uix.compiler.attributes/interpret-props ~(add-key props meta)))
@@ -63,11 +68,9 @@
 (defmethod compile-element :element [v]
   (let [[tag attrs & children] v
         tag-id-class (attrs/parse-tag tag)
-        tag-str (first tag-id-class)
         attrs-children (compile-attrs :element attrs {:meta (meta v)
-                                                      :tag tag-str
                                                       :tag-id-class tag-id-class})
-        ret `(>el ~tag-str ~attrs-children (cljs.core/array ~@children))]
+        ret `(>el ~(first tag-id-class) ~attrs-children (cljs.core/array ~@children))]
     ret))
 
 (defmethod compile-element :component [v]

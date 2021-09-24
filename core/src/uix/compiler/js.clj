@@ -9,17 +9,19 @@
               :else (class x))))
 
 (defn to-js-map [m shallow?]
-  (when (seq m)
-    (let [kvs-str (->> (mapv to-js (keys m))
-                       (mapv #(-> (str \' % "':~{}")))
-                       (interpose ",")
-                       (apply str))]
-      (vary-meta
-        (list* 'js* (str "{" kvs-str "}")
-               (if shallow?
-                 (vals m)
-                 (mapv to-js (vals m))))
-        assoc :tag 'object))))
+  (cond
+    (nil? m) nil
+    (empty? m) `(cljs.core/js-obj)
+    :else (let [kvs-str (->> (mapv to-js (keys m))
+                             (mapv #(-> (str \' % "':~{}")))
+                             (interpose ",")
+                             (apply str))]
+            (vary-meta
+              (list* 'js* (str "{" kvs-str "}")
+                     (if shallow?
+                       (vals m)
+                       (mapv to-js (vals m))))
+              assoc :tag 'object))))
 
 (defmethod to-js :keyword [x] (name x))
 

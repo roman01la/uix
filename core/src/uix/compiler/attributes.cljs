@@ -184,10 +184,10 @@
 
   - [attrs] when `attrs` is actually a map of attributes
   - [nil attrs] when `attrs` is not a map, thus a child element"
-  [attrs id-class shallow?]
-  (if (or (map? attrs) (nil? attrs))
-    #js [(convert-props attrs id-class shallow?)]
-    #js [nil attrs]))
+  [maybe-attrs id-class shallow?]
+  (if (or (map? maybe-attrs) (nil? maybe-attrs))
+    #js [(convert-props maybe-attrs id-class shallow?)]
+    #js [(convert-props {} id-class shallow?) maybe-attrs]))
 
 (defn interpret-props
   "Returns a tuple of component props and a child element
