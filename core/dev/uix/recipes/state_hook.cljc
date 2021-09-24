@@ -7,11 +7,3 @@
   Note that update is applied asynchronous, which means that a new value
   might not be immediately available when dereferenced."
   (:require [uix.core.alpha :as uix]))
-
-(defn recipe []
-  (let [state* (uix/state {:value "Hello!"})
-        value* (uix/cursor-in state* [:value])]
-    [:div
-     [:input {:value @value*
-              :on-change #(reset! value* (.. % -target -value))}]
-     [:div "Input text: " @value*]]))

@@ -37,4 +37,4 @@
   (is (= (aot/compile-html '[:> x {} 1 2])
          '(uix.compiler.aot/>el x (cljs.core/array (cljs.core/js-obj)) (cljs.core/array 1 2))))
   (is (= (aot/compile-html '[:> x {:x 1 :ref 2} 1 2])
-         '(uix.compiler.aot/>el x (cljs.core/array (js* "{'x':~{},'ref':~{}}" 1 (uix.compiler.alpha/unwrap-ref 2))) (cljs.core/array 1 2)))))
+         '(uix.compiler.aot/>el x (cljs.core/array (js* "{'x':~{},'ref':~{}}" 1 2)) (cljs.core/array 1 2)))))

@@ -99,8 +99,6 @@
 (uix.core/defui key-tester []
   #el [:div {}
        (for [i (range 3)]
-         ^{:key i} #el [:p i])
-       (for [i (range 3)]
          #el [:p {:key i} i])])
 
 (deftest test-keys
