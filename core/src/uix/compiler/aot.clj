@@ -21,7 +21,6 @@
       (map? attrs)
       `(cljs.core/array
          ~(cond-> attrs
-                  (:ref attrs) (assoc :ref `(uix.compiler.alpha/unwrap-ref ~(:ref attrs)))
                   (and (some? (:style attrs))
                        (not (map? (:style attrs))))
                   (assoc :style `(uix.compiler.attributes/convert-props ~(:style attrs) (cljs.core/array) true))
@@ -49,7 +48,6 @@
     (if (map? props)
       `(cljs.core/array
          ~(cond-> props
-                  (:ref props) (assoc :ref `(uix.compiler.alpha/unwrap-ref ~(:ref props)))
                   :always (attrs/compile-attrs {:custom-element? true})
                   :always (js/to-js-map true)))
       `(uix.compiler.attributes/interpret-attrs ~props (cljs.core/array) true))))

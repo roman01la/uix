@@ -7,11 +7,6 @@
 
 (def ^:dynamic *default-compare-args* #(= (.-argv %1) (.-argv %2)))
 
-(defn unwrap-ref [-ref]
-  (if (implements? hooks/IRef -ref)
-    (hooks/unwrap ^not-native -ref)
-    -ref))
-
 (defn js-val? [x]
   (not (identical? "object" (goog/typeOf x))))
 

@@ -1,6 +1,6 @@
 (ns uix.core-test
   (:require [clojure.test :refer [deftest is async testing run-tests]]
-            [uix.core.alpha :as uix.core :refer [defui defcontext]]
+            [uix.core.alpha :as uix.core :refer [defui]]
             ;[uix.core.lazy-loader :refer [require-lazy]]
             [uix.lib]
             [react :as r]
@@ -15,11 +15,6 @@
          (list ["foo" "o"] ["foo" "o"] ["foo" "o"])))
 
   (is (= '("") (seq (uix.lib/re-seq* #"\s*" "")))))
-
-(deftest test-create-ref
-  (let [ref (uix.core/create-ref 1)]
-    (is (= (type ref) uix.core/ReactRef))
-    (is (= @ref 1))))
 
 #_(deftest test-memoize
     (uix.core/defui test-memoize-comp [{:keys [x]}]
@@ -90,19 +85,6 @@
                                 x))))]
       (async done
         (t/render #el [err-b {:done done :x 1 :child child}]))))
-
-#_(deftest test-context
-    (defcontext *ctx* 0)
-    (defui test-context-child-component [{:keys [done]}]
-      (let [v (uix.core/context *ctx*)]
-        (is (== v 1))
-        (done)
-        v))
-    (defui test-context-component [{:keys [done]}]
-      (uix.core/context-provider [*ctx* 1]
-        #el [test-context-child-component {:done done}]))
-    (async done
-      (t/render #el [test-context-component {:done done}])))
 
 (defn -main []
   (run-tests))
