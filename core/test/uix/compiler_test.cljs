@@ -146,8 +146,7 @@
                   #el [:div {} "hello"]
                   #el [:div {} "world"]]
              #el [comp4 {:key 2}]
-             ^{:key 3}
-             #el [:<> {}
+             #el [:<> {:key 3}
                   #el [:div {} "1"]
                   #el [:div {} "2"]])])
     (is (= "<div><div>hello</div><div>world</div><div>foo</div><div>1</div><div>2</div></div>"
