@@ -29,8 +29,7 @@
       [:select {:value @current-recipe*
                 :on-change #(reset! current-recipe* (keyword (.. % -target -value)))}
        (for [[k v] recipes]
-         ^{:key k}
-         [:option {:value k}
+         [:option {:key k :value k}
           (name k)])]]
      (when-let [recipe (get recipes @current-recipe*)]
        [:div
