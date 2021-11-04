@@ -1,5 +1,5 @@
 (ns uix.recipes.error-boundary
-  (:require [uix.core.alpha :as core]))
+  (:require [uix.core :as core]))
 
 (def error-boundary
   (core/create-error-boundary

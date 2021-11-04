@@ -1,4 +1,5 @@
-(ns uix.core.alpha
+(ns uix.core
+  "Public API"
   (:require [uix.compiler.aot]))
 
 (defmacro defui

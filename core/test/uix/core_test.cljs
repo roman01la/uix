@@ -1,6 +1,6 @@
 (ns uix.core-test
   (:require [clojure.test :refer [deftest is async testing run-tests]]
-            [uix.core.alpha :as uix.core :refer [defui]]
+            [uix.core :as uix.core :refer [defui]]
             ;[uix.core.lazy-loader :refer [require-lazy]]
             [uix.lib]
             [react :as r]
@@ -25,7 +25,7 @@
       (is (= "<h1>1</h1>" (t/as-string #el [f {:x 1}])))))
 
 #_(deftest test-require-lazy
-    (require-lazy '[uix.core.alpha :refer [strict-mode]])
+    (require-lazy '[uix.core :refer [strict-mode]])
     (is (t/react-element-of-type? strict-mode "react.lazy")))
 
 (deftest test-html

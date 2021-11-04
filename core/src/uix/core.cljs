@@ -1,13 +1,12 @@
-(ns uix.core.alpha
+(ns uix.core
   "Public API"
-  (:require-macros [uix.core.alpha])
+  (:require-macros [uix.core])
   (:require [react :as r]
             [uix.compiler.debug :as debug]
             [uix.hooks.alpha :as hooks]
             [uix.compiler.alpha :as compiler]
             [uix.compiler.aot]
             [uix.lib :refer [doseq-loop]]))
-
 
 ;; React's top-level API
 
@@ -22,9 +21,9 @@
                nil)]
     (set! (.-prototype ctor) (.create js/Object (.-prototype r/Component)))
     (doseq-loop [[k v] static]
-      (aset ctor (name k) v))
+                (aset ctor (name k) v))
     (doseq-loop [[k v] prototype]
-      (aset (.-prototype ctor) (name k) v))
+                (aset (.-prototype ctor) (name k) v))
     ctor))
 
 (defn create-error-boundary

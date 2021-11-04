@@ -1,5 +1,5 @@
 (ns ^:figwheel-no-load env.ios.main
-  (:require [uix.core.alpha :as uix]
+  (:require [uix.core :as uix]
             [{{app-name}}.ios.core :as core]
             [figwheel.client :as fw]
             [env.config :as conf]))

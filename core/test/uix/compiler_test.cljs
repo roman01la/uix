@@ -3,7 +3,7 @@
             [uix.compiler.alpha :as uixc]
             [uix.test-utils :refer [as-string js-equal? with-error symbol-for]]
             [uix.compiler.debug :as debug]
-            [uix.core.alpha :as uix.core]
+            [uix.core :as uix.core]
             [uix.dom.alpha :as uix.dom]))
 
 (enable-console-print!)
