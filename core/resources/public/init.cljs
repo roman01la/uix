@@ -1,4 +1,4 @@
-(require '[uix.core.alpha :as uix.core])
+(require '[uix.core :as uix.core])
 (require '[uix.dom.alpha :as uix.dom])
 (require '[clojure.string :as str])
 

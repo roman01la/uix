@@ -7,7 +7,7 @@
             [uix.recipes.interop :as interop]
             [uix.recipes.error-boundary :as error-boundary]
             [uix.recipes.context :as context]
-            [uix.core.alpha :as uix]
+            [uix.core :as uix]
             [uix.dom.alpha :as uix.dom]
             #?(:cljs [cljs.loader :as loader])))
 

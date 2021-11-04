@@ -1,5 +1,5 @@
 (ns {{app-name}}.ios.core
-  (:require [uix.core.alpha :as uix]
+  (:require [uix.core :as uix]
             [uix.rn.alpha :as n]))
 
 (def logo-img (n/require "./images/cljs.png"))

@@ -1,7 +1,7 @@
 (ns uix.rn.alpha
   "Public API"
   (:refer-clojure :exclude [require])
-  (:require [uix.core.alpha :as uix]
+  (:require [uix.core :as uix]
             [uix.compiler.alpha :as compiler]
             [react-native :as rn]
             [goog.object :as gobj]))

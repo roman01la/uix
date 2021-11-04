@@ -1,5 +1,5 @@
 (ns uix.hiccup
-  (:require [uix.core.alpha :refer [defui]]))
+  (:require [uix.core :refer [defui]]))
 
 (defn input-field [{:keys [field-type type placeholder size]
                     :or {field-type :input}}]

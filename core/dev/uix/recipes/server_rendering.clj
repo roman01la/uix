@@ -1,10 +1,10 @@
 (ns uix.recipes.server-rendering
   "This recipe shows how to use UIx's server-side rendering capability in JVM Clojure.
 
-  `uix.core.alpha/render-to-string` takes an element and synchronously returns
+  `uix.core/render-to-string` takes an element and synchronously returns
   HTML string that can be sent back to the client.
 
-  `uix.core.alpha/render-to-stream` does the same but provides a way
+  `uix.core/render-to-stream` does the same but provides a way
   to consume HTML string in chunks as they are produced, effectively
   pushing at you a stream of HTML. This can be used to stream markup
   back to the client when serialization takes significant amount of time."

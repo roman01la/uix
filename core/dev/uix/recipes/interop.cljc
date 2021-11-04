@@ -9,12 +9,12 @@
   before passing into JS component.
 
   UIx components can be adapted to JS React components
-  using `uix.core.alpha/as-react`. It takes a function that takes
+  using `uix.core/as-react`. It takes a function that takes
   JS props object transformed into immutable map.
   Again, values are not transformed."
   (:require #?(:cljs [react :as r])
             #?(:cljs [goog.object :as gobj])
-            [uix.core.alpha :as uix]))
+            [uix.core :as uix]))
 
 #?(:cljs (def h r/createElement))
 
