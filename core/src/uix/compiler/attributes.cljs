@@ -15,8 +15,6 @@
 
 (def custom-prop-name-cache #js {})
 
-(def tag-name-cache #js {})
-
 (def ^:private cc-regexp (js/RegExp. "-(\\w)" "g"))
 
 (defn- cc-fn [s]
@@ -95,51 +93,13 @@
     (reduce-kv kv-conv-shallow #js {} x)
     x))
 
-(defn class-names-coll [class]
-  (let [^js/Array classes (reduce (fn [^js/Array a c]
-                                    (when ^boolean c
-                                      (->> (if (keyword? c) (-name ^not-native c) c)
-                                           (.push a)))
-                                    a)
-                                  #js []
-                                  class)]
-    (when (pos? (.-length classes))
-      (.join classes " "))))
-
-(defn class-names-map [class]
-  (let [^js/Array classes (reduce-kv (fn [^js/Array a b ^boolean c]
-                                       (when c
-                                         (->> (if (keyword? b) (-name ^not-native b) b)
-                                              (.push a)))
-                                       a)
-                                     #js []
-                                     class)]
-    (when (pos? (.-length classes))
-      (.join classes " "))))
-
 (defn ^string class-names
-  ([])
-  ([class]
-   (cond
-     ;; {c1 true c2 false}
-     (map? class)
-     (class-names-map class)
-
-     ;; [c1 c2 c3]
-     (or (array? class) (coll? class))
-     (class-names-coll class)
-
-     ;; :c1
-     (keyword? class)
-     (-name ^not-native class)
-
-     :else class))
   ([a b]
    (if ^boolean a
      (if ^boolean b
-       (str (class-names a) " " (class-names b))
-       (class-names a))
-     (class-names b)))
+       (str a " " b)
+       a)
+     b))
   ([a b & rst]
    (reduce class-names (class-names a b) rst)))
 
@@ -167,9 +127,9 @@
   - `shallow?` — indicates whether `props` map should be converted shallowly or not"
   [props id-class ^boolean shallow?]
   (let [class (get props :class)
-        props (-> props
-                  (cond-> class (assoc :class (class-names class)))
-                  (set-id-class id-class))]
+        props (cond-> props
+                  class (assoc :class class)
+                  :always (set-id-class id-class))]
     (cond
       ^boolean (aget id-class 3)
       (convert-custom-prop-value props)

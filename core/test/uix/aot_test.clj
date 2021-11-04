@@ -13,7 +13,9 @@
   (is (= (attrs/compile-config-kv :class nil) nil))
   (testing "Named types"
     (is (= (attrs/compile-config-kv :class "a") "a"))
+    #_
     (is (= (attrs/compile-config-kv :class :a) :a)))
+  #_
   (testing "Collection of classes"
     (is (= (attrs/compile-config-kv :class ["a" "b" "c"]) "a b c")))
   #_(testing "Map of class -> boolean"
@@ -22,7 +24,7 @@
 (deftest test-set-id-class
   (testing "Hiccup classes should preceding attribute classes"
     (is (= (attrs/set-id-class {:class "a"} (attrs/parse-tag (name :div.b)))
-           {:class "b a"})))
+           {:class `(clojure.core/str "b" " " "a")})))
   (testing "Attribute ID has higher priority than Hiccup ID"
     (is (= (attrs/set-id-class {:id "a"} (attrs/parse-tag (name :div#b)))
            {:id "a"}))))
