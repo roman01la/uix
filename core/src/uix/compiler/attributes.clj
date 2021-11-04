@@ -1,24 +1,5 @@
 (ns uix.compiler.attributes
-  (:require [clojure.string :as str]
-            [uix.compiler.js :as js]))
-
-(defn join-classes-js
-  "Emits runtime class string concatenation expression"
-  [xs]
-  (let [strs (->> (repeat (count xs) "~{}")
-                  (interpose ",")
-                  (apply str))]
-    (->> xs
-         (map js/to-js)
-         (list* 'js* (str "[" strs "].join(' ')")))))
-
-(defn join-classes
-  "Joins class names into a single string"
-  [classes]
-  (->> (map #(if (string? %) % (seq %)) classes)
-       flatten
-       (remove nil?)
-       (str/join " ")))
+  (:require [clojure.string :as str]))
 
 (def re-tag
   "Hiccup tag pattern :div :.class#id etc."
@@ -43,7 +24,7 @@
 
             ;; Merge classes
             class
-            (assoc :class (join-classes [class (get props :class)])))
+            (assoc :class `(str ~class " " ~(get props :class))))
     props))
 
 (defn camel-case
@@ -69,31 +50,6 @@
     m))
 
 (defmulti compile-config-kv (fn [name value] name))
-
-(defn join-classes-map [m]
-  (->> m
-       (reduce-kv
-         (fn [ret k v]
-           (cond
-             (true? v) (conj ret k)
-             (false? v) ret
-             :else (conj ret `(when ~v ~(js/to-js k)))))
-         [])
-       join-classes-js))
-
-(defmethod compile-config-kv :class [name value]
-  (cond
-    (map? value)
-    (join-classes-map value)
-
-    (and (or (sequential? value) (set? value))
-         (every? string? value))
-    (join-classes value)
-
-    (vector? value)
-    (join-classes-js value)
-
-    :else value))
 
 (defmethod compile-config-kv :style [name value]
   (camel-case-keys value))
