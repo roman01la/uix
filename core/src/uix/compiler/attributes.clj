@@ -17,14 +17,18 @@
   "Takes attributes map and parsed tag, and returns attributes merged with class names and id"
   [props [_ id class]]
   (if (or (map? props) (nil? props))
-    (cond-> props
-            ;; Only use ID from tag keyword if no :id in props already
-            (and (some? id) (nil? (get props :id)))
-            (assoc :id id)
+    (let [props-class (get props :class)]
+      (cond-> props
+              ;; Only use ID from tag keyword if no :id in props already
+              (and (some? id) (nil? (get props :id)))
+              (assoc :id id)
 
-            ;; Merge classes
-            class
-            (assoc :class `(str ~class " " ~(get props :class))))
+              ;; Merge classes
+              (or class props-class)
+              (assoc :class (cond
+                              (vector? props-class) `(.join (cljs.core/array ~class ~@props-class) " ")
+                              props-class `(.join (cljs.core/array ~class ~props-class) " ")
+                              :else class))))
     props))
 
 (defn camel-case
