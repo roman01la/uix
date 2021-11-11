@@ -26,8 +26,8 @@
               ;; Merge classes
               (or class props-class)
               (assoc :class (cond
-                              (vector? props-class) `(.join (cljs.core/array ~class ~@props-class) " ")
-                              props-class `(.join (cljs.core/array ~class ~props-class) " ")
+                              (vector? props-class) `(join-class-names (cljs.core/array ~class ~@props-class))
+                              props-class `(join-class-names (cljs.core/array ~class ~props-class))
                               :else class))))
     props))
 

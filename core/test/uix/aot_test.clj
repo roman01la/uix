@@ -24,7 +24,7 @@
 (deftest test-set-id-class
   (testing "Hiccup classes should preceding attribute classes"
     (is (= (attrs/set-id-class {:class "a"} (attrs/parse-tag (name :div.b)))
-           {:class `(clojure.core/str "b" " " "a")})))
+           {:class `(uix.compiler.attributes/join-class-names (cljs.core/array "b" "a"))})))
   (testing "Attribute ID has higher priority than Hiccup ID"
     (is (= (attrs/set-id-class {:id "a"} (attrs/parse-tag (name :div#b)))
            {:id "a"}))))

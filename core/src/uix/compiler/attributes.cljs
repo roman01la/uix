@@ -118,6 +118,9 @@
             (and (some? classes) (pos? (.-length classes)))
             (assoc :class (class-names classes (get props :class))))))
 
+(defn join-class-names [^array arr]
+  (.join (.filter arr some?) " "))
+
 (defn convert-props
   "Converts `props` Clojure map into JS object suitable for
   passing as `props` object into `React.crteateElement`
@@ -126,18 +129,15 @@
   - `id-class` — a triplet of parsed tag, id and class names
   - `shallow?` — indicates whether `props` map should be converted shallowly or not"
   [props id-class ^boolean shallow?]
-  (let [class (get props :class)
-        props (cond-> props
-                  class (assoc :class class)
-                  :always (set-id-class id-class))]
-    (cond
-      ^boolean (aget id-class 3)
-      (convert-custom-prop-value props)
+  #_(let [props (set-id-class props id-class)])
+  (cond
+    ^boolean (aget id-class 3)
+    (convert-custom-prop-value props)
 
-      shallow?
-      (convert-prop-value-shallow props)
+    shallow?
+    (convert-prop-value-shallow props)
 
-      :else (convert-prop-value props))))
+    :else (convert-prop-value props)))
 
 (defn interpret-attrs
   "Returns a tuple of attributes and a child element
