@@ -74,8 +74,7 @@
   (is (re-find #"id=.foo"
                (as-string #el [:div.bar.xxx {:id "foo"}])))
   (is (re-find #"id=.foo"
-               (as-string #el [:div#bar {:id "foo"}]))
-      "Attributes id overwrites tag id"))
+               (as-string #el [:div#bar {:id "foo"}]))))
 
 (uix.core/defui null-comp [do-show]
   (when do-show
@@ -95,6 +94,10 @@
   (is (= (as-string #el [:p {:class ["a" nil "b" false "c" nil]}])
          (as-string #el [:p {:class "a b c"}])))
   (let [x ["b" "c"]]
+    (is (= (as-string #el [:p {:class x}])
+           (as-string #el [:p {:class "b c"}])))
+    (is (= (as-string #el [:p {:class (conj x "a")}])
+           (as-string #el [:p {:class "b c a"}])))
     (is (= (as-string #el [:p.a {:class x}])
            (as-string #el [:p {:class "a b c"}])))))
 
