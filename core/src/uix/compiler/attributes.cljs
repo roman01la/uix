@@ -93,14 +93,14 @@
     (reduce-kv kv-conv-shallow #js {} x)
     x))
 
-(defn class-names-coll [class]
+(defn class-names-coll [classes]
   (let [^js/Array classes (reduce (fn [^js/Array a c]
                                     (when ^boolean c
                                       (->> (if (keyword? c) (-name ^not-native c) c)
                                            (.push a)))
                                     a)
                                   #js []
-                                  class)]
+                                  classes)]
     (when (pos? (.-length classes))
       (.join classes " "))))
 
@@ -120,19 +120,21 @@
    (reduce class-names (class-names a b) rst)))
 
 (defn set-id-class
-  "Takes the id and class from tag keyword, and adds them to the
-  other props. Parsed tag is JS object with :id and :class properties."
+  "Takes attributes map and parsed tag, and returns attributes merged with class names and id"
   [props id-class]
-  (let [id (aget id-class 1)
-        classes ^js/Array (aget id-class 2)]
-    (cond-> props
-            ;; Only use ID from tag keyword if no :id in props already
-            (and (some? id) (nil? (get props :id)))
-            (assoc :id id)
+  (if (or (map? props) (nil? props))
+    (let [props-class (get props :class)
+          id (aget id-class 1)
+          class (aget id-class 2)]
+      (cond-> props
+              ;; Only use ID from tag keyword if no :id in props already
+              (and (some? id) (nil? (get props :id)))
+              (assoc :id id)
 
-            ;; Merge classes
-            (and (some? classes) (pos? (.-length classes)))
-            (assoc :class (class-names classes (get props :class))))))
+              ;; Merge classes
+              (or class props-class)
+              (assoc :class (class-names class props-class))))
+    props))
 
 (defn convert-props
   "Converts `props` Clojure map into JS object suitable for
@@ -142,15 +144,15 @@
   - `id-class` — a triplet of parsed tag, id and class names
   - `shallow?` — indicates whether `props` map should be converted shallowly or not"
   [props id-class ^boolean shallow?]
-  #_(let [props (set-id-class props id-class)])
-  (cond
-    ^boolean (aget id-class 3)
-    (convert-custom-prop-value props)
+  (let [props (set-id-class props id-class)]
+    (cond
+      ^boolean (aget id-class 3)
+      (convert-custom-prop-value props)
 
-    shallow?
-    (convert-prop-value-shallow props)
+      shallow?
+      (convert-prop-value-shallow props)
 
-    :else (convert-prop-value props)))
+      :else (convert-prop-value props))))
 
 (defn interpret-attrs
   "Returns a tuple of attributes and a child element

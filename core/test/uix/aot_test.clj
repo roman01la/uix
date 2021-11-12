@@ -14,21 +14,13 @@
   (testing "Named types"
     (is (= (attrs/compile-config-kv :class "a") "a"))))
 
-(deftest test-set-id-class
-  (testing "Hiccup classes should preceding attribute classes"
-    (is (= (attrs/set-id-class {:class "a"} (attrs/parse-tag (name :div.b)))
-           {:class `(uix.compiler.attributes/class-names "b" "a")})))
-  (testing "Attribute ID has higher priority than Hiccup ID"
-    (is (= (attrs/set-id-class {:id "a"} (attrs/parse-tag (name :div#b)))
-           {:id "a"}))))
-
 (deftest convert-props-test
   (is (= {:className "a" :htmlFor "x"}
          (attrs/compile-attrs {:class "a" :for "x"}))))
 
 (deftest test-compile-html
   (is (= (aot/compile-html [:h1])
-         '(uix.compiler.aot/>el "h1" (cljs.core/array) (cljs.core/array))))
+         '(uix.compiler.aot/>el "h1" (cljs.core/array nil) (cljs.core/array))))
   (is (= (aot/compile-html '[:> x {} 1 2])
          '(uix.compiler.aot/>el x (cljs.core/array (cljs.core/js-obj)) (cljs.core/array 1 2))))
   (is (= (aot/compile-html '[:> x {:x 1 :ref 2} 1 2])

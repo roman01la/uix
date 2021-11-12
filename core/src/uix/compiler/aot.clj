@@ -7,18 +7,16 @@
 (defmulti compile-attrs (fn [tag attrs opts] tag))
 
 (defmethod compile-attrs :element [_ attrs {:keys [tag-id-class]}]
-  (let [attrs (attrs/set-id-class attrs tag-id-class)]
-    (cond
-      (nil? attrs) `(cljs.core/array)
-      (map? attrs)
-      `(cljs.core/array
-         ~(cond-> attrs
-                  (and (some? (:style attrs))
-                       (not (map? (:style attrs))))
-                  (assoc :style `(uix.compiler.attributes/convert-props ~(:style attrs) (cljs.core/array) true))
-                  :always (attrs/compile-attrs {:custom-element? (last tag-id-class)})
-                  :always js/to-js))
-      :else `(uix.compiler.attributes/interpret-attrs ~attrs (cljs.core/array ~@tag-id-class) false))))
+  (if (or (map? attrs) (nil? attrs))
+    `(cljs.core/array
+       ~(cond-> attrs
+                (and (some? (:style attrs))
+                     (not (map? (:style attrs))))
+                (assoc :style `(uix.compiler.attributes/convert-props ~(:style attrs) (cljs.core/array) true))
+                :always (attrs/set-id-class tag-id-class)
+                :always (attrs/compile-attrs {:custom-element? (last tag-id-class)})
+                :always js/to-js))
+    `(uix.compiler.attributes/interpret-attrs ~attrs (cljs.core/array ~@tag-id-class) false)))
 
 (defmethod compile-attrs :component [_ props _]
   `(uix.compiler.attributes/interpret-props ~props))
