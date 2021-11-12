@@ -87,15 +87,16 @@
   (is (re-find #"test-null-component"
                (as-string #el [null-comp true]))))
 
-
-#_
 (deftest test-class-from-collection
   (is (= (as-string #el [:p {:class ["a" "b" "c" "d"]}])
          (as-string #el [:p {:class "a b c d"}])))
-  #_(is (= (as-string #el [:p {:class ["a" nil "b" false "c" nil]}])
-           (as-string #el [:p {:class "a b c"}])))
-  (is (= (as-string #el [:p {:class #{"a" "b" "c"}}])
-         (as-string #el [:p {:class "a b c"}]))))
+  (is (= (as-string #el [:p.x {:class ["a" "b" "c" "d"]}])
+         (as-string #el [:p {:class "x a b c d"}])))
+  (is (= (as-string #el [:p {:class ["a" nil "b" false "c" nil]}])
+         (as-string #el [:p {:class "a b c"}])))
+  (let [x ["b" "c"]]
+    (is (= (as-string #el [:p.a {:class x}])
+           (as-string #el [:p {:class "a b c"}])))))
 
 (uix.core/defui key-tester []
   #el [:div {}
@@ -114,7 +115,7 @@
   (is (re-find #"<custom-element class=\"foobar\">foo</custom-element>"
                (as-string #el [:custom-element {:class "foobar"} "foo"])))
 
-  (is (re-find #"<custom-element class=\"foobar \">foo</custom-element>"
+  (is (re-find #"<custom-element class=\"foobar\">foo</custom-element>"
                (as-string #el [:custom-element.foobar {} "foo"]))))
 
 (deftest test-fragments

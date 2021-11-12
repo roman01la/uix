@@ -93,13 +93,29 @@
     (reduce-kv kv-conv-shallow #js {} x)
     x))
 
+(defn class-names-coll [class]
+  (let [^js/Array classes (reduce (fn [^js/Array a c]
+                                    (when ^boolean c
+                                      (->> (if (keyword? c) (-name ^not-native c) c)
+                                           (.push a)))
+                                    a)
+                                  #js []
+                                  class)]
+    (when (pos? (.-length classes))
+      (.join classes " "))))
+
 (defn ^string class-names
+  ([a]
+   (cond
+     (or (array? a) (coll? a)) (class-names-coll a)
+     (keyword? a) (-name ^not-native a)
+     :else a))
   ([a b]
    (if ^boolean a
      (if ^boolean b
-       (str a " " b)
-       a)
-     b))
+       (str (class-names a) " " (class-names b))
+       (class-names a))
+     (class-names b)))
   ([a b & rst]
    (reduce class-names (class-names a b) rst)))
 
@@ -126,18 +142,15 @@
   - `id-class` — a triplet of parsed tag, id and class names
   - `shallow?` — indicates whether `props` map should be converted shallowly or not"
   [props id-class ^boolean shallow?]
-  (let [class (get props :class)
-        props (cond-> props
-                  class (assoc :class class)
-                  :always (set-id-class id-class))]
-    (cond
-      ^boolean (aget id-class 3)
-      (convert-custom-prop-value props)
+  #_(let [props (set-id-class props id-class)])
+  (cond
+    ^boolean (aget id-class 3)
+    (convert-custom-prop-value props)
 
-      shallow?
-      (convert-prop-value-shallow props)
+    shallow?
+    (convert-prop-value-shallow props)
 
-      :else (convert-prop-value props))))
+    :else (convert-prop-value props)))
 
 (defn interpret-attrs
   "Returns a tuple of attributes and a child element
