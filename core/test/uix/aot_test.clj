@@ -12,19 +12,12 @@
 (deftest test-class-names
   (is (= (attrs/compile-config-kv :class nil) nil))
   (testing "Named types"
-    (is (= (attrs/compile-config-kv :class "a") "a"))
-    #_
-    (is (= (attrs/compile-config-kv :class :a) :a)))
-  #_
-  (testing "Collection of classes"
-    (is (= (attrs/compile-config-kv :class ["a" "b" "c"]) "a b c")))
-  #_(testing "Map of class -> boolean"
-      (is (= (attrs/compile-config-kv :class {:c1 true :c2 false}) "c1"))))
+    (is (= (attrs/compile-config-kv :class "a") "a"))))
 
 (deftest test-set-id-class
   (testing "Hiccup classes should preceding attribute classes"
     (is (= (attrs/set-id-class {:class "a"} (attrs/parse-tag (name :div.b)))
-           {:class `(uix.compiler.attributes/join-class-names (cljs.core/array "b" "a"))})))
+           {:class `(uix.compiler.attributes/class-names "b" "a")})))
   (testing "Attribute ID has higher priority than Hiccup ID"
     (is (= (attrs/set-id-class {:id "a"} (attrs/parse-tag (name :div#b)))
            {:id "a"}))))

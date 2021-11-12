@@ -88,15 +88,15 @@
                (as-string #el [null-comp true]))))
 
 (deftest test-class-from-collection
-  #_
   (is (= (as-string #el [:p {:class ["a" "b" "c" "d"]}])
          (as-string #el [:p {:class "a b c d"}])))
   (is (= (as-string #el [:p.x {:class ["a" "b" "c" "d"]}])
          (as-string #el [:p {:class "x a b c d"}])))
-  #_(is (= (as-string #el [:p {:class ["a" nil "b" false "c" nil]}])
-           (as-string #el [:p {:class "a b c"}])))
-  #_(is (= (as-string #el [:p {:class #{"a" "b" "c"}}])
-           (as-string #el [:p {:class "a b c"}]))))
+  (is (= (as-string #el [:p {:class ["a" nil "b" false "c" nil]}])
+         (as-string #el [:p {:class "a b c"}])))
+  (let [x ["b" "c"]]
+    (is (= (as-string #el [:p.a {:class x}])
+           (as-string #el [:p {:class "a b c"}])))))
 
 (uix.core/defui key-tester []
   #el [:div {}
