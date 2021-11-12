@@ -26,6 +26,11 @@
     name-str
     (.replace name-str cc-regexp cc-fn)))
 
+(defn keyword->string [x]
+  (if (keyword? x)
+    (-name ^not-native x)
+    x))
+
 (defn cached-prop-name [k]
   (if (keyword? k)
     (let [name-str (-name ^not-native k)]
