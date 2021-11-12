@@ -53,13 +53,23 @@
     (reduce-kv #(assoc %1 (camel-case %2) %3) {} m)
     m))
 
+(defn convert-value [v]
+  (if (symbol? v)
+    `(keyword->string ~v)
+    v))
+
+(defn convert-values [m]
+  (if (map? m)
+    (reduce-kv #(assoc %1 (camel-case %2) (convert-value %3)) {} m)
+    m))
+
 (defmulti compile-config-kv (fn [name value] name))
 
 (defmethod compile-config-kv :style [name value]
-  (camel-case-keys value))
+  (convert-values (camel-case-keys value)))
 
 (defmethod compile-config-kv :default [name value]
-  value)
+  (convert-value value))
 
 (defn compile-attrs
   "Takes map of attributes and returns same map with keys translated from Hiccup to React naming conventions"

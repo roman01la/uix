@@ -101,6 +101,18 @@
     (is (= (as-string #el [:p.a {:class x}])
            (as-string #el [:p {:class "a b c"}])))))
 
+(deftest test-keyword-attrs-value
+  (is (= (as-string #el [:p {:title :hello}])
+         (as-string #el [:p {:title "hello"}])))
+  (let [x :hello]
+    (is (= (as-string #el [:p {:title x}])
+           (as-string #el [:p {:title "hello"}]))))
+  (is (= (as-string #el [:p {:style {:text-align :center}}])
+         (as-string #el [:p {:style {:text-align "center"}}])))
+  (let [x :center]
+    (is (= (as-string #el [:p {:style {:text-align x}}])
+           (as-string #el [:p {:style {:text-align "center"}}])))))
+
 (uix.core/defui key-tester []
   #el [:div {}
        (for [i (range 3)]
