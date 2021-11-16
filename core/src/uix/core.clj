@@ -44,7 +44,7 @@
        ~(if (empty? args)
           (no-args-component fname fdecl)
           (with-args-component fname args fdecl))
-       (with-name ~sym))))
+       (with-name ~sym ~(-> &env :ns :name str) ~(str sym)))))
 
 (defmacro source
   "Returns source string of UIx component"
