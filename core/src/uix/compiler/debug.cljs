@@ -29,7 +29,10 @@
         (if (string? name)
           name))))
 
-(defn with-name [^js f]
-  (when-let [component-name (effective-component-name f)]
+(defn with-name
+  ([^js f ns-str sym-str]
+   (set! (.-displayName f) (str ns-str "/" sym-str)))
+  ([^js f]
+   (when-let [component-name (effective-component-name f)]
     (when-some [display-name (format-display-name component-name)]
-      (set! (.-displayName f) display-name))))
+      (set! (.-displayName f) display-name)))))
