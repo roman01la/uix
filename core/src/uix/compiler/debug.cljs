@@ -1,4 +1,5 @@
-(ns uix.compiler.debug)
+(ns uix.compiler.debug
+  (:require [clojure.string :as str]))
 
 (defn default-format-display-name [^string s]
   (let [^js/Array parts (.split s #"\$")
@@ -36,3 +37,24 @@
    (when-let [component-name (effective-component-name f)]
     (when-some [display-name (format-display-name component-name)]
       (set! (.-displayName f) display-name)))))
+
+;; ============ Adapting React warnings to UIx ============
+
+(defn react-keys-error? [args]
+  (str/starts-with? (aget args 0) "Warning: Each child in a list should have a unique \"key\" prop."))
+
+(defn format-react-keys-error [args]
+  (let [msg (str/replace (aget args 1) #"`(.+)`" (fn [[_ component-name]]
+                                                   (format-display-name component-name)))
+        args-arr (js/Array.from args)]
+    (aset args-arr 1 msg)
+    args-arr))
+
+(defn format-console-error [args]
+  (cond
+    (react-keys-error? args) (format-react-keys-error args)
+    :else args))
+
+(when ^boolean goog.DEBUG
+  (defonce js-console-error js/console.error)
+  (set! (.-error js/console) #(.apply js-console-error js/console (format-console-error (js-arguments)))))
