@@ -6,12 +6,16 @@
   #"([^\s\.#]+)(?:#([^\s\.#]+))?(?:\.([^\s#]+))?")
 
 (defn parse-tag
-  (let [[tag id class-name] (->> hiccup-tag name (re-matches re-tag) next)
-        class-name (when-not (nil? class-name)
-                     (str/replace class-name #"\." " "))]
-    (list tag id class-name (some? (re-find #"-" tag)))))
   "Takes UTL tag (:div#id.class) and returns parsed tag, id and class fields"
   [tag]
+  (let [tag-str (name tag)]
+    (when (and (not (re-matches re-tag tag-str))
+               (re-find #"[#\.]" tag-str))
+      (throw (NullPointerException. (str "Invalid tag name (found: " tag-str "). Make sure that the name matches the format and ordering is correct `:tag#id.class`"))))
+    (let [[tag id class-name] (next (re-matches re-tag tag-str))
+          class-name (when-not (nil? class-name)
+                       (str/replace class-name #"\." " "))]
+      (list tag id class-name (some? (re-find #"-" tag))))))
 
 (defn set-id-class
   "Takes attributes map and parsed tag, and returns attributes merged with class names and id"
