@@ -85,7 +85,7 @@
         props (compile-attrs :interop props nil)]
     `(>el ~tag ~props (cljs.core/array ~@children))))
 
-(defn compile-utl
+(defn compile-html
   "Compiles UTL into React.js calls"
   [expr]
   (if (vector? expr)
