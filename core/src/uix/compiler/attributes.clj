@@ -11,6 +11,7 @@
   (let [tag-str (name tag)]
     (when (and (not (re-matches re-tag tag-str))
                (re-find #"[#\.]" tag-str))
+      ;; Throwing NPE here because shadow catches those to bring up error view in a browser
       (throw (NullPointerException. (str "Invalid tag name (found: " tag-str "). Make sure that the name matches the format and ordering is correct `:tag#id.class`"))))
     (let [[tag id class-name] (next (re-matches re-tag tag-str))
           class-name (when-not (nil? class-name)
