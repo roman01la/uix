@@ -13,7 +13,7 @@
 
 (defn >el [tag attrs-children children]
   (let [args (-> #js [tag] (.concat attrs-children) (.concat children))]
-    (when ^goog.DEBUG
+    (when ^boolean goog.DEBUG
       (validate-children (.slice args 2) false))
     (.apply react/createElement nil args)))
 
