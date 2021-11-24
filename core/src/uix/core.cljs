@@ -61,7 +61,7 @@
                  (this-as ^react/Component this
                    (let [args (.. this -props -argv)
                          state (.-state this)]
-                     ;; `render-fn` should return compiled Hiccup
+                     ;; `render-fn` should return compiled UTL
                      (render-fn state args))))]
     (create-class {:constructor constructor
                    :static {:displayName display-name

@@ -2,16 +2,16 @@
   (:require [clojure.string :as str]))
 
 (def re-tag
-  "Hiccup tag pattern :div :.class#id etc."
+  "UTL tag pattern :div :div#id.class etc."
   #"([^\s\.#]+)(?:#([^\s\.#]+))?(?:\.([^\s#]+))?")
 
 (defn parse-tag
-  "Takes Hiccup tag (:div.class#id) and returns parsed tag, id and class fields"
-  [hiccup-tag]
   (let [[tag id class-name] (->> hiccup-tag name (re-matches re-tag) next)
         class-name (when-not (nil? class-name)
                      (str/replace class-name #"\." " "))]
     (list tag id class-name (some? (re-find #"-" tag)))))
+  "Takes UTL tag (:div#id.class) and returns parsed tag, id and class fields"
+  [tag]
 
 (defn set-id-class
   "Takes attributes map and parsed tag, and returns attributes merged with class names and id"
@@ -72,7 +72,7 @@
   (convert-value value))
 
 (defn compile-attrs
-  "Takes map of attributes and returns same map with keys translated from Hiccup to React naming conventions"
+  "Takes map of attributes and returns same map with keys translated from Clojure to React naming conventions"
   ([attrs]
    (compile-attrs attrs nil))
   ([attrs {:keys [custom-element?]}]
