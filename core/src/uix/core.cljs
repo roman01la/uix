@@ -58,7 +58,7 @@
                            (-reset! o (apply f (-deref o) a b xs))))))
         derive-state (fn [error] #js {:argv (error->state error)})
         render (fn []
-                 (this-as this
+                 (this-as ^react/Component this
                    (let [args (.. this -props -argv)
                          state (.-state this)]
                      ;; `render-fn` should return compiled Hiccup
