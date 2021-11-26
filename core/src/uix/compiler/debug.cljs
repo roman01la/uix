@@ -41,7 +41,9 @@
 ;; ============ Adapting React warnings to UIx ============
 
 (defn react-keys-error? [args]
-  (str/starts-with? (aget args 0) "Warning: Each child in a list should have a unique \"key\" prop."))
+  (let [first-arg (aget args 0)]
+    (and (string? first-arg)
+         (str/starts-with? (aget args 0) "Warning: Each child in a list should have a unique \"key\" prop."))))
 
 (defn format-react-keys-error [args]
   (let [msg (str/replace (aget args 1) #"`(.+)`" (fn [[_ component-name]]
