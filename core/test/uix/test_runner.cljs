@@ -1,5 +1,6 @@
 (ns uix.test-runner
   (:require [cljs.test]
+            [uix.aot-test]
             [uix.core-test]
             [uix.compiler-test]
             [uix.hooks-test]))
@@ -14,6 +15,7 @@
 
 (cljs.test/run-tests
   (cljs.test/empty-env)
+  'uix.aot-test
   'uix.core-test
   'uix.compiler-test
   'uix.hooks-test)
