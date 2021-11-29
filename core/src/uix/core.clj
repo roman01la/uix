@@ -44,6 +44,7 @@
        ~(if (empty? args)
           (no-args-component fname fdecl)
           (with-args-component fname args fdecl))
+       (set! (.-uix-component? ~(with-meta sym {:tag 'js})) true)
        (with-name ~sym ~(-> &env :ns :name str) ~(str sym)))))
 
 (defmacro source

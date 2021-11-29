@@ -24,6 +24,7 @@
                 (aset ctor (name k) v))
     (doseq-loop [[k v] prototype]
                 (aset (.-prototype ctor) (name k) v))
+    (set! (.-uix-component? ctor) true)
     ctor))
 
 (defn create-error-boundary
