@@ -20,7 +20,7 @@
       (hiccup? child)
       (throw (js/Error. (str "Hiccup is not valid as UIx child (found: " child ").\n"
                              "If you meant to render UIx element, tag it with #el, i.e. #el " child "\n"
-                             "If you meant to render Reagent element, wrap is with r/as-element, i.e. (r/as-element " child ")")))
+                             "If you meant to render Reagent element, wrap it with r/as-element, i.e. (r/as-element " child ")")))
 
       (sequential? child)
       (validate-children child)))
