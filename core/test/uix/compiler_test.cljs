@@ -201,5 +201,18 @@
       (is (.-type el) "h1")
       (is (.-children props) "TEXT")))
 
+(deftest test-validate-component
+  (is (thrown-with-msg? js/Error #"Invalid use of a non-UIx component test in #el form\..*"
+                        (uixc/validate-component #js {:name "test"})))
+  (when ^boolean goog.DEBUG
+    (is (thrown-with-msg? js/Error #"Invalid use of a non-UIx component cljs\$core\$inc in #el form\..*"
+                          #el [inc])))
+  (let [target #js {:name "test"}]
+    (set! (.-uix-component? target) true)
+    (is (true? (uixc/validate-component target))))
+  (when ^boolean goog.DEBUG
+    (uix.core/defui test-comp [] "x")
+    (is (= test-comp (.-type #el [test-comp])))))
+
 (defn -main []
   (run-tests))
