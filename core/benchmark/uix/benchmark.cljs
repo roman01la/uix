@@ -18,6 +18,7 @@
 (bench :reagent-interpret 10000 (render (r/as-element [hiccup/editor])))
 
 (js/console.log "Running the benchmark...")
-(bench :react 10000 (render (react/createElement Editor)))
-(bench :uix-compiled 10000 (render #el [hiccup/editor-compiled]))
-(bench :reagent-interpret 10000 (render (r/as-element [hiccup/editor] reagent-compiler)))
+(let [react-t (bench :react 10000 (render (react/createElement Editor)))
+      uix-t (bench :uix-compiled 10000 (render #el [hiccup/editor-compiled]))
+      reagent-t (bench :reagent-interpret 10000 (render (r/as-element [hiccup/editor])))]
+  (js/testsDone #js [react-t uix-t reagent-t]))

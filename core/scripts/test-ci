@@ -25,3 +25,12 @@ clojure -A:test -m cljs.main -O advanced \
 
 echo "Running ClojureScript prod tests..."
 scripts/test.js $(pwd)
+
+echo "Building benchmark..."
+rm -rf out
+clojure -A:benchmark -m cljs.main -O advanced \
+  -co '{:infer-externs true :closure-defines {goog.DEBUG false}}' \
+  -c uix.benchmark
+
+echo "Running benchmark..."
+scripts/benchmark.js $(pwd)
