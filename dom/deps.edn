@@ -4,7 +4,7 @@
                           :exclusions [cljsjs/react-dom-server]}
         uix.core/uix.core {:git/url "https://github.com/pitch-io/uix.git"
                            :deps/root "core"
-                           :sha "75797dd54a731b29042ba2fa29a98d5b9e86fab5"}}
+                           :sha "337d480017655e07ab20dcd2e6b8900ad7c04568"}}
  :paths ["src"]
  :aliases {:dev {:extra-deps {uix.core/uix.core {:local/root "../core"}}}
            :release {:extra-deps {appliedscience/deps-library {:mvn/version "0.3.4"}}
