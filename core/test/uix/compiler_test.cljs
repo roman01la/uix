@@ -4,7 +4,8 @@
             [uix.test-utils :refer [as-string js-equal? with-error symbol-for]]
             [uix.compiler.debug :as debug]
             [uix.core :as uix.core]
-            [uix.dom.alpha :as uix.dom]))
+            [uix.dom.alpha :as uix.dom]
+            [clojure.string :as str]))
 
 (enable-console-print!)
 
@@ -27,16 +28,24 @@
              "f-hello"))))
 
   (deftest test-with-name
-    (binding [debug/*format-display-name* debug/*format-display-name*]
+    (testing "should have formatted display and function names"
       (let [f (fn <some-component> [])]
         (debug/with-name f)
-        (is (= (.-displayName f) "uix.compiler-test/<some-component>")))
-      ; nil returned from *format-display-name* means no name
-      (set! debug/*format-display-name* (fn [_s _orig]))
+        (is (= (.-displayName f) "uix.compiler-test/<some-component>"))
+        (is (= (.-name f) "uix.compiler-test/<some-component>"))))
+    (testing "should throw when *format-display-name* is unbound"
       (let [f (fn <some-component> [])]
         (set! debug/*format-display-name* nil)
         (is (thrown-with-msg? js/Error #"\*format-display-name\* is not bound"
-                              (debug/with-name f)))))))
+                              (debug/with-name f)))))
+    (testing "should have formatted function name in a stack trace"
+      (uix.core/defui some-component [] (throw (js/Error. "x")))
+      (let [stack (try
+                    (some-component)
+                    (catch js/Error e
+                      (.-stack e)))]
+        (is (str/includes? stack "uix.compiler-test/some-component"))))))
+
 
 
 (uix.core/defui to-string-test-comp [props]
