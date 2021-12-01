@@ -59,12 +59,17 @@ jobs:
 
       - run: cd core && scripts/test-ci | tee ../build_info && curl -sSLo ../build_info_master https://github.com/pitch-io/uix/releases/latest/download/build_info
 
-      - run: 
-          name: Comment on PR
-          command: |
-            # Extract the PR number from the URL. https://support.circleci.com/hc/en-us/articles/360047521451-Why-is-CIRCLE-PR-NUMBER-empty-
-            PR_NUMBER=${CIRCLE_PULL_REQUEST##*/}
-            gh pr comment $PR_NUMBER --body "$(./core/scripts/benchmark-ci)"
+      - when:
+          condition:
+            not:
+              equal: [ master, << pipeline.git.branch >> ]
+          steps:
+            - run: 
+                name: Comment on PR
+                command: |
+                  # Extract the PR number from the URL. https://support.circleci.com/hc/en-us/articles/360047521451-Why-is-CIRCLE-PR-NUMBER-empty-
+                  PR_NUMBER=${CIRCLE_PULL_REQUEST##*/}
+                  gh pr comment $PR_NUMBER --body "$(./core/scripts/benchmark-ci)"
 
       - persist_to_workspace:
           root: .
