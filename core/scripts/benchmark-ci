@@ -1,0 +1,15 @@
+#!/usr/bin/env node
+
+const fs = require("fs");
+const path = require("path");
+
+function readStats(fileName) {
+    const lines = fs.readFileSync(path.join(__dirname, "../../", fileName), "utf8").split("\n");
+    return lines.slice(-4).join("\n");
+}
+
+console.log(
+    "master:\n" + readStats("build_info_master") +
+    "\n\n" +
+    "PR:\n" + readStats("build_info")
+);

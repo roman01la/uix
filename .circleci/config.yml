@@ -1,6 +1,25 @@
 version: 2.1
 
+orbs: 
+  github-cli: circleci/github-cli@1.0.5
+
 jobs:
+  create-release:
+    docker:
+      - image: 'cimg/base:stable'
+
+    working_directory: ~/repo
+    
+    steps:
+      - checkout
+      - attach_workspace:
+          at: ~/repo
+      - github-cli/setup
+      - run:
+          name: Create Release
+          command: |
+            gh release create $(git rev-parse --short HEAD) build_info
+  
   build:
     docker:
       - image: circleci/clojure:tools-deps-1.10.0.442-node
@@ -10,7 +29,7 @@ jobs:
 
     steps:
       - checkout
-
+      - github-cli/setup
       - run:
           name: Install Headless Chrome dependencies
           command: |
@@ -38,7 +57,19 @@ jobs:
       # which fails when pulling in dependencies, default clone HTTPS works
       - run: rm ~/.gitconfig
 
-      - run: cd core && scripts/test-ci
+      - run: cd core && scripts/test-ci | tee ../build_info && curl -sSLo ../build_info_master https://github.com/pitch-io/uix/releases/latest/download/build_info
+
+      - run: 
+          name: Comment on PR
+          command: |
+            # Extract the PR number from the URL. https://support.circleci.com/hc/en-us/articles/360047521451-Why-is-CIRCLE-PR-NUMBER-empty-
+            PR_NUMBER=${CIRCLE_PULL_REQUEST##*/}
+            gh pr comment $PR_NUMBER --body "$(./core/scripts/benchmark-ci)"
+
+      - persist_to_workspace:
+          root: .
+          paths:
+            - build_info
 
       - save_cache:
           paths:
@@ -55,3 +86,10 @@ workflows:
   test:
     jobs:
       - build
+      - create-release:
+          requires:
+            - build
+          filters:
+            branches:
+              only:
+                - master
