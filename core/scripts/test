@@ -7,26 +7,26 @@ echo "Installing NPM deps..."
 yarn install --frozen-lockfile
 
 echo "Running Clojure tests..."
-clojure -A:test -M -m uix.test-runner
+clojure -Atest -M -m uix.test-runner
 
 echo "<div id=root></div><script src="out/main.js"></script>" > index.html
 
 echo "Building ClojureScript dev tests..."
-clojure -A:test -M -m shadow.cljs.devtools.cli compile test
+clojure -Atest -M -m shadow.cljs.devtools.cli compile test
 
 echo "Running ClojureScript dev tests..."
 scripts/test.js $(pwd)
 
 echo "Building ClojureScript prod tests..."
 rm -rf out
-clojure -A:test -M -m shadow.cljs.devtools.cli release test
+clojure -Atest -M -m shadow.cljs.devtools.cli release test
 
 echo "Running ClojureScript prod tests..."
 scripts/test.js $(pwd)
 
 echo "Building benchmark..."
 rm -rf out
-clojure -A:test:benchmark -M -m shadow.cljs.devtools.cli release benchmark
+clojure -Atest:benchmark -M -m shadow.cljs.devtools.cli release benchmark
 
 echo "Running benchmark..."
 scripts/benchmark.js $(pwd)
