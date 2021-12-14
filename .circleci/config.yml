@@ -57,7 +57,7 @@ jobs:
       # which fails when pulling in dependencies, default clone HTTPS works
       - run: rm ~/.gitconfig
 
-      - run: cd core && scripts/test-ci | tee ../build_info && curl -sSLo ../build_info_master https://github.com/pitch-io/uix/releases/latest/download/build_info
+      - run: cd core && scripts/test | tee ../build_info && curl -sSLo ../build_info_master https://github.com/pitch-io/uix/releases/latest/download/build_info
 
       - when:
           condition:
