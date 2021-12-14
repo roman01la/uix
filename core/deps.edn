@@ -1,8 +1,4 @@
-{:deps {org.clojure/clojure {:mvn/version "1.10.3"}
-        org.clojure/clojurescript {:mvn/version "1.10.879"}
-        cljs-bean/cljs-bean {:mvn/version "1.5.0"}
-        cljsjs/react {:mvn/version "16.13.1-0"
-                      :exclusions [cljsjs/react-dom-server]}}
+{:deps {cljs-bean/cljs-bean {:mvn/version "1.5.0"}}
  :paths ["src"]
  :aliases {:dev {:extra-paths ["dev" "resources"]
                  :extra-deps {uix.dom/uix.dom {:local/root "../dom"}
@@ -26,7 +22,9 @@
            :bench-front {:main-opts ["-m" "figwheel.main" "-O" "advanced" "--build" "benchmark" "--serve"]}
            :bench-ssr {:main-opts ["-m" "uix.benchmark"]}
            :test {:extra-paths ["test"]
-                  :extra-deps {thheller/shadow-cljs {:mvn/version "2.15.5"}
+                  :extra-deps {org.clojure/clojure {:mvn/version "1.10.3"}
+                               org.clojure/clojurescript {:mvn/version "1.10.879"}
+                               thheller/shadow-cljs {:mvn/version "2.15.5"}
                                uix.dom/uix.dom {:local/root "../dom"}
                                cljsjs/react-dom-server {:mvn/version "16.13.1-0"}
                                clj-diffmatchpatch/clj-diffmatchpatch {:mvn/version "0.0.9.3"}}}
