@@ -1,5 +1,6 @@
 .idea
 .cpcache
+.shadow-cljs
 resources/public/out
 resources/public/example-out
 resources/public/example.js

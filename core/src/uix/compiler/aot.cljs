@@ -1,6 +1,7 @@
 (ns uix.compiler.aot
   "Runtime helpers for UTL compiled into React.js"
   (:require [react :as react]
+            [uix.compiler.input]
             [uix.compiler.alpha :as r]
             [uix.compiler.attributes]
             [uix.lib :refer [doseq-loop]]))
@@ -31,6 +32,11 @@
     (when ^boolean goog.DEBUG
       (validate-children (.slice args 2)))
     (.apply react/createElement nil args)))
+
+(defn create-uix-input [tag attrs-children children]
+  (let [props (aget attrs-children 0)
+        children (.concat #js [(aget attrs-children 1)] children)]
+    (react/createElement uix.compiler.input/reagent-input #js {:props props :tag tag :children children})))
 
 (def suspense react/Suspense)
 (def fragment react/Fragment)

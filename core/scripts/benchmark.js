@@ -7,6 +7,8 @@ const puppeteer = require('puppeteer');
   const browser = await puppeteer.launch();
   const page = await browser.newPage();
 
+  page.on("pageerror", console.error);
+
   page.on("console", m => {
     if (m.type() === "error") {
       console.error(`${m.text()} in ${m.location().url}:${m.location().lineNumber}`);
