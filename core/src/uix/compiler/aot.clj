@@ -49,11 +49,17 @@
       (keyword? tag) :element
       :else :component)))
 
+(defn- input-component? [x]
+  (contains? #{"input" "textarea"} x))
+
 (defmethod compile-element :element [v]
   (let [[tag attrs & children] v
         tag-id-class (attrs/parse-tag tag)
         attrs-children (compile-attrs :element attrs {:tag-id-class tag-id-class})
-        ret `(>el ~(first tag-id-class) ~attrs-children (cljs.core/array ~@children))]
+        tag-str (first tag-id-class)
+        ret (if (input-component? tag-str)
+              `(create-uix-input ~tag-str ~attrs-children (cljs.core/array ~@children))
+              `(>el ~tag-str ~attrs-children (cljs.core/array ~@children)))]
     ret))
 
 (defmethod compile-element :component [v]
