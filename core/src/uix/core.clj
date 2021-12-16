@@ -30,7 +30,11 @@
         m (conj {:arglists (list 'quote (#'cljs.core/sigs fdecl))} m)
         m (conj (if (meta name) (meta name) {}) m)]
     (assert (= 1 (count fdecl)) (str `defui " doesn't support multi-arity"))
-    [(with-meta name m) (first fdecl)]))
+    (let [[args & fdecl] (first fdecl)]
+      (assert (>= 1 (count args))
+              (str `defui " should be a single-arity component taking a map of props, found: " args "\n"
+                   "If you meant to retrieve `children`, they are under `:children` field in props map"))
+      [(with-meta name m) args fdecl])))
 
 (defmacro
   ^{:arglists '([name doc-string? attr-map? [params*] prepost-map? body]
@@ -38,7 +42,8 @@
   defui
   "Compiles UIx component into React component at compile-time."
   [sym & fdecl]
-  (let [[fname [args & fdecl]] (parse-sig sym fdecl)]
+
+  (let [[fname args fdecl] (parse-sig sym fdecl)]
     (uix.source/register-symbol! sym)
     `(do
        ~(if (empty? args)
