@@ -236,11 +236,10 @@ once in the directory. Otherwise the Node.js version you use is in the `.nvmrc` 
 
 ## Who’s using UIx
 
-- Video editor (private)
-- Fitness App (private)
 - [Zeal (REPL meets Clipboard Manager)](https://github.com/den1k/zeal)
 - [Floor Planner](http://floor-planner.surge.sh/)
 - [Happy Paw mobile web app](https://github.com/roman01la/happy-paw)
 - [ProtonNative app](https://github.com/roman01la/proton-native-cljs)
 - [Lumber](https://lumber.dev) - [source](https://github.com/lumberdev/lumber-site)
 - [GRID](https://theshopgrid.com)
+- [ogre.tools - virtual tabletop](https://ogre.tools/)
