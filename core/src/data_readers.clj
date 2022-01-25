@@ -1,1 +1,1 @@
-{el uix.compiler.aot/compile-html}
+{el uix.compiler.aot/el-tag}
