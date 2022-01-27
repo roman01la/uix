@@ -98,4 +98,9 @@
     (compile-element expr)
     expr))
 
+(defn el-tag [expr]
+  (if (vector? expr)
+    (compile-element expr)
+    `(throw (js/Error. (str "#el should only be used together with vectors, found: #el " ~expr)))))
+
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
