@@ -1,3 +1,5 @@
+[![SWUbanner](https://raw.githubusercontent.com/vshymanskyy/StandWithUkraine/main/banner-personal-page.svg)](https://stand-with-ukraine.pp.ua/)
+
 <img src="logo.png" width="125" />
 
 _Idiomatic ClojureScript interface to modern React.js_
