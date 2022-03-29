@@ -8,15 +8,15 @@ _Idiomatic ClojureScript interface to modern React.js_
 
 
 ```clj
-{:deps {uix.core {:git/url "https://github.com/pitch-io/uix.git"
-                  :deps/root "core"
-                  :sha "de150bc794fa50d7c3e1de2d1950561a27261362"}
-        uix.dom {:git/url "https://github.com/pitch-io/uix.git"
-                 :deps/root "dom"
-                 :sha "de150bc794fa50d7c3e1de2d1950561a27261362"}
-        uix.rn {:git/url "https://github.com/pitch-io/uix.git"
-                :deps/root "rn"
-                :sha "de150bc794fa50d7c3e1de2d1950561a27261362"}}}
+{:deps {uix.core/uix.core {:git/url "https://github.com/pitch-io/uix.git"
+                           :deps/root "core"
+                           :sha "de150bc794fa50d7c3e1de2d1950561a27261362"}
+        uix.dom/uix.dom {:git/url "https://github.com/pitch-io/uix.git"
+                         :deps/root "dom"
+                         :sha "de150bc794fa50d7c3e1de2d1950561a27261362"}
+        uix.rn/uix.rn {:git/url "https://github.com/pitch-io/uix.git"
+                       :deps/root "rn"
+                       :sha "de150bc794fa50d7c3e1de2d1950561a27261362"}}}
 ```
 
 ```clj
