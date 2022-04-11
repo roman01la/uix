@@ -56,3 +56,13 @@
   "Returns source string of UIx component"
   [sym]
   (uix.source/source sym))
+
+(defmacro h
+  "Creates React element
+
+  DOM element: (h :button#id.class {:on-click handle-click} \"click me\")
+  React component: (h title-bar {:title \"Title\"})"
+  ([tag]
+   (uix.compiler.aot/compile-element [tag]))
+  ([tag props & children]
+   (uix.compiler.aot/compile-element (into [tag props] children))))

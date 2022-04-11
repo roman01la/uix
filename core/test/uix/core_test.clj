@@ -1,6 +1,6 @@
 (ns uix.core-test
   (:require [clojure.test :refer :all]
-            [uix.core]
+            [uix.core :refer [h]]
             [uix.core.lazy-loader :refer [require-lazy]]))
 
 (require-lazy '[clojure.string :refer [blank?]])
@@ -20,3 +20,11 @@
                         (uix.core/parse-sig 'component-name '(([props]) ([props x])))))
   (is (thrown-with-msg? AssertionError #"uix.core\/defui should be a single-arity component"
         (uix.core/parse-sig 'component-name '([props x])))))
+
+(deftest test-h
+  (is (= (macroexpand-1 '(uix.core/h :h1))
+         '(uix.compiler.aot/>el "h1" (cljs.core/array nil) (cljs.core/array))))
+  (is (= (macroexpand-1 '(uix.core/h :> identity {} 1 2))
+         '(uix.compiler.aot/>el identity (cljs.core/array (cljs.core/js-obj)) (cljs.core/array 1 2))))
+  (is (= (macroexpand-1 '(uix.core/h :> identity {:x 1 :ref 2} 1 2))
+         '(uix.compiler.aot/>el identity (cljs.core/array (js* "{'x':~{},'ref':~{}}" 1 2)) (cljs.core/array 1 2)))))

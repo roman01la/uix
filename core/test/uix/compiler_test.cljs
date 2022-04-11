@@ -3,7 +3,7 @@
             [uix.compiler.alpha :as uixc]
             [uix.test-utils :refer [as-string js-equal? with-error symbol-for]]
             [uix.compiler.debug :as debug]
-            [uix.core :as uix.core]
+            [uix.core :refer [h]]
             [uix.dom.alpha :as uix.dom]
             [clojure.string :as str]))
 
@@ -14,10 +14,10 @@
 
 (uix.core/defui test-seq-return-comp []
   (for [x (range 2)]
-    #el [:span {} x]))
+    (h :span {} x)))
 
 (deftest test-seq-return
-  (is (= (as-string #el [test-seq-return-comp]) "<span>0</span><span>1</span>")))
+  (is (= (as-string (h test-seq-return-comp)) "<span>0</span><span>1</span>")))
 
 (when ^boolean goog.DEBUG
   (deftest test-default-format-display-name
@@ -49,145 +49,145 @@
 
 
 (uix.core/defui to-string-test-comp [props]
-  #el [:div {} (str "i am " (:foo props))])
+  (h :div {} (str "i am " (:foo props))))
 
 (deftest to-string-test []
-  (is (re-find #"i am foobar"
-               (as-string #el [to-string-test-comp {:foo "foobar"}]))))
+                        (is (re-find #"i am foobar"
+                                     (as-string (h to-string-test-comp {:foo "foobar"})))))
 
 (deftest data-aria-test []
-  (is (re-find #"data-foo"
-               (as-string #el [:div {:data-foo "x"}])))
-  (is (re-find #"aria-labelledby"
-               (as-string #el [:div {:aria-labelledby "x"}])))
-  (is (re-find #"enc[tT]ype"
-               (as-string #el [:div {"encType" "x"}]))
-      "Strings are passed through to React, and have to be camelcase.")
-  (is (re-find #"enc[tT]ype"
-               (as-string #el [:div {:enc-type "x"}]))
-      "Strings are passed through to React, and have to be camelcase."))
+                        (is (re-find #"data-foo"
+                                     (as-string (h :div {:data-foo "x"}))))
+                        (is (re-find #"aria-labelledby"
+                                     (as-string (h :div {:aria-labelledby "x"}))))
+                        (is (re-find #"enc[tT]ype"
+                                     (as-string (h :div {"encType" "x"})))
+                            "Strings are passed through to React, and have to be camelcase.")
+                        (is (re-find #"enc[tT]ype"
+                                     (as-string (h :div {:enc-type "x"})))
+                            "Strings are passed through to React, and have to be camelcase."))
 
 (deftest dynamic-id-class []
-  (is (re-find #"id=.foo"
-               (as-string #el [:div#foo {:class "bar"}])))
-  (is (re-find #"class=.foo bar"
-               (as-string #el [:div.foo {:class "bar"}])))
-  (is (re-find #"class=.foo bar"
-               (as-string #el [:div.foo.bar])))
-  (is (re-find #"id=.foo"
-               (as-string #el [:div#foo.foo.bar])))
-  (is (re-find #"class=.xxx bar"
-               (as-string #el [:div#foo.xxx.bar])))
-  (is (re-find #"id=.foo"
-               (as-string #el [:div.bar {:id "foo"}])))
-  (is (re-find #"id=.foo"
-               (as-string #el [:div.bar.xxx {:id "foo"}])))
-  (is (re-find #"id=.foo"
-               (as-string #el [:div#bar {:id "foo"}]))))
+                          (is (re-find #"id=.foo"
+                                       (as-string (h :div#foo {:class "bar"}))))
+                          (is (re-find #"class=.foo bar"
+                                       (as-string (h :div.foo {:class "bar"}))))
+                          (is (re-find #"class=.foo bar"
+                                       (as-string (h :div.foo.bar))))
+                          (is (re-find #"id=.foo"
+                                       (as-string (h :div#foo.foo.bar))))
+                          (is (re-find #"class=.xxx bar"
+                                       (as-string (h :div#foo.xxx.bar))))
+                          (is (re-find #"id=.foo"
+                                       (as-string (h :div.bar {:id "foo"}))))
+                          (is (re-find #"id=.foo"
+                                       (as-string (h :div.bar.xxx {:id "foo"}))))
+                          (is (re-find #"id=.foo"
+                                       (as-string (h :div#bar {:id "foo"})))))
 
 (uix.core/defui null-comp [do-show]
   (when do-show
-    #el [:div {} "div in test-null-component"]))
+    (h :div {} "div in test-null-component")))
 
 (deftest test-null-component
   (is (not (re-find #"test-null-component"
-                    (as-string #el [null-comp false]))))
+                    (as-string (h null-comp false)))))
   (is (re-find #"test-null-component"
-               (as-string #el [null-comp true]))))
+               (as-string (h null-comp true)))))
 
 (deftest test-class-from-collection
-  (is (= (as-string #el [:p {:class ["a" "b" "c" "d"]}])
-         (as-string #el [:p {:class "a b c d"}])))
-  (is (= (as-string #el [:p.x {:class ["a" "b" "c" "d"]}])
-         (as-string #el [:p {:class "x a b c d"}])))
-  (is (= (as-string #el [:p {:class ["a" nil "b" false "c" nil]}])
-         (as-string #el [:p {:class "a b c"}])))
+  (is (= (as-string (h :p {:class ["a" "b" "c" "d"]}))
+         (as-string (h :p {:class "a b c d"}))))
+  (is (= (as-string (h :p.x {:class ["a" "b" "c" "d"]}))
+         (as-string (h :p {:class "x a b c d"}))))
+  (is (= (as-string (h :p {:class ["a" nil "b" false "c" nil]}))
+         (as-string (h :p {:class "a b c"}))))
   (let [x ["b" "c"]]
-    (is (= (as-string #el [:p {:class x}])
-           (as-string #el [:p {:class "b c"}])))
-    (is (= (as-string #el [:p {:class (conj x "a")}])
-           (as-string #el [:p {:class "b c a"}])))
-    (is (= (as-string #el [:p.a {:class x}])
-           (as-string #el [:p {:class "a b c"}])))))
+    (is (= (as-string (h :p {:class x}))
+           (as-string (h :p {:class "b c"}))))
+    (is (= (as-string (h :p {:class (conj x "a")}))
+           (as-string (h :p {:class "b c a"}))))
+    (is (= (as-string (h :p.a {:class x}))
+           (as-string (h :p {:class "a b c"}))))))
 
 (deftest test-keyword-attrs-value
-  (is (= (as-string #el [:p {:title :hello}])
-         (as-string #el [:p {:title "hello"}])))
+  (is (= (as-string (h :p {:title :hello}))
+         (as-string (h :p {:title "hello"}))))
   (let [x :hello]
-    (is (= (as-string #el [:p {:title x}])
-           (as-string #el [:p {:title "hello"}]))))
-  (is (= (as-string #el [:p {:style {:text-align :center}}])
-         (as-string #el [:p {:style {:text-align "center"}}])))
+    (is (= (as-string (h :p {:title x}))
+           (as-string (h :p {:title "hello"})))))
+  (is (= (as-string (h :p {:style {:text-align :center}}))
+         (as-string (h :p {:style {:text-align "center"}}))))
   (let [x :center]
-    (is (= (as-string #el [:p {:style {:text-align x}}])
-           (as-string #el [:p {:style {:text-align "center"}}])))))
+    (is (= (as-string (h :p {:style {:text-align x}}))
+           (as-string (h :p {:style {:text-align "center"}}))))))
 
 (uix.core/defui key-tester []
-  #el [:div {}
-       (for [i (range 3)]
-         #el [:p {:key i} i])])
+  (h :div {}
+     (for [i (range 3)]
+       (h :p {:key i} i))))
 
 (deftest test-keys
-  (with-error #(as-string #el [key-tester])))
+  (with-error #(as-string (h key-tester))))
 
 
 (deftest style-property-names-are-camel-cased
   (is (re-find #"<div style=\"text-align:center(;?)\">foo</div>"
-               (as-string #el [:div {:style {:text-align "center"}} "foo"]))))
+               (as-string (h :div {:style {:text-align "center"}} "foo")))))
 
 (deftest custom-element-class-prop
   (is (re-find #"<custom-element class=\"foobar\">foo</custom-element>"
-               (as-string #el [:custom-element {:class "foobar"} "foo"])))
+               (as-string (h :custom-element {:class "foobar"} "foo"))))
 
   (is (re-find #"<custom-element class=\"foobar\">foo</custom-element>"
-               (as-string #el [:custom-element.foobar {} "foo"]))))
+               (as-string (h :custom-element.foobar {} "foo")))))
 
 (deftest test-fragments
   #_(testing "Fragment as array"
       (uix.core/defui comp1 []
-        #js [#el [:div {} "hello"]
-             #el [:div {} "world"]])
+        #js [(h :div {} "hello")
+             (h :div {} "world")])
       (is (= "<div>hello</div><div>world</div>"
-             (as-string #el [comp]))))
+             (as-string (h comp)))))
 
   (testing "Fragment element, :<>"
     (uix.core/defui comp2 []
-      #el [:<> {}
-           #el [:div {} "hello"]
-           #el [:div {} "world"]
-           #el [:div {} "foo"]])
+      (h :<> {}
+         (h :div {} "hello")
+         (h :div {} "world")
+         (h :div {} "foo")))
     (is (= "<div>hello</div><div>world</div><div>foo</div>"
-           (as-string #el [comp2]))))
+           (as-string (h comp2)))))
 
   (testing "Fragment key"
     ;; This would cause React warning if both fragments didn't have key set
     ;; But wont fail the test
     (uix.core/defui comp4 []
-      #el [:<> {}
-           #el [:div {} "foo"]])
+      (h :<> {}
+         (h :div {} "foo")))
     (uix.core/defui comp3 []
-      #el [:div {}
-           (list
-             #el [:<> {:key 1}
-                  #el [:div {} "hello"]
-                  #el [:div {} "world"]]
-             #el [comp4 {:key 2}]
-             #el [:<> {:key 3}
-                  #el [:div {} "1"]
-                  #el [:div {} "2"]])])
+      (h :div {}
+         (list
+           (h :<> {:key 1}
+              (h :div {} "hello")
+              (h :div {} "world"))
+           (h comp4 {:key 2})
+           (h :<> {:key 3}
+              (h :div {} "1")
+              (h :div {} "2")))))
     (is (= "<div><div>hello</div><div>world</div><div>foo</div><div>1</div><div>2</div></div>"
-           (as-string #el [comp3])))))
+           (as-string (h comp3))))))
 
 (deftest test-suspense
-  (is (.-type #el [:# {:fallback 1} 2])
+  (is (.-type (h :# {:fallback 1} 2))
       (symbol-for "react.suspense")))
 
 (deftest test-interop
   (testing "Interop element type"
-    (is (.-type #el [:> inc])
+    (is (.-type (h :> inc))
         inc))
   (testing "Shallowly converted props"
-    (let [el #el [:> inc {:a 1 :b {:c 2}} :child]
+    (let [el (h :> inc {:a 1 :b {:c 2}} :child)
           props (.-props el)]
       (is (.-a props) 1)
       (is (.-b props) {:c 2})
@@ -203,7 +203,7 @@
     (uix.core/defui test-c [props]
       (is (map? props) true)
       (is "TEXT" (:text props))
-      #el [:h1 (:text props)])
+      (h :h1 (:text props)))
     (let [h1 (uixc/as-react test-c)
           el (h1 #js {:text "TEXT"})
           props (.-props el)]
@@ -211,17 +211,17 @@
       (is (.-children props) "TEXT")))
 
 (deftest test-validate-component
-  (is (thrown-with-msg? js/Error #"Invalid use of a non-UIx component test in #el form\..*"
+  (is (thrown-with-msg? js/Error #"Invalid use of a non-UIx component test in `h` form\..*"
                         (uixc/validate-component #js {:name "test"})))
   (when ^boolean goog.DEBUG
-    (is (thrown-with-msg? js/Error #"Invalid use of a non-UIx component cljs\$core\$inc in #el form\..*"
-                          #el [inc])))
+    (is (thrown-with-msg? js/Error #"Invalid use of a non-UIx component cljs\$core\$inc in `h` form\..*"
+                          (h inc))))
   (let [target #js {:name "test"}]
     (set! (.-uix-component? target) true)
     (is (true? (uixc/validate-component target))))
   (when ^boolean goog.DEBUG
     (uix.core/defui test-comp [] "x")
-    (is (= test-comp (.-type #el [test-comp])))))
+    (is (= test-comp (.-type (h test-comp))))))
 
 (defn -main []
   (run-tests))
