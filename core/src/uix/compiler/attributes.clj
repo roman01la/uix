@@ -2,11 +2,11 @@
   (:require [clojure.string :as str]))
 
 (def re-tag
-  "UTL tag pattern :div :div#id.class etc."
+  "HyperScript tag pattern :div :div#id.class etc."
   #"([^\s\.#]+)(?:#([^\s\.#]+))?(?:\.([^\s#]+))?")
 
 (defn parse-tag
-  "Takes UTL tag (:div#id.class) and returns parsed tag, id and class fields"
+  "Takes HyperScript tag (:div#id.class) and returns parsed tag, id and class fields"
   [tag]
   (let [tag-str (name tag)]
     (when (and (not (re-matches re-tag tag-str))

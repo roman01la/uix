@@ -1,5 +1,4 @@
 (ns uix.compiler.alpha
-  "UTL and UIx components interpreter. Based on Reagent."
   (:require [react :as react]
             [uix.hooks.alpha :as hooks]
             [cljs-bean.core :as bean]

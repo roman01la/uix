@@ -1,5 +1,5 @@
 (ns uix.compiler.aot
-  "UTL compiler that translates UTL into React.js calls at compile-time."
+  "Compiler code that translates HyperScript into React calls at compile-time."
   (:require [uix.compiler.js :as js]
             [uix.compiler.attributes :as attrs]))
 
@@ -38,7 +38,7 @@
                 :always (js/to-js-map true)))
     `(uix.compiler.attributes/interpret-attrs ~props (cljs.core/array) true)))
 
-;; Compiles UTL into React.createElement
+;; Compiles HyperScript into React.createElement
 (defmulti compile-element
   (fn [[tag]]
     (cond

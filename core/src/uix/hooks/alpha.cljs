@@ -1,5 +1,5 @@
 (ns uix.hooks.alpha
-  "Wrappers for React.js Hooks"
+  "Wrappers for React Hooks"
   (:require [react :as r]))
 
 ;; == State hook ==

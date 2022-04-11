@@ -1,5 +1,5 @@
 (ns uix.compiler.aot
-  "Runtime helpers for UTL compiled into React.js"
+  "Runtime helpers for HyperScript compiled into React"
   (:require [react :as react]
             [uix.compiler.input]
             [uix.compiler.alpha :as r]
