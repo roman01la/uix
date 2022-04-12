@@ -1,6 +1,6 @@
 (ns uix.core-test
   (:require [clojure.test :refer :all]
-            [uix.core :refer [$]]
+            [uix.core :as uix]
             [uix.core.lazy-loader :refer [require-lazy]]))
 
 (require-lazy '[clojure.string :refer [blank?]])
