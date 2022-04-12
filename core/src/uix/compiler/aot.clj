@@ -1,5 +1,5 @@
 (ns uix.compiler.aot
-  "UTL compiler that translates UTL into React.js calls at compile-time."
+  "Compiler code that translates HyperScript into React calls at compile-time."
   (:require [uix.compiler.js :as js]
             [uix.compiler.attributes :as attrs]))
 
@@ -38,13 +38,12 @@
                 :always (js/to-js-map true)))
     `(uix.compiler.attributes/interpret-attrs ~props (cljs.core/array) true)))
 
-;; Compiles UTL into React.createElement
+;; Compiles HyperScript into React.createElement
 (defmulti compile-element
   (fn [[tag]]
     (cond
       (= :<> tag) :fragment
       (= :# tag) :suspense
-      (= :-> tag) :portal
       (= :> tag) :interop
       (keyword? tag) :element
       :else :component)))
@@ -80,27 +79,7 @@
         ret `(>el suspense ~attrs (cljs.core/array ~@children))]
     ret))
 
-(defmethod compile-element :portal [v]
-  (binding [*out* *err*]
-    (println "WARNING: React portal syntax :-> is deprecated, use uix.dom.alpha/create-portal instead"))
-  (let [[_ child node] v]
-    `(~'js/ReactDOM.createPortal ~child ~node)))
-
 (defmethod compile-element :interop [v]
   (let [[_ tag props & children] v
         props (compile-attrs :interop props nil)]
     `(>el ~tag ~props (cljs.core/array ~@children))))
-
-(defn compile-html
-  "Compiles UTL into React.js calls"
-  [expr]
-  (if (vector? expr)
-    (compile-element expr)
-    expr))
-
-(defn el-tag [expr]
-  (if (vector? expr)
-    (compile-element expr)
-    `(throw (js/Error. (str "#el should only be used together with vectors, found: #el " ~expr)))))
-
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

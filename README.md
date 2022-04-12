@@ -6,7 +6,6 @@ _Idiomatic ClojureScript interface to modern React.js_
 
 [![CircleCI](https://circleci.com/gh/pitch-io/uix.svg?style=svg)](https://circleci.com/gh/pitch-io/uix)
 
-
 ```clj
 {:deps {uix.core/uix.core {:git/url "https://github.com/pitch-io/uix.git"
                            :deps/root "core"
@@ -21,21 +20,21 @@ _Idiomatic ClojureScript interface to modern React.js_
 
 ```clj
 (ns my.app
-  (:require [uix.core :refer [defui]]
+  (:require [uix.core :refer [defui $]]
             [uix.dom]))
 
 (defui button [{:keys [on-click children]}]
-  #el [:button.btn {:on-click on-click}
-        children])
+  ($ :button.btn {:on-click on-click}
+    children))
 
 (defui app []
   (let [[state set-state!] (uix.core/use-state 0)]
-    #el [:<>
-      #el [button {:on-click #(set-state! dec)} "-"]
-      #el [:span state]
-      #el [button {:on-click #(set-state! inc)} "+"]]))
+    ($ :<>
+      ($ button {:on-click #(set-state! dec)} "-")
+      ($ :span state)]
+      ($ button {:on-click #(set-state! inc)} "+"))))
 
-(uix.dom/render #el [app] (js/document.getElementById "root"))
+(uix.dom/render ($ app) (js/document.getElementById "root"))
 ```
 
 ## Testing

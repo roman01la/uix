@@ -1,6 +1,6 @@
 (ns uix.core-test
   (:require [clojure.test :refer [deftest is async testing run-tests]]
-            [uix.core :as uix.core :refer [defui]]
+            [uix.core :refer [defui $]]
             ;[uix.core.lazy-loader :refer [require-lazy]]
             [uix.lib]
             [react :as r]
@@ -19,22 +19,22 @@
 #_(deftest test-memoize
     (uix.core/defui test-memoize-comp [{:keys [x]}]
       (is (= 1 x))
-      #el [:h1 x])
+      ($ :h1 x))
     (let [f (uix.core/memoize test-memoize-comp)]
       (is (t/react-element-of-type? f "react.memo"))
-      (is (= "<h1>1</h1>" (t/as-string #el [f {:x 1}])))))
+      (is (= "<h1>1</h1>" (t/as-string ($ f {:x 1}))))))
 
 #_(deftest test-require-lazy
     (require-lazy '[uix.core :refer [strict-mode]])
     (is (t/react-element-of-type? strict-mode "react.lazy")))
 
 (deftest test-html
-  (is (t/react-element-of-type? #el [:h1 1] "react.element")))
+  (is (t/react-element-of-type? ($ :h1 1) "react.element")))
 
 (deftest test-defui
   (defui h1 [{:keys [children]}]
-    #el [:h1 {} children])
-  (is (= (t/as-string #el [h1 {} 1])) "<h1>1</h1>"))
+    ($ :h1 {} children))
+  (is (= (t/as-string ($ h1 {} 1))) "<h1>1</h1>"))
 
 (deftest test-as-react
   (let [ctor (fn [props]
@@ -60,7 +60,7 @@
                   (done)
                   x))]
     (async done
-      (t/render #el [err-b {:done done :x 1}]))))
+      (t/render ($ err-b {:done done :x 1})))))
 
 #_(deftest test-create-error-boundary-2
     (let [handle-catch (atom nil)
@@ -84,7 +84,7 @@
                                 (js/setTimeout #(reset! cause :recover) 20)
                                 x))))]
       (async done
-        (t/render #el [err-b {:done done :x 1 :child child}]))))
+        (t/render ($ err-b {:done done :x 1 :child child})))))
 
 (defn -main []
   (run-tests))

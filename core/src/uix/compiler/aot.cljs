@@ -1,5 +1,5 @@
 (ns uix.compiler.aot
-  "Runtime helpers for UTL compiled into React.js"
+  "Runtime helpers for HyperScript compiled into React"
   (:require [react :as react]
             [uix.compiler.input]
             [uix.compiler.alpha :as r]
@@ -20,7 +20,7 @@
     (cond
       (hiccup? child)
       (throw (js/Error. (str "Hiccup is not valid as UIx child (found: " child ").\n"
-                             "If you meant to render UIx element, tag it with #el, i.e. #el " child "\n"
+                             "If you meant to render UIx element, use `$` macro, i.e. ($ " child ")\n"
                              "If you meant to render Reagent element, wrap it with r/as-element, i.e. (r/as-element " child ")")))
 
       (sequential? child)
