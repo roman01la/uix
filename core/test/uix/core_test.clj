@@ -21,7 +21,7 @@
   (is (thrown-with-msg? AssertionError #"uix.core\/defui should be a single-arity component"
         (uix.core/parse-sig 'component-name '([props x])))))
 
-(deftest test-h
+(deftest test-$
   (is (= (macroexpand-1 '(uix.core/$ :h1))
          '(uix.compiler.aot/>el "h1" (cljs.core/array nil) (cljs.core/array))))
   (is (= (macroexpand-1 '(uix.core/$ :> identity {} 1 2))
