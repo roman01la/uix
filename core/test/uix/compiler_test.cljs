@@ -211,10 +211,10 @@
       (is (.-children props) "TEXT")))
 
 (deftest test-validate-component
-  (is (thrown-with-msg? js/Error #"Invalid use of a non-UIx component test in `h` form\..*"
+  (is (thrown-with-msg? js/Error #"Invalid use of a non-UIx component test in `\$` form\..*"
                         (uixc/validate-component #js {:name "test"})))
   (when ^boolean goog.DEBUG
-    (is (thrown-with-msg? js/Error #"Invalid use of a non-UIx component cljs\$core\$inc in `h` form\..*"
+    (is (thrown-with-msg? js/Error #"Invalid use of a non-UIx component cljs\$core\$inc in `\$` form\..*"
                           ($ inc))))
   (let [target #js {:name "test"}]
     (set! (.-uix-component? target) true)
