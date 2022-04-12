@@ -4,6 +4,14 @@
             [uix.compiler.attributes :as attrs]))
 
 (deftest test-parse-tag
+  (is (= (attrs/parse-tag (name :#id.class))
+         ["div" "id" "class" false]))
+  (is (= (attrs/parse-tag (name :.class))
+         ["div" nil "class" false]))
+  (is (= (attrs/parse-tag (name :#id))
+         ["div" "id" nil false]))
+  (is (= (attrs/parse-tag (name :div.class#id.klass))
+         ["div" "id" "class klass" false]))
   (is (= (attrs/parse-tag (name :div#id.class))
          ["div" "id" "class" false]))
   (is (= (attrs/parse-tag (name :custom-tag))

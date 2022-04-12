@@ -2,21 +2,38 @@
   (:require [clojure.string :as str]))
 
 (def re-tag
-  "HyperScript tag pattern :div :div#id.class etc."
+  "HyperScript tag pattern :div#id.class etc."
   #"([^\s\.#]+)(?:#([^\s\.#]+))?(?:\.([^\s#]+))?")
 
+;; https://github.com/tonsky/rum/blob/gh-pages/src/daiquiri/normalize.cljc#L71
+(defn strip-css
+  "Strip the # and . characters from the beginning of `s`."
+  [s]
+  (when s
+    (str/replace s #"^[.#]" "")))
+
+;; https://github.com/tonsky/rum/blob/gh-pages/src/daiquiri/normalize.cljc#L77
 (defn parse-tag
-  "Takes HyperScript tag (:div#id.class) and returns parsed tag, id and class fields"
+  "Match `tag` as a CSS tag and return a vector of tag name, CSS id and
+  CSS classes."
   [tag]
-  (let [tag-str (name tag)]
-    (when (and (not (re-matches re-tag tag-str))
-               (re-find #"[#\.]" tag-str))
-      ;; Throwing NPE here because shadow catches those to bring up error view in a browser
-      (throw (NullPointerException. (str "Invalid tag name (found: " tag-str "). Make sure that the name matches the format and ordering is correct `:tag#id.class`"))))
-    (let [[tag id class-name] (next (re-matches re-tag tag-str))
-          class-name (when-not (nil? class-name)
-                       (str/replace class-name #"\." " "))]
-      (list tag id class-name (some? (re-find #"-" tag))))))
+  (let [matches (re-seq #"[#.]?[^#.]+" (name tag))
+        [tag-name names]
+        (cond (empty? matches)
+              (throw (ex-info (str "Invalid tag name (found: " tag ").") {:tag tag}))
+
+              ;; shorthand for div
+              (contains? #{\# \.} (ffirst matches))
+              ["div" matches]
+
+              :default
+              [(first matches) (rest matches)])
+        class (keep #(when (= \. (first %)) (strip-css %)) names)
+        id (some #(when (= \# (first %1)) %1) names)]
+    [tag-name
+     (when id (strip-css id))
+     (when (seq class) (str/join " " class))
+     (some? (re-find #"-" tag-name))]))
 
 (defn set-id-class
   "Takes attributes map and parsed tag, and returns attributes merged with class names and id"
