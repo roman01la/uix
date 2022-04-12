@@ -20,21 +20,21 @@ _Idiomatic ClojureScript interface to modern React.js_
 
 ```clj
 (ns my.app
-  (:require [uix.core :refer [defui h]]
+  (:require [uix.core :refer [defui $]]
             [uix.dom]))
 
 (defui button [{:keys [on-click children]}]
-  (h :button.btn {:on-click on-click}
+  ($ :button.btn {:on-click on-click}
     children))
 
 (defui app []
   (let [[state set-state!] (uix.core/use-state 0)]
-    (h :<>
-      (h button {:on-click #(set-state! dec)} "-")
-      (h :span state)]
-      (h button {:on-click #(set-state! inc)} "+"))))
+    ($ :<>
+      ($ button {:on-click #(set-state! dec)} "-")
+      ($ :span state)]
+      ($ button {:on-click #(set-state! inc)} "+"))))
 
-(uix.dom/render (h app) (js/document.getElementById "root"))
+(uix.dom/render ($ app) (js/document.getElementById "root"))
 ```
 
 ## Testing
