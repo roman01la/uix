@@ -57,11 +57,11 @@
   [sym]
   (uix.source/source sym))
 
-(defmacro h
+(defmacro $
   "Creates React element
 
-  DOM element: (h :button#id.class {:on-click handle-click} \"click me\")
-  React component: (h title-bar {:title \"Title\"})"
+  DOM element: ($ :button#id.class {:on-click handle-click} \"click me\")
+  React component: ($ title-bar {:title \"Title\"})"
   ([tag]
    (uix.compiler.aot/compile-element [tag]))
   ([tag props & children]

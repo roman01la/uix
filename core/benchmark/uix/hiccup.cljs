@@ -1,5 +1,5 @@
 (ns uix.hiccup
-  (:require [uix.core :refer [defui h]]))
+  (:require [uix.core :refer [defui $]]))
 
 (defn input-field [{:keys [field-type type placeholder size]
                     :or {field-type :input}}]
@@ -79,14 +79,14 @@
   [{:keys [field-type type placeholder size]
     :or {field-type :input}}]
   (if (= field-type :textarea)
-    (h :textarea
+    ($ :textarea
        {:class ["form-control" (get {:large "form-control-lg"} size)]
         :type type
         :placeholder placeholder
         :style {:border "1px solid blue"
                 :border-radius 3
                 :padding "4px 8px"}})
-    (h :input
+    ($ :input
        {:class ["form-control" (get {:large "form-control-lg"} size)]
         :type type
         :placeholder placeholder
@@ -95,7 +95,7 @@
                 :padding "4px 8px"}})))
 
 (defui button-compiled [{:keys [size kind class children]}]
-  (h :button.btn
+  ($ :button.btn
      {:class [(get {:large "btn-lg"} size)
               (get {:primary "btn-primary"} kind)
               class]
@@ -108,53 +108,53 @@
      children))
 
 (defui fieldset-compiled [{:keys [children]}]
-  (h :fieldset.form-group
+  ($ :fieldset.form-group
      {:style {:padding 8
               :border :none}}
      children))
 
 (defui form-compiled [{:keys [children]}]
-  (h :form children))
+  ($ :form children))
 
 (defui row-compiled [{:keys [children]}]
-  (h :div.row children))
+  ($ :div.row children))
 
 (defui col-compiled [{:keys [md xs offset-md children]}]
-  (h :div {:class [(str "col-md-" md)
+  ($ :div {:class [(str "col-md-" md)
                    (str "col-xs-" xs)
                    (str "offset-md-" offset-md)]}
      children))
 
 (defui editor-compiled []
-  (h :div.editor-page
-     (h :div.container.page
-        (h row-compiled
-           (h col-compiled
+  ($ :div.editor-page
+     ($ :div.container.page
+        ($ row-compiled
+           ($ col-compiled
               {:md 10
                :xs 12
                :offset-md 1}
-              (h form-compiled
-                 (h :fieldset
-                    (h fieldset-compiled
-                       (h input-field-compiled
+              ($ form-compiled
+                 ($ :fieldset
+                    ($ fieldset-compiled
+                       ($ input-field-compiled
                           {:type "text"
                            :placeholder "Article Title"
                            :size :large}))
-                    (h fieldset-compiled
-                       (h input-field-compiled
+                    ($ fieldset-compiled
+                       ($ input-field-compiled
                           {:type "text"
                            :placeholder "What's this article about?"}))
-                    (h fieldset-compiled
-                       (h input-field-compiled
+                    ($ fieldset-compiled
+                       ($ input-field-compiled
                           {:rows "8"
                            :field-type :textarea
                            :placeholder "Write your article (in markdown)"}))
-                    (h fieldset-compiled
-                       (h input-field-compiled
+                    ($ fieldset-compiled
+                       ($ input-field-compiled
                           {:type "text"
                            :placeholder "Enter tags"})
-                       (h :div.tag-list))
-                    (h button-compiled
+                       ($ :div.tag-list))
+                    ($ button-compiled
                        {:size :large
                         :kind :primary
                         :class "pull-xs-right"}

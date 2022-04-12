@@ -22,8 +22,8 @@
    (defn js-list [props]
      (let [items (gobj/get props "items")
            item (gobj/get props "itemComponent")]
-       (h "ul" #js {}
-          (map #(h item #js {:key %} %) items)))))
+       ($ "ul" #js {}
+          (map #($ item #js {:key %} %) items)))))
 
 (defn list-item [child]
   [:li child])

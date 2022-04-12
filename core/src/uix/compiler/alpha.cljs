@@ -23,7 +23,7 @@
     (let [name-str (or (.-displayName component-type)
                        (.-name component-type))]
       (throw (js/Error. (str "Invalid use of a non-UIx component " name-str " in `h` form.\n"
-                             "If you meant to render React element, use :> syntax for interop with JavaScript components, i.e. (h :> " name-str ")\n"
+                             "If you meant to render React element, use :> syntax for interop with JavaScript components, i.e. ($ :> " name-str ")\n"
                              "If you meant to render Reagent element, make it Hiccup wrapped with r/as-element, i.e. (r/as-element [" name-str "])")))))
   true)
 
