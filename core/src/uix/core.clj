@@ -2,7 +2,8 @@
   "Public API"
   (:require [uix.compiler.aot]
             [uix.source]
-            [cljs.core]))
+            [cljs.core]
+            [uix.hooks.linter :as hooks.linter]))
 
 (defn- no-args-component [sym body]
   `(defn ~sym []
@@ -45,6 +46,7 @@
 
   (let [[fname args fdecl] (parse-sig sym fdecl)]
     (uix.source/register-symbol! sym)
+    (hooks.linter/lint! sym fdecl &env)
     `(do
        ~(if (empty? args)
           (no-args-component fname fdecl)
