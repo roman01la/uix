@@ -1,9 +1,9 @@
 (ns uix.hooks.linter
   (:require [clojure.walk]
-            [clojure.pprint :as pp]))
+            [clojure.pprint :as pp]
+            [cljs.analyzer :as ana]))
 
 (def ^:dynamic *component-context* nil)
-(def ^:dynamic *source-context* false)
 (def ^:dynamic *in-branch?* false)
 (def ^:dynamic *in-loop?* false)
 
@@ -101,7 +101,6 @@
 
 (defn add-error! [form type]
   (swap! *component-context* update :errors conj {:source form
-                                                  :source-context *source-context*
                                                   :type type}))
 
 (defn lint-hooks!*
@@ -114,13 +113,12 @@
       (fn [form]
         (cond
           (and (list? form) (hook? (first form)))
-          (do (when *in-branch?* (add-error! form :hook-in-branch))
-              (when *in-loop?* (add-error! form :hook-in-loop))
+          (do (when *in-branch?* (add-error! form ::hook-in-branch))
+              (when *in-loop?* (add-error! form ::hook-in-loop))
               nil)
 
           (and (list? form) (or (not *in-branch?*) (not *in-loop?*)))
-          (binding [*source-context* form]
-            (maybe-lint form))
+          (maybe-lint form)
 
           :else form))
       expr)
@@ -129,37 +127,28 @@
 (defn lint-hooks! [exprs]
   (run! lint-hooks!* exprs))
 
-(defmulti error->msg (fn [_ err] (:type err)))
-
-(defmethod error->msg :hook-in-branch [{:keys [name column line]} {:keys [source source-context]}]
+(defmethod ana/error-message ::hook-in-branch [_ {:keys [name column line source]}]
   ;; https://github.com/facebook/react/blob/d63cd972454125d4572bb8ffbfeccbdf0c5eb27b/packages/eslint-plugin-react-hooks/src/RulesOfHooks.js#L457
   (str "React Hook " source " is called conditionally.\n"
        "React Hooks must be called in the exact same order in every component render.\n"
-       "Found in " name ", at " line ":" column "\n"
-       "Problematic code: " (with-out-str (pp/pprint source-context))))
+       "Found in " name ", at " line ":" column))
 
-(defmethod error->msg :hook-in-loop [{:keys [name column line]} {:keys [source source-context]}]
+(defmethod ana/error-message ::hook-in-loop [_ {:keys [name column line source]}]
   ;; https://github.com/facebook/react/blob/d63cd972454125d4572bb8ffbfeccbdf0c5eb27b/packages/eslint-plugin-react-hooks/src/RulesOfHooks.js#L438
   (str "React Hook " source " may be executed more than once. "
        "Possibly because it is called in a loop. "
        "React Hooks must be called in the exact same order in "
        "every component render.\n"
-       "Found in " name ", at " line ":" column "\n"
-       "Problematic code: " (with-out-str (pp/pprint source-context))))
+       "Found in " name ", at " line ":" column))
 
 (defn lint! [sym form env]
   (binding [*component-context* (atom {:errors []})]
     (lint-hooks! form)
     (let [{:keys [errors]} @*component-context*
           {:keys [column line]} env]
-      (binding [*out* *err*]
-        (->> errors
-             (map (fn [err]
-                    [(error->msg
-                       {:name (str (-> env :ns :name) "/" sym)
-                        :column column
-                        :line line}
-                       err)
-                     (:type err)]))
-             (run! (fn [[msg tag]] (throw (ex-info msg {:tag tag})))))))))
+      (run! #(ana/warning (:type %) env (into {:name (str (-> env :ns :name) "/" sym)
+                                               :column column
+                                               :line line}
+                                              %))
+            errors))))
 
