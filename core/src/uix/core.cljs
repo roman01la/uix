@@ -75,19 +75,27 @@
   []
   (r/createRef))
 
+(defn glue-args [^js props]
+  (cond-> (.-argv props)
+          (.-children props) (assoc :children (.-children props))))
+
+(defn- memo-compare-args [a b]
+  (= (glue-args a) (glue-args b)))
+
 (defn memo
-  "Takes component `f` and comparator function `should-update?`
+  "Takes component `f` and optional comparator function `should-update?`
   that takes previous and next props of the component.
   Returns memoized `f`.
 
   When `should-update?` is not provided uses default comparator
-  that compares props with clojure.core/=
-
-  UIx components are memoized by default"
+  that compares props with clojure.core/="
   ([f]
-   (memo f compiler/*default-compare-args*))
-  ([f should-update?]
-   (react/memo f should-update?)))
+   (memo f memo-compare-args))
+  ([^js f should-update?]
+   (let [fm (react/memo f should-update?)]
+     (when (.-uix-component? f)
+       (set! (.-uix-component? fm) true))
+     fm)))
 
 (defn use-state
   "Takes initial value and returns React's state hook wrapped in atom-like type."
@@ -140,12 +148,6 @@
   "Takes React context and returns its current value"
   [v]
   (hooks/use-context v))
-
-(def create-element r/createElemenet)
-
-(defn glue-args [^js props]
-  (cond-> (.-argv props)
-          (.-children props) (assoc :children (.-children props))))
 
 (def with-name debug/with-name)
 
