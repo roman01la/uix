@@ -4,6 +4,7 @@
             [cljs.analyzer :as ana]))
 
 (def ^:dynamic *component-context* nil)
+(def ^:dynamic *source-context* false)
 (def ^:dynamic *in-branch?* false)
 (def ^:dynamic *in-loop?* false)
 
@@ -101,6 +102,7 @@
 
 (defn add-error! [form type]
   (swap! *component-context* update :errors conj {:source form
+                                                  :source-context *source-context*
                                                   :type type}))
 
 (defn lint-hooks!*
@@ -118,7 +120,8 @@
               nil)
 
           (and (list? form) (or (not *in-branch?*) (not *in-loop?*)))
-          (maybe-lint form)
+          (binding [*source-context* form]
+            (maybe-lint form))
 
           :else form))
       expr)
