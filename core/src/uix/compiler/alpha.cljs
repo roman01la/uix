@@ -4,8 +4,6 @@
             [cljs-bean.core :as bean]
             [uix.compiler.debug :as debug]))
 
-(def ^:dynamic *default-compare-args* #(= (.-argv %1) (.-argv %2)))
-
 (defn js-val? [x]
   (not (identical? "object" (goog/typeOf x))))
 
