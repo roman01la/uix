@@ -211,28 +211,35 @@
 (defn- deps->literals [deps]
   (filter literal? deps))
 
-(defn lint-exhaustive-deps! [env form f deps]
+(defn- lint-deps [form deps]
   (when deps
     (cond
       ;; when deps are passed as JS Array, should be a vector instead
-      (and (= (type deps) JSValue) (vector? (.-val deps)))
-      (ana/warning ::deps-array-literal env {:source form})
+      (and (= (type deps) JSValue) (vector? (.-val deps))) [::deps-array-literal {:source form}]
 
       ;; when deps are neither JS Array nor Clojure's vector, should be a vector instead
-      (not (vector? deps))
-      (ana/warning ::deps-coll-literal env {:source form})
+      (not (vector? deps)) [::deps-coll-literal {:source form}]
 
       ;; when deps vector has a primitive literal, it can be safely removed
-      (seq (deps->literals deps))
-      (ana/warning ::literal-value-in-deps env {:source form :literals (deps->literals deps)})))
+      (seq (deps->literals deps)) [::literal-value-in-deps {:source form :literals (deps->literals deps)}])))
 
+(defn- lint-body [env form f deps]
   (cond
     ;; when a reference to a function passed into a hook, should be an inline function instead
-    (not (fn-literal? f))
-    (ana/warning ::inline-function env {:source form})
+    (not (fn-literal? f)) [::inline-function {:source form}]
 
     (vector? deps)
     (let [syms (find-free-variables env f deps)]
       ;; when hook function is referencing vars from out scope that are missing in deps vector
       (when (seq syms)
-        (ana/warning ::missing-deps env {:syms syms :deps deps :source form})))))
+        [::missing-deps {:syms syms :deps deps :source form}]))))
+
+(defn lint-exhaustive-deps [env form f deps]
+  (let [errors [(lint-deps form deps)
+                (lint-body env form f deps)]]
+    (filter identity errors)))
+
+(defn lint-exhaustive-deps! [env form f deps]
+  (doseq [[error-type opts] (lint-exhaustive-deps env form f deps)]
+    (ana/warning error-type env opts)))
+

@@ -78,14 +78,16 @@
 
 (defn- make-hook-with-deps [sym env form f deps]
   (hooks.linter/lint-exhaustive-deps! env form f deps)
-  `(~sym ~f ~(vector->js-array deps)))
+  (if deps
+    `(~sym ~f ~(vector->js-array deps))
+    `(~sym ~f)))
 
 (defmacro use-effect
   "Takes a function to be executed in an effect and optional vector of dependencies.
 
   See: https://reactjs.org/docs/hooks-reference.html#useeffect"
   ([f]
-   `(use-effect f nil))
+   (make-hook-with-deps 'uix.hooks.alpha/use-effect &env &form f nil))
   ([f deps]
    (make-hook-with-deps 'uix.hooks.alpha/use-effect &env &form f deps)))
 
@@ -93,8 +95,8 @@
   "Takes a function to be executed in a layout effect and optional vector of dependencies.
 
   See: https://reactjs.org/docs/hooks-reference.html#uselayouteffect"
-  ([setup-fn]
-   `(use-layout-effect setup-fn nil))
+  ([f]
+   (make-hook-with-deps 'uix.hooks.alpha/use-layout-effect &env &form f nil))
   ([f deps]
    (make-hook-with-deps 'uix.hooks.alpha/use-layout-effect &env &form f deps)))
 
@@ -103,7 +105,7 @@
 
    See: https://reactjs.org/docs/hooks-reference.html#usememo"
   ([f]
-   `(use-memo f nil))
+   (make-hook-with-deps 'uix.hooks.alpha/use-memo &env &form f nil))
   ([f deps]
    (make-hook-with-deps 'uix.hooks.alpha/use-memo &env &form f deps)))
 
@@ -112,7 +114,7 @@
 
   See: https://reactjs.org/docs/hooks-reference.html#usecallback"
   ([f]
-   `(use-callback f nil))
+   (make-hook-with-deps 'uix.hooks.alpha/use-callback &env &form f nil))
   ([f deps]
    (make-hook-with-deps 'uix.hooks.alpha/use-callback &env &form f deps)))
 
@@ -121,7 +123,8 @@
 
   See: https://reactjs.org/docs/hooks-reference.html#useimperativehandle"
   ([ref f]
-   `(use-imperative-handle ref f nil))
+   (hooks.linter/lint-exhaustive-deps! &env &form f nil)
+   `(uix.hooks.alpha/use-imperative-handle ~ref ~f))
   ([ref f deps]
    (hooks.linter/lint-exhaustive-deps! &env &form f deps)
    `(uix.hooks.alpha/use-imperative-handle ~ref ~f ~(vector->js-array deps))))
