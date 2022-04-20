@@ -5,15 +5,22 @@
             [cljs.core]
             [uix.hooks.linter :as hooks.linter]))
 
+(def ^:private goog-debug (with-meta 'goog.DEBUG {:tag 'boolean}))
+
 (defn- no-args-component [sym body]
   `(defn ~sym []
-     ~@body))
+     (let [f# (fn [] ~@body)]
+       (if ~goog-debug
+         (binding [*current-component* ~sym] (f#))
+         (f#)))))
 
 (defn- with-args-component [sym args body]
   `(defn ~sym [props#]
      (let [~args (cljs.core/array (glue-args props#))
            f# (fn [] ~@body)]
-       (f#))))
+       (if ~goog-debug
+         (binding [*current-component* ~sym] (f#))
+         (f#)))))
 
 (defn parse-sig [name fdecl]
   (let [[fdecl m] (if (string? (first fdecl))
