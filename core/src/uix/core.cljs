@@ -8,6 +8,8 @@
             [uix.compiler.aot]
             [uix.lib :refer [doseq-loop]]))
 
+(def ^:dynamic *current-component*)
+
 ;; React's top-level API
 
 (defn create-class
@@ -109,13 +111,17 @@
   ([value]
    (hooks/use-ref value)))
 
-(defn create-context [v]
-  (react/createContext v))
+(defn create-context
+  "Creates React Context with an optional default value"
+  ([]
+   (react/createContext))
+  ([default-value]
+   (react/createContext default-value)))
 
 (defn use-context
   "Takes React context and returns its current value"
-  [v]
-  (hooks/use-context v))
+  [context]
+  (hooks/use-context context))
 
 (def with-name debug/with-name)
 
