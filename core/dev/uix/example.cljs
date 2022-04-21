@@ -1,7 +1,7 @@
 (ns uix.example
   (:require [cljs.js :as cljs]
             [uix.core :as uix.core]
-            [uix.dom.alpha :as uix.dom]))
+            [uix.dom]))
 
 (def st (cljs/empty-state))
 

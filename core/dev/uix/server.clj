@@ -1,7 +1,7 @@
 (ns uix.server
   (:require [aleph.http :as http]
             [manifold.stream :as s]
-            [uix.dom.alpha :as uix.dom]
+            [uix.dom]
             [uix.recipes :as recipes]
             [clojure.string :as str]))
 

@@ -1,5 +1,5 @@
 (require '[uix.core :as uix.core])
-(require '[uix.dom.alpha :as uix.dom])
+(require '[uix.dom])
 (require '[clojure.string :as str])
 
 (defn fetch-repos [uname]
