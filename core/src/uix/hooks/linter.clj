@@ -1,7 +1,8 @@
 (ns uix.hooks.linter
   (:require [clojure.walk]
             [cljs.analyzer :as ana]
-            [clojure.string :as str])
+            [clojure.string :as str]
+            [clojure.pprint :as pp])
   (:import (cljs.tagged_literals JSValue)))
 
 ;; === Rules of Hooks ===
@@ -160,9 +161,8 @@
 
 ;; === Exhaustive Deps ===
 
-(defn find-free-variables [env f deps]
-  (let [syms (atom #{})
-        deps (set deps)]
+(defn find-local-variables [env f]
+  (let [syms (atom #{})]
     (clojure.walk/postwalk
       #(cond
          (symbol? %)
@@ -174,33 +174,66 @@
 
          :else %)
       f)
-    (keep #(let [local (get-in env [:locals % :name])]
-             (when (and local (nil? (deps local)))
-               local))
-          @syms)))
+    (filter #(get-in env [:locals % :name]) @syms)))
+
+(defn find-free-variables [env f deps]
+  (let [all-local-variables (find-local-variables env f)
+        deps (set deps)]
+    (filter #(nil? (deps %)) all-local-variables)))
+
+(defn ppr [s]
+  (let [source (->> (with-out-str (pp/pprint s))
+                    str/split-lines
+                    (take 8)
+                    (str/join "\n"))]
+    (str "```\n" source "\n```")))
 
 (defmethod ana/error-message ::inline-function [_ {:keys [source]}]
-  (str "React Hook " source " received a function whose dependencies "
-       "are unknown. Pass an inline function instead."))
+  (str "React Hook received a function whose dependencies "
+       "are unknown. Pass an inline function instead.\n"
+       (ppr source)))
 
-(defmethod ana/error-message ::missing-deps [_ {:keys [source syms deps]}]
-  (str "React Hook " source " has missing dependencies: [" (str/join " " syms) "]. "
-       "Update the dependencies vector to be: [" (str/join " " (concat deps syms)) "]"))
+(defmethod ana/error-message ::missing-deps [_ {:keys [source missing-deps unnecessary-deps suggested-deps]}]
+  (str "React Hook has "
+       (when (seq missing-deps)
+         (str "missing dependencies: [" (str/join " " missing-deps) "]\n"))
+       (when (seq unnecessary-deps)
+         (str (when (seq missing-deps) "and ")
+              "unnecessary dependencies: [" (str/join " " unnecessary-deps) "]\n"
+              (->> unnecessary-deps
+                   (keep (fn [sym]
+                           (case (:hook (meta sym))
+                             "use-ref" (str "`" sym "` is an unnecessary dependency because it's a ref that doesn't change")
+                             ("use-state" "use-reducer") (str "`" sym "` is an unnecessary dependency because it's a state updater function that is memoized")
+                             nil)))
+                   (str/join "\n"))
+              "\n"))
+       "Update the dependencies vector to be: [" (str/join " " suggested-deps) "]\n"
+       (ppr source)))
 
 (defmethod ana/error-message ::deps-array-literal [_ {:keys [source]}]
-  (str "React Hook " source " was passed a "
+  (str "React Hook was passed a "
        "dependency list that is a JavaScript array, instead of Clojure’s vector. "
-       "Change it to be a vector literal."))
+       "Change it to be a vector literal.\n"
+       (ppr source)))
 
 (defmethod ana/error-message ::deps-coll-literal [_ {:keys [source]}]
-  (str "React Hook " source " was passed a "
+  (str "React Hook was passed a "
        "dependency list that is not a vector literal. This means we "
        "can’t statically verify whether you've passed the correct dependencies. "
-       "Change it to be a vector literal with explicit set of dependencies."))
+       "Change it to be a vector literal with explicit set of dependencies.\n"
+       (ppr source)))
 
 (defmethod ana/error-message ::literal-value-in-deps [_ {:keys [source literals]}]
-  (str "React Hook " source " was passed literal values in dependency vector: [" (str/join ", " literals) "]. "
-       "Those are not valid dependencies because they never change. You can safely remove them."))
+  (str "React Hook was passed literal values in dependency vector: [" (str/join ", " literals) "]\n"
+       "Those are not valid dependencies because they never change. You can safely remove them.\n"
+       (ppr source)))
+
+(defmethod ana/error-message ::unsafe-set-state [_ {:keys [source unsafe-calls]}]
+  (str "React Hook contains a call to `" (first unsafe-calls) "`.\n"
+       "Without a vector of dependencies, this can lead to an infinite chain of updates.\n"
+       "To fix this, pass the state value into a vector of dependencies of the hook.\n"
+       (ppr source)))
 
 (defn- fn-literal? [form]
   (and (list? form) ('#{fn fn*} (first form))))
@@ -223,16 +256,48 @@
       ;; when deps vector has a primitive literal, it can be safely removed
       (seq (deps->literals deps)) [::literal-value-in-deps {:source form :literals (deps->literals deps)}])))
 
+(defn find-hook-for-symbol [env sym]
+  (when-let [init (-> env :locals (get sym) :init)]
+    (let [form (:form init)]
+      (when (list? form)
+        (cond
+          (and (= 'clojure.core/nth (first form)) (= 1 (nth form 2)))
+          (recur (:env init) (second form))
+
+          (hook? (first form))
+          (name (first form)))))))
+
+(defn find-unnecessary-deps [env deps]
+  (keep (fn [sym]
+          (when-let [hook (find-hook-for-symbol env sym)]
+            (when (#{"use-state" "use-reducer" "use-ref"} hook)
+              (with-meta sym {:hook hook}))))
+        deps))
+
 (defn- lint-body [env form f deps]
   (cond
     ;; when a reference to a function passed into a hook, should be an inline function instead
     (not (fn-literal? f)) [::inline-function {:source form}]
 
     (vector? deps)
-    (let [syms (find-free-variables env f deps)]
+    (let [free-vars (find-free-variables env f deps)
+          all-unnecessary-deps (set (find-unnecessary-deps env (concat free-vars deps)))
+          declared-unnecessary-deps (keep all-unnecessary-deps deps)
+          missing-deps (filter (comp not all-unnecessary-deps) free-vars)
+          suggested-deps (-> (filter (comp not (set declared-unnecessary-deps)) deps)
+                             (into missing-deps))]
       ;; when hook function is referencing vars from out scope that are missing in deps vector
-      (when (seq syms)
-        [::missing-deps {:syms syms :deps deps :source form}]))))
+      (when (or (seq missing-deps) (seq declared-unnecessary-deps))
+        [::missing-deps {:missing-deps missing-deps
+                         :unnecessary-deps declared-unnecessary-deps
+                         :suggested-deps suggested-deps
+                         :source form}]))
+
+    (nil? deps)
+    (let [unsafe-calls (->> (find-local-variables env f)
+                            (filterv #(#{"use-state" "use-reducer"} (find-hook-for-symbol env %))))]
+      [::unsafe-set-state {:unsafe-calls unsafe-calls
+                           :source form}])))
 
 (defn lint-exhaustive-deps [env form f deps]
   (let [errors [(lint-deps form deps)
