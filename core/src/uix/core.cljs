@@ -8,6 +8,8 @@
             [uix.compiler.aot]
             [uix.lib :refer [doseq-loop]]))
 
+(def ^:dynamic *current-component*)
+
 ;; React's top-level API
 
 (defn create-class
