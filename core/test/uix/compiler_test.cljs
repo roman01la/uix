@@ -4,7 +4,7 @@
             [uix.test-utils :refer [as-string js-equal? with-error symbol-for]]
             [uix.compiler.debug :as debug]
             [uix.core :refer [$]]
-            [uix.dom.alpha :as uix.dom]
+            [uix.dom]
             [clojure.string :as str]))
 
 (enable-console-print!)
