@@ -55,8 +55,11 @@
   (r/useContext v))
 
 ;; == Imperative Handle hook ==
-(defn use-imperative-handle [ref create-handle deps]
-  (r/useImperativeHandle ref create-handle deps))
+(defn use-imperative-handle
+  ([ref create-handle]
+   (r/useImperativeHandle ref create-handle))
+  ([ref create-handle deps]
+   (r/useImperativeHandle ref create-handle deps)))
 
 ;; == Debug hook ==
 (defn use-debug

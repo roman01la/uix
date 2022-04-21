@@ -104,44 +104,12 @@
   [value]
   (hooks/use-state value))
 
-(defn use-effect
-  "Takes a function to be executed in an effect and optional vector of dependencies.
-
-  See: https://reactjs.org/docs/hooks-reference.html#useeffect"
-  ([setup-fn]
-   (hooks/use-effect setup-fn))
-  ([setup-fn deps]
-   (hooks/use-effect setup-fn deps)))
-
-(defn use-layout-effect
-  "Takes a function to be executed in a layout effect and optional vector of dependencies.
-
-  See: https://reactjs.org/docs/hooks-reference.html#uselayouteffect"
-  ([setup-fn]
-   (hooks/use-layout-effect setup-fn))
-  ([setup-fn deps]
-   (hooks/use-layout-effect setup-fn deps)))
-
-(defn use-memo
-  "Takes function f and optional vector of dependencies, and returns memoized f."
-  ([f]
-   (hooks/use-memo f))
-  ([f deps]
-   (hooks/use-memo f deps)))
-
 (defn use-ref
   "Takes optional initial value and returns React's ref hook wrapped in atom-like type."
   ([]
    (hooks/use-ref nil))
   ([value]
    (hooks/use-ref value)))
-
-(defn use-callback
-  "Takes function f and optional vector of dependencies, and returns f."
-  ([f]
-   (hooks/use-callback f))
-  ([f deps]
-   (hooks/use-callback f deps)))
 
 (defn create-context
   "Creates React Context with an optional default value"

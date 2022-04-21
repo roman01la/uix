@@ -1,6 +1,9 @@
 (ns uix.hooks.linter-test
   (:require [clojure.test :refer [deftest is testing]]
-            [uix.hooks.linter :as hooks.linter]))
+            [uix.hooks.linter :as hooks.linter])
+  (:import (cljs.tagged_literals JSValue)))
+
+;; === Rules of Hooks ===
 
 (defn lint-syms [syms expr-fn]
   (binding [hooks.linter/*component-context* (atom {:errors []})]
@@ -204,3 +207,29 @@
     (testing "hook at anonymous f shorthand position should error"
       (let [[exprs errors] (lint-syms syms (fn [sym] (list sym '#(use-state %) 'coll)))]
         (is (= exprs errors))))))
+
+;; === Exhaustive Deps ===
+
+(deftest test-lint-exhaustive-deps
+  (testing "should report on a function reference passed into a hook"
+    (is (= '([:uix.hooks.linter/inline-function {:source (use-effect identity)}])
+           (hooks.linter/lint-exhaustive-deps {} '(use-effect identity) 'identity nil)))
+    (is (= '([:uix.hooks.linter/inline-function {:source (use-effect identity)}])
+           (hooks.linter/lint-exhaustive-deps {} '(use-effect identity) 'identity []))))
+  (testing "should report on deps being a JS array"
+    (is (= '([:uix.hooks.linter/deps-array-literal {:source (use-effect (fn []) [])}])
+           (hooks.linter/lint-exhaustive-deps {} '(use-effect (fn []) []) '(fn []) (JSValue. [])))))
+  (testing "should report on deps being something else, rather than vector"
+    (is (= '([:uix.hooks.linter/deps-coll-literal {:source (use-effect (fn []) coll)}])
+           (hooks.linter/lint-exhaustive-deps {} '(use-effect (fn []) coll) '(fn []) 'coll))))
+  (testing "should report on deps vector including a literal of a primitive type"
+    (is (= '([:uix.hooks.linter/literal-value-in-deps {:source (use-effect (fn []) [:kw]), :literals (:kw)}])
+           (hooks.linter/lint-exhaustive-deps {} '(use-effect (fn []) [:kw]) '(fn []) [:kw])))
+    (is (= '([:uix.hooks.linter/literal-value-in-deps {:source (use-effect (fn []) [1]), :literals (1)}])
+           (hooks.linter/lint-exhaustive-deps {} '(use-effect (fn []) [1]) '(fn []) [1])))
+    (is (= '([:uix.hooks.linter/literal-value-in-deps {:source (use-effect (fn []) [":kw"]), :literals (":kw")}])
+           (hooks.linter/lint-exhaustive-deps {} '(use-effect (fn []) [":kw"]) '(fn []) [":kw"])))
+    (is (= '([:uix.hooks.linter/literal-value-in-deps {:source (use-effect (fn []) [nil]), :literals (nil)}])
+           (hooks.linter/lint-exhaustive-deps {} '(use-effect (fn []) [nil]) '(fn []) [nil])))
+    (is (= '([:uix.hooks.linter/literal-value-in-deps {:source (use-effect (fn []) [true]), :literals (true)}])
+           (hooks.linter/lint-exhaustive-deps {} '(use-effect (fn []) [true]) '(fn []) [true])))))

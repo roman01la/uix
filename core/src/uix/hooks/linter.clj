@@ -1,7 +1,10 @@
 (ns uix.hooks.linter
   (:require [clojure.walk]
-            [clojure.pprint :as pp]
-            [cljs.analyzer :as ana]))
+            [cljs.analyzer :as ana]
+            [clojure.string :as str])
+  (:import (cljs.tagged_literals JSValue)))
+
+;; === Rules of Hooks ===
 
 (def ^:dynamic *component-context* nil)
 (def ^:dynamic *source-context* false)
@@ -154,4 +157,89 @@
                                                :line line}
                                               %))
             errors))))
+
+;; === Exhaustive Deps ===
+
+(defn find-free-variables [env f deps]
+  (let [syms (atom #{})
+        deps (set deps)]
+    (clojure.walk/postwalk
+      #(cond
+         (symbol? %)
+         (do (swap! syms conj %)
+             %)
+
+         (= (type %) JSValue)
+         (.-val %)
+
+         :else %)
+      f)
+    (keep #(let [local (get-in env [:locals % :name])]
+             (when (and local (nil? (deps local)))
+               local))
+          @syms)))
+
+(defmethod ana/error-message ::inline-function [_ {:keys [source]}]
+  (str "React Hook " source " received a function whose dependencies "
+       "are unknown. Pass an inline function instead."))
+
+(defmethod ana/error-message ::missing-deps [_ {:keys [source syms deps]}]
+  (str "React Hook " source " has missing dependencies: [" (str/join " " syms) "]. "
+       "Update the dependencies vector to be: [" (str/join " " (concat deps syms)) "]"))
+
+(defmethod ana/error-message ::deps-array-literal [_ {:keys [source]}]
+  (str "React Hook " source " was passed a "
+       "dependency list that is a JavaScript array, instead of Clojure’s vector. "
+       "Change it to be a vector literal."))
+
+(defmethod ana/error-message ::deps-coll-literal [_ {:keys [source]}]
+  (str "React Hook " source " was passed a "
+       "dependency list that is not a vector literal. This means we "
+       "can’t statically verify whether you've passed the correct dependencies. "
+       "Change it to be a vector literal with explicit set of dependencies."))
+
+(defmethod ana/error-message ::literal-value-in-deps [_ {:keys [source literals]}]
+  (str "React Hook " source " was passed literal values in dependency vector: [" (str/join ", " literals) "]. "
+       "Those are not valid dependencies because they never change. You can safely remove them."))
+
+(defn- fn-literal? [form]
+  (and (list? form) ('#{fn fn*} (first form))))
+
+(def literal?
+  (some-fn keyword? number? string? nil? boolean?))
+
+(defn- deps->literals [deps]
+  (filter literal? deps))
+
+(defn- lint-deps [form deps]
+  (when deps
+    (cond
+      ;; when deps are passed as JS Array, should be a vector instead
+      (and (= (type deps) JSValue) (vector? (.-val deps))) [::deps-array-literal {:source form}]
+
+      ;; when deps are neither JS Array nor Clojure's vector, should be a vector instead
+      (not (vector? deps)) [::deps-coll-literal {:source form}]
+
+      ;; when deps vector has a primitive literal, it can be safely removed
+      (seq (deps->literals deps)) [::literal-value-in-deps {:source form :literals (deps->literals deps)}])))
+
+(defn- lint-body [env form f deps]
+  (cond
+    ;; when a reference to a function passed into a hook, should be an inline function instead
+    (not (fn-literal? f)) [::inline-function {:source form}]
+
+    (vector? deps)
+    (let [syms (find-free-variables env f deps)]
+      ;; when hook function is referencing vars from out scope that are missing in deps vector
+      (when (seq syms)
+        [::missing-deps {:syms syms :deps deps :source form}]))))
+
+(defn lint-exhaustive-deps [env form f deps]
+  (let [errors [(lint-deps form deps)
+                (lint-body env form f deps)]]
+    (filter identity errors)))
+
+(defn lint-exhaustive-deps! [env form f deps]
+  (doseq [[error-type opts] (lint-exhaustive-deps env form f deps)]
+    (ana/warning error-type env opts)))
 
