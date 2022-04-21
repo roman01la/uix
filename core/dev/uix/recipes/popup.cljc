@@ -2,7 +2,7 @@
   "This recipe shows how to use React's portals
   to render components into a different DOM node."
   (:require [uix.core :as uix]
-            [uix.dom.alpha :as dom]))
+            [uix.dom :as dom]))
 
 (defn popup [{:keys [on-close]}]
   [:div {:style {:position :absolute

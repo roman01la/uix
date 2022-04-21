@@ -2,7 +2,7 @@
   (:require ["react-dom/server" :as rserver]
             [goog.object :as gobj]
             [clojure.test :refer [is]]
-            [uix.dom.alpha :as dom]))
+            [uix.dom :as dom]))
 
 (defn as-string [el]
   (rserver/renderToStaticMarkup el))
