@@ -2,7 +2,7 @@
         org.clojure/clojurescript {:mvn/version "1.10.739"}
         uix.core/uix.core {:git/url "https://github.com/pitch-io/uix.git"
                            :deps/root "core"
-                           :sha "6ecba02eccab0de923f5a78878aa7efd7d05c0fe"}}
+                           :sha "b0cbf0bd47f83dfa2b0d6c7953bbaab008a927b2"}}
  :paths ["src"]
  :aliases {:dev {:extra-deps {uix.core/uix.core {:local/root "../core"}}}
            :release {:extra-deps {appliedscience/deps-library {:mvn/version "0.3.4"}}
