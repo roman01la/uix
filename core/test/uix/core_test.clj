@@ -24,6 +24,11 @@
   (is (thrown-with-msg? AssertionError #"uix.core\/defui should be a single-arity component"
         (uix.core/parse-sig 'component-name '([props x])))))
 
+(deftest test-vector->js-array
+  (is (= '(cljs.core/array 1 2 3) (uix.core/vector->js-array [1 2 3])))
+  (is (= '(cljs.core/into-array x) (uix.core/vector->js-array 'x)))
+  (is (nil? (uix.core/vector->js-array nil))))
+
 (deftest test-$
   (is (= (macroexpand-1 '(uix.core/$ :h1))
          '(uix.compiler.aot/>el "h1" (cljs.core/array nil) (cljs.core/array))))
