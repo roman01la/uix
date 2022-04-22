@@ -2,7 +2,8 @@
   (:require [clojure.walk]
             [cljs.analyzer :as ana]
             [clojure.string :as str]
-            [clojure.pprint :as pp])
+            [clojure.pprint :as pp]
+            [cljs.analyzer.api :as ana-api])
   (:import (cljs.tagged_literals JSValue)))
 
 ;; === Rules of Hooks ===
@@ -274,18 +275,44 @@
               (with-meta sym {:hook hook}))))
         deps))
 
+(defn find-unsafe-set-state-calls [env f]
+  (let [set-state-calls (->> (find-local-variables env f)
+                             (filter #(#{"use-state" "use-reducer"} (find-hook-for-symbol env %)))
+                             set)
+        ast (ana-api/no-warn (ana-api/analyze env f))]
+    (loop [[{:keys [children] :as node} & nodes] (:methods ast)
+           unsafe-calls []]
+      (if (= :fn (:op node))
+        (recur nodes unsafe-calls)
+        (let [child-nodes (mapcat #(let [child (get node %)]
+                                     (if (map? child) [child] child))
+                                  children)
+              unsafe-calls (if (and (= :invoke (:op node))
+                                    (-> node :fn :form set-state-calls))
+                             (->> node :fn :form set-state-calls
+                                  (conj unsafe-calls))
+                             unsafe-calls)]
+          (cond
+            (seq child-nodes) (recur (concat child-nodes nodes) unsafe-calls)
+            (seq nodes) (recur nodes unsafe-calls)
+            :else (seq unsafe-calls)))))))
+
+(defn find-missing-and-unnecessary-deps [env f deps]
+  (let [free-vars (find-free-variables env f deps)
+        all-unnecessary-deps (set (find-unnecessary-deps env (concat free-vars deps)))
+        declared-unnecessary-deps (keep all-unnecessary-deps deps)
+        missing-deps (filter (comp not all-unnecessary-deps) free-vars)
+        suggested-deps (-> (filter (comp not (set declared-unnecessary-deps)) deps)
+                           (into missing-deps))]
+    [missing-deps declared-unnecessary-deps suggested-deps]))
+
 (defn- lint-body [env form f deps]
   (cond
     ;; when a reference to a function passed into a hook, should be an inline function instead
     (not (fn-literal? f)) [::inline-function {:source form}]
 
     (vector? deps)
-    (let [free-vars (find-free-variables env f deps)
-          all-unnecessary-deps (set (find-unnecessary-deps env (concat free-vars deps)))
-          declared-unnecessary-deps (keep all-unnecessary-deps deps)
-          missing-deps (filter (comp not all-unnecessary-deps) free-vars)
-          suggested-deps (-> (filter (comp not (set declared-unnecessary-deps)) deps)
-                             (into missing-deps))]
+    (let [[missing-deps declared-unnecessary-deps suggested-deps] (find-missing-and-unnecessary-deps env f deps)]
       ;; when hook function is referencing vars from out scope that are missing in deps vector
       (when (or (seq missing-deps) (seq declared-unnecessary-deps))
         [::missing-deps {:missing-deps missing-deps
@@ -294,8 +321,8 @@
                          :source form}]))
 
     (nil? deps)
-    (let [unsafe-calls (->> (find-local-variables env f)
-                            (filterv #(#{"use-state" "use-reducer"} (find-hook-for-symbol env %))))]
+    (when-let [unsafe-calls (find-unsafe-set-state-calls env f)]
+      ;; when set-state is called directly in a hook without deps, causing infinite loop
       [::unsafe-set-state {:unsafe-calls unsafe-calls
                            :source form}])))
 
