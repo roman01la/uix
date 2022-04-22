@@ -16,6 +16,22 @@
 
   (is (= '("") (seq (uix.lib/re-seq* #"\s*" "")))))
 
+(deftest test-use-ref
+  (uix.core/defui test-use-ref-comp [_]
+    (let [ref1 (uix.core/use-ref)
+          ref2 (uix.core/use-ref :x)]
+      (is (nil? (.-current ref1)))
+      (is (nil? @ref1))
+      (set! (.-current ref1) :x)
+      (is (= :x (.-current ref1)))
+
+      (is (= :x (.-current ref2)))
+      (is (= :x @ref2))
+      (reset! ref2 :xx)
+      (is (= :xx @ref2))
+      "x"))
+  (t/as-string ($ test-use-ref-comp)))
+
 (deftest test-memoize
   (uix.core/defui test-memoize-comp [{:keys [x]}]
     (is (= 1 x))
