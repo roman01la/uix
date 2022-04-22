@@ -219,6 +219,7 @@
   (testing "should report on deps being a JS array"
     (is (= '([:uix.hooks.linter/deps-array-literal {:source (use-effect (fn []) [])}])
            (hooks.linter/lint-exhaustive-deps {} '(use-effect (fn []) []) '(fn []) (JSValue. [])))))
+  #_
   (testing "should report on deps being something else, rather than vector"
     (is (= '([:uix.hooks.linter/deps-coll-literal {:source (use-effect (fn []) coll)}])
            (hooks.linter/lint-exhaustive-deps {} '(use-effect (fn []) coll) '(fn []) 'coll))))

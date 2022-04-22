@@ -252,10 +252,12 @@
       (and (= (type deps) JSValue) (vector? (.-val deps))) [::deps-array-literal {:source form}]
 
       ;; when deps are neither JS Array nor Clojure's vector, should be a vector instead
+      #_#_
       (not (vector? deps)) [::deps-coll-literal {:source form}]
 
       ;; when deps vector has a primitive literal, it can be safely removed
-      (seq (deps->literals deps)) [::literal-value-in-deps {:source form :literals (deps->literals deps)}])))
+      (and (vector? deps) (seq (deps->literals deps)))
+      [::literal-value-in-deps {:source form :literals (deps->literals deps)}])))
 
 (defn find-hook-for-symbol [env sym]
   (when-let [init (-> env :locals (get sym) :init)]
@@ -301,10 +303,10 @@
   (let [free-vars (find-free-variables env f deps)
         all-unnecessary-deps (set (find-unnecessary-deps env (concat free-vars deps)))
         declared-unnecessary-deps (keep all-unnecessary-deps deps)
-        missing-deps (filter (comp not all-unnecessary-deps) free-vars)
+        #_#_missing-deps (filter (comp not all-unnecessary-deps) free-vars)
         suggested-deps (-> (filter (comp not (set declared-unnecessary-deps)) deps)
-                           (into missing-deps))]
-    [missing-deps declared-unnecessary-deps suggested-deps]))
+                           #_(into missing-deps))]
+    [#_missing-deps declared-unnecessary-deps suggested-deps]))
 
 (defn- lint-body [env form f deps]
   (cond
@@ -312,10 +314,10 @@
     (not (fn-literal? f)) [::inline-function {:source form}]
 
     (vector? deps)
-    (let [[missing-deps declared-unnecessary-deps suggested-deps] (find-missing-and-unnecessary-deps env f deps)]
+    (let [[#_missing-deps declared-unnecessary-deps suggested-deps] (find-missing-and-unnecessary-deps env f deps)]
       ;; when hook function is referencing vars from out scope that are missing in deps vector
-      (when (or (seq missing-deps) (seq declared-unnecessary-deps))
-        [::missing-deps {:missing-deps missing-deps
+      (when (or #_(seq missing-deps) (seq declared-unnecessary-deps))
+        [::missing-deps {#_#_:missing-deps missing-deps
                          :unnecessary-deps declared-unnecessary-deps
                          :suggested-deps suggested-deps
                          :source form}]))

@@ -53,6 +53,7 @@
       form
       [(str "React Hook was passed a dependency list that is a JavaScript array, instead of Clojure’s vector. Change it to be a vector literal.\n"
             (linter/ppr form))]))
+  #_
   (test-linter
     `(uix.core/use-effect ~'(fn []) ~'coll)
     [(str "React Hook was passed a dependency list that is not a vector literal. This means we can’t statically verify whether you've passed the correct dependencies. Change it to be a vector literal with explicit set of dependencies.\n"
