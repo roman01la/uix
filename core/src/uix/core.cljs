@@ -1,7 +1,8 @@
 (ns uix.core
   "Public API"
   (:require-macros [uix.core])
-  (:require [react :as r]
+  (:require [goog.object :as gobj]
+            [react :as r]
             [uix.compiler.debug :as debug]
             [uix.hooks.alpha :as hooks]
             [uix.compiler.alpha :as compiler]
@@ -107,9 +108,20 @@
 (defn use-ref
   "Takes optional initial value and returns React's ref hook wrapped in atom-like type."
   ([]
-   (hooks/use-ref nil))
+   (use-ref nil))
   ([value]
-   (hooks/use-ref value)))
+   (let [ref (hooks/use-ref nil)]
+     (when (nil? (.-current ref))
+       (set! (.-current ref)
+             (specify! #js {:current value}
+               IDeref
+               (-deref [this]
+                 (.-current this))
+
+               IReset
+               (-reset! [this v]
+                 (gobj/set this "current" v)))))
+     (.-current ref))))
 
 (defn create-context
   "Creates React Context with an optional default value"
