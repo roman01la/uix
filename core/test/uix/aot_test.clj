@@ -32,3 +32,18 @@
          '(uix.compiler.aot/>el x (cljs.core/array (cljs.core/js-obj)) (cljs.core/array 1 2))))
   (is (= (aot/compile-element '[:> x {:x 1 :ref 2} 1 2])
          '(uix.compiler.aot/>el x (cljs.core/array (js* "{'x':~{},'ref':~{}}" 1 2)) (cljs.core/array 1 2)))))
+
+(deftest test-compile-tree
+  (is (= (aot/compile-element [:div])
+         '(uix.compiler.aot/>el "div" (cljs.core/array nil) (cljs.core/array))))
+  (is (= (aot/compile-element [:div#foo>div.bar>div#baz {} "What a lovely tag!"])
+         '(uix.compiler.aot/>el
+           "div"
+           (cljs.core/array (js* "{'id':~{}}" "foo"))
+           (cljs.core/array (uix.compiler.aot/>el
+                             "div"
+                             (cljs.core/array (js* "{'className':~{}}" "bar"))
+                             (cljs.core/array (uix.compiler.aot/>el
+                                               "div"
+                                               (cljs.core/array (js* "{'id':~{}}" "baz"))
+                                               (cljs.core/array "What a lovely tag!")))))))))

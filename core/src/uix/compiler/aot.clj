@@ -52,14 +52,18 @@
   (contains? #{"input" "textarea"} x))
 
 (defmethod compile-element :element [v]
-  (let [[tag attrs & children] v
-        tag-id-class (attrs/parse-tag tag)
-        attrs-children (compile-attrs :element attrs {:tag-id-class tag-id-class})
-        tag-str (first tag-id-class)
-        ret (if (input-component? tag-str)
-              `(create-uix-input ~tag-str ~attrs-children (cljs.core/array ~@children))
-              `(>el ~tag-str ~attrs-children (cljs.core/array ~@children)))]
-    ret))
+  (let [[tags attrs & children] v]
+    (loop [tree (reverse (attrs/parse-tags tags))
+           children children]
+      (let [tag-id-class (first tree)
+            attrs-children (compile-attrs :element attrs {:tag-id-class tag-id-class})
+            tag-str (first tag-id-class)
+            el (if (input-component? tag-str)
+                 `(create-uix-input ~tag-str ~attrs-children (cljs.core/array ~@children))
+                 `(>el ~tag-str ~attrs-children (cljs.core/array ~@children)))]
+        (if (empty? (rest tree))
+          el
+          (recur (rest tree) (list el)))))))
 
 (defmethod compile-element :component [v]
   (let [[tag props & children] v
