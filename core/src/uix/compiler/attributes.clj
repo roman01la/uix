@@ -7,16 +7,22 @@
 
 (defn parse-tag
   "Takes HyperScript tag (:div#id.class) and returns parsed tag, id and class fields"
-  [tag]
-  (let [tag-str (name tag)]
-    (when (and (not (re-matches re-tag tag-str))
-               (re-find #"[#\.]" tag-str))
+  [tag-str]
+  (when (and (not (re-matches re-tag tag-str))
+             (re-find #"[#\.]" tag-str))
       ;; Throwing NPE here because shadow catches those to bring up error view in a browser
-      (throw (NullPointerException. (str "Invalid tag name (found: " tag-str "). Make sure that the name matches the format and ordering is correct `:tag#id.class`"))))
-    (let [[tag id class-name] (next (re-matches re-tag tag-str))
-          class-name (when-not (nil? class-name)
-                       (str/replace class-name #"\." " "))]
-      (list tag id class-name (some? (re-find #"-" tag))))))
+    (throw (NullPointerException. (str "Invalid tag name (found: " tag-str "). Make sure that the name matches the format and ordering is correct `:tag#id.class`"))))
+  (let [[tag id class-name] (next (re-matches re-tag tag-str))
+        class-name (when-not (nil? class-name)
+                     (str/replace class-name #"\." " "))]
+    (list tag id class-name (some? (re-find #"-" tag)))))
+
+(defn parse-tags
+  "Takes a HyperScript tag and splits on `>` allowing
+  nesting. `:div>div>p` will produce three individual tags."
+  [tag]
+  (map parse-tag (-> (name tag)
+                     (str/split #">"))))
 
 (defn set-id-class
   "Takes attributes map and parsed tag, and returns attributes merged with class names and id"
@@ -25,15 +31,15 @@
     (let [props-class (get props :class)]
       (cond-> props
               ;; Only use ID from tag keyword if no :id in props already
-              (and (some? id) (nil? (get props :id)))
-              (assoc :id id)
+        (and (some? id) (nil? (get props :id)))
+        (assoc :id id)
 
               ;; Merge classes
-              (or class props-class)
-              (assoc :class (cond
-                              (vector? props-class) `(class-names ~class ~@props-class)
-                              props-class `(class-names ~class ~props-class)
-                              :else class))))
+        (or class props-class)
+        (assoc :class (cond
+                        (vector? props-class) `(class-names ~class ~@props-class)
+                        props-class `(class-names ~class ~props-class)
+                        :else class))))
     props))
 
 (defn camel-case

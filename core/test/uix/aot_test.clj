@@ -9,6 +9,13 @@
   (is (= (attrs/parse-tag (name :custom-tag))
          ["custom-tag" nil nil true])))
 
+(deftest test-parse-tags
+  (is (= (attrs/parse-tags :div#id.class)
+         '(["div" "id" "class" false])))
+  (is (= (attrs/parse-tags :div#id.class>h1)
+         '(["div" "id" "class" false]
+           ["h1" nil nil false]))))
+
 (deftest test-class-names
   (is (= (attrs/compile-config-kv :class nil) nil))
   (testing "Named types"
