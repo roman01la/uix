@@ -43,8 +43,6 @@
                       (.-stack e)))]
         (is (str/includes? stack "uix.compiler-test/some-component"))))))
 
-
-
 (uix.core/defui to-string-test-comp [props]
   ($ :div {} (str "i am " (:foo props))))
 
@@ -126,7 +124,6 @@
 
 (deftest test-keys
   (with-error #(as-string ($ key-tester))))
-
 
 (deftest style-property-names-are-camel-cased
   (is (re-find #"<div style=\"text-align:center(;?)\">foo</div>"
@@ -219,6 +216,12 @@
   (when ^boolean goog.DEBUG
     (uix.core/defui test-comp [] "x")
     (is (= test-comp (.-type ($ test-comp))))))
+
+(deftest test-multilevel-tags
+  (is (= (as-string ($ :div>h1 {} "Heading"))
+         "<div><h1>Heading</h1></div>"))
+  (is (= (as-string ($ :div#foo.bar>h1#baz.bob {} "Heading"))
+         "<div id=\"foo\" class=\"bar\"><h1 id=\"baz\" class=\"bob\">Heading</h1></div>")))
 
 (defn -main []
   (run-tests))
