@@ -7,6 +7,12 @@
 (defn use-state [value]
   (r/useState value))
 
+(defn use-reducer
+  ([f value]
+   (r/useReducer #(f %1 %2) value))
+  ([f value init-state]
+   (r/useReducer #(f %1 %2) value init-state)))
+
 ;; == Ref hook
 
 (defn use-ref [value]

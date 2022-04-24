@@ -101,9 +101,22 @@
      fm)))
 
 (defn use-state
-  "Takes initial value and returns React's state hook wrapped in atom-like type."
+  "Takes initial value or a function that computes it and returns a stateful value,
+  and a function to update it.
+
+  See: https://reactjs.org/docs/hooks-reference.html#usestate"
   [value]
   (hooks/use-state value))
+
+(defn use-reducer
+  "An alternative to `use-state`. Accepts a reducer of type (state, action) => new-state,
+  and returns the current state paired with a dispatch method.
+
+  See: https://reactjs.org/docs/hooks-reference.html#usereducer"
+  ([f value]
+   (hooks/use-reducer f value))
+  ([f value init-state]
+   (hooks/use-reducer f value init-state)))
 
 (defn use-ref
   "Takes optional initial value and returns React's ref hook wrapped in atom-like type."
