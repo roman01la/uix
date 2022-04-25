@@ -154,3 +154,22 @@
   "Interop with React components. Takes UIx component function and returns same component wrapped into interop layer."
   [f]
   (compiler/as-react f))
+
+(defn stringify-clojure-primitives [v]
+  (cond
+    ;; fast direct lookup for a string value
+    ;; already stored on the instance of the known type
+    (keyword? v) (.-fqn v)
+    (uuid? v) (.-uuid v)
+    (symbol? v) (.-str v)
+    :else v))
+
+(defn jsfy-deps [coll]
+  (if (or (js/Array.isArray coll)
+          (vector? coll))
+    (reduce (fn [arr v]
+              (.push arr (stringify-clojure-primitives v))
+              arr)
+            #js []
+            coll)
+    coll))

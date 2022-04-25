@@ -80,8 +80,8 @@
 
 (defn vector->js-array [coll]
   (cond
-    (vector? coll) `(cljs.core/array ~@coll)
-    (some? coll) `(cljs.core/into-array ~coll)
+    (vector? coll) `(jsfy-deps (cljs.core/array ~@coll))
+    (some? coll) `(jsfy-deps ~coll)
     :else coll))
 
 (defn- make-hook-with-deps [sym env form f deps]
