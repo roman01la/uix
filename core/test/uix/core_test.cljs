@@ -102,5 +102,13 @@
       (async done
         (t/render ($ err-b {:done done :x 1 :child child})))))
 
+(deftest test-jsfy-deps
+  (is (= [1 "str" "k/w" "uix.core/sym" nil [] {} #{}]
+         (vec (uix.core/jsfy-deps [1 "str" :k/w 'uix.core/sym nil [] {} #{}]))))
+  (is (= [1 "str" "k/w" "uix.core/sym" nil [] {} #{}]
+         (vec (uix.core/jsfy-deps #js [1 "str" :k/w 'uix.core/sym nil [] {} #{}]))))
+  (is (= #{} (uix.core/jsfy-deps #{})))
+  (is (= {} (uix.core/jsfy-deps {}))))
+
 (defn -main []
   (run-tests))
