@@ -160,6 +160,7 @@
     ;; fast direct lookup for a string value
     ;; already stored on the instance of the known type
     (keyword? v) (.-fqn v)
+    (uuid? v) (.-uuid v)
     (symbol? v) (.-str v)
     :else v))
 
