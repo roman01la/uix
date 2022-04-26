@@ -273,16 +273,22 @@
           (hook? (first form))
           (name (first form)))))))
 
+(def stable-hooks
+  #{"use-state" "use-reducer" "use-ref"})
+
 (defn find-unnecessary-deps [env deps]
   (keep (fn [sym]
           (when-let [hook (find-hook-for-symbol env sym)]
-            (when (#{"use-state" "use-reducer" "use-ref"} hook)
+            (when (contains? stable-hooks hook)
               (with-meta sym {:hook hook}))))
         deps))
 
+(def state-hooks
+  #{"use-state" "use-reducer" "useState" "useReducer"})
+
 (defn find-unsafe-set-state-calls [env f]
   (let [set-state-calls (->> (find-local-variables env f)
-                             (filter #(#{"use-state" "use-reducer"} (find-hook-for-symbol env %)))
+                             (filter #(contains? state-hooks (find-hook-for-symbol env %)))
                              set)
         ast (ana-api/no-warn (ana-api/analyze env f))]
     (loop [[{:keys [children] :as node} & nodes] (:methods ast)
