@@ -11,17 +11,10 @@ clojure -A:test -m uix.test-runner
 
 echo "<div id=root></div><script src="out/main.js"></script>" > index.html
 
-echo "Building ClojureScript dev tests..."
+echo "Building ClojureScript tests..."
 clojure -A:test -m shadow.cljs.devtools.cli compile test
 
-echo "Running ClojureScript dev tests..."
-scripts/test.js $(pwd)
-
-echo "Building ClojureScript prod tests..."
-rm -rf out
-clojure -A:test -m shadow.cljs.devtools.cli release test
-
-echo "Running ClojureScript prod tests..."
+echo "Running ClojureScript tests..."
 scripts/test.js $(pwd)
 
 echo "Building benchmark..."
