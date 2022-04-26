@@ -58,10 +58,16 @@
     (reduce-kv #(assoc %1 (camel-case %2) %3) {} m)
     m))
 
-(defn convert-value [v]
-  (if (symbol? v)
-    `(keyword->string ~v)
-    v))
+(defn convert-value
+  ([v]
+   (if (symbol? v)
+     `(keyword->string ~v)
+     v))
+  ([k v]
+   (cond
+     (str/starts-with? (name k) "on-") v
+     (symbol? v) `(keyword->string ~v)
+     :else v)))
 
 (defn convert-values [m]
   (if (map? m)
@@ -74,7 +80,7 @@
   (convert-values (camel-case-keys value)))
 
 (defmethod compile-config-kv :default [name value]
-  (convert-value value))
+  (convert-value name value))
 
 (defn compile-attrs
   "Takes map of attributes and returns same map with keys translated from Clojure to React naming conventions"

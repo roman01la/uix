@@ -16,7 +16,9 @@
 
 (deftest convert-props-test
   (is (= {:className "a" :htmlFor "x"}
-         (attrs/compile-attrs {:class "a" :for "x"}))))
+         (attrs/compile-attrs {:class "a" :for "x"})))
+  (is (= '{:onClick identity, :title (uix.compiler.attributes/keyword->string x)}
+         (attrs/compile-attrs '{:on-click identity :title x}))))
 
 (deftest test-compile-html
   (is (= (aot/compile-element [:h1])
