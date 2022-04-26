@@ -17,6 +17,9 @@
   (and (symbol? sym)
        (some? (re-find #"^use-|use[A-Z]" (name sym)))))
 
+(defn effect-hook? [form]
+  (contains? #{"use-effect" "use-layout-effect"} (name (first form))))
+
 (declare lint-hooks!*)
 
 (def forms
@@ -322,7 +325,7 @@
                          :suggested-deps suggested-deps
                          :source form}]))
 
-    (nil? deps)
+    (and (effect-hook? form) (nil? deps))
     (when-let [unsafe-calls (find-unsafe-set-state-calls env f)]
       ;; when set-state is called directly in a hook without deps, causing infinite loop
       [::unsafe-set-state {:unsafe-calls unsafe-calls
