@@ -18,7 +18,9 @@
     `(uix.compiler.attributes/interpret-attrs ~attrs (cljs.core/array ~@tag-id-class) false)))
 
 (defmethod compile-attrs :component [_ props _]
-  `(uix.compiler.attributes/interpret-props ~props))
+  (if (or (map? props) (nil? props))
+    `(cljs.core/array ~props)
+    `(uix.compiler.attributes/interpret-props ~props)))
 
 (defmethod compile-attrs :fragment [_ attrs _]
   (if (map? attrs)
