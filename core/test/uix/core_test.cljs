@@ -19,16 +19,20 @@
 (deftest test-use-ref
   (uix.core/defui test-use-ref-comp [_]
     (let [ref1 (uix.core/use-ref)
-          ref2 (uix.core/use-ref :x)]
+          ref2 (uix.core/use-ref 0)]
       (is (nil? (.-current ref1)))
       (is (nil? @ref1))
       (set! (.-current ref1) :x)
       (is (= :x (.-current ref1)))
 
-      (is (= :x (.-current ref2)))
-      (is (= :x @ref2))
-      (reset! ref2 :xx)
-      (is (= :xx @ref2))
+      (is (= 0 (.-current ref2)))
+      (is (= 0 @ref2))
+      (reset! ref2 1)
+      (is (= 1 @ref2))
+      (swap! ref2 inc)
+      (is (= 2 @ref2))
+      (swap! ref2 + 2)
+      (is (= 4 @ref2))
       "x"))
   (t/as-string ($ test-use-ref-comp)))
 

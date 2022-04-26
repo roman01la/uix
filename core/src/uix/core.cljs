@@ -1,8 +1,7 @@
 (ns uix.core
   "Public API"
   (:require-macros [uix.core])
-  (:require [goog.object :as gobj]
-            [react :as r]
+  (:require [react :as r]
             [uix.compiler.debug :as debug]
             [uix.hooks.alpha :as hooks]
             [uix.compiler.alpha :as compiler]
@@ -133,7 +132,18 @@
 
                IReset
                (-reset! [this v]
-                 (gobj/set this "current" v)))))
+                 (set! (.-current ^js this) v))
+
+               ISwap
+               (-swap!
+                 ([this f]
+                  (set! (.-current ^js this) (f (.-current ^js this))))
+                 ([this f a]
+                  (set! (.-current ^js this) (f (.-current ^js this) a)))
+                 ([this f a b]
+                  (set! (.-current ^js this) (f (.-current ^js this) a b)))
+                 ([this f a b xs]
+                  (set! (.-current ^js this) (apply f (.-current ^js this) a b xs)))))))
      (.-current ref))))
 
 (defn create-context
