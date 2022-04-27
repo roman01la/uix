@@ -16,14 +16,14 @@
 
 (defn validate-children [children]
   (doseq-loop [child children]
-              (cond
-                (hiccup? child)
-                (throw (js/Error. (str "Hiccup is not valid as UIx child (found: " child ").\n"
-                                       "If you meant to render UIx element, use `$` macro, i.e. ($ " child ")\n"
-                                       "If you meant to render Reagent element, wrap it with r/as-element, i.e. (r/as-element " child ")")))
+    (cond
+      (hiccup? child)
+      (throw (js/Error. (str "Hiccup is not valid as UIx child (found: " child ").\n"
+                             "If you meant to render UIx element, use `$` macro, i.e. ($ " child ")\n"
+                             "If you meant to render Reagent element, wrap it with r/as-element, i.e. (r/as-element " child ")")))
 
-                (sequential? child)
-                (validate-children child)))
+      (sequential? child)
+      (validate-children child)))
   true)
 
 (defn >el [tag attrs-children children]

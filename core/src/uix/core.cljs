@@ -23,9 +23,9 @@
                nil)]
     (set! (.-prototype ctor) (.create js/Object (.-prototype r/Component)))
     (doseq-loop [[k v] static]
-                (aset ctor (name k) v))
+      (aset ctor (name k) v))
     (doseq-loop [[k v] prototype]
-                (aset (.-prototype ctor) (name k) v))
+      (aset (.-prototype ctor) (name k) v))
     (set! (.-uix-component? ctor) true)
     ctor))
 
