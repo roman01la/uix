@@ -12,10 +12,7 @@ _Idiomatic ClojureScript interface to modern React.js_
                            :sha "b0cbf0bd47f83dfa2b0d6c7953bbaab008a927b2"}
         uix.dom/uix.dom {:git/url "https://github.com/pitch-io/uix.git"
                          :deps/root "dom"
-                         :sha "b0cbf0bd47f83dfa2b0d6c7953bbaab008a927b2"}
-        uix.rn/uix.rn {:git/url "https://github.com/pitch-io/uix.git"
-                       :deps/root "rn"
-                       :sha "b0cbf0bd47f83dfa2b0d6c7953bbaab008a927b2"}}}
+                         :sha "b0cbf0bd47f83dfa2b0d6c7953bbaab008a927b2"}}}
 ```
 
 ```clj
