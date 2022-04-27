@@ -1,9 +1,6 @@
 {:deps {cljs-bean/cljs-bean {:mvn/version "1.8.0"}}
  :paths ["src"]
- :aliases {:dev {:extra-paths ["dev" "resources"]
-                 :extra-deps {codox/codox {:mvn/version "0.10.6"}
-                              codox-theme-rdash/codox-theme-rdash {:mvn/version "0.1.2"}
-                              cljfmt/cljfmt {:mvn/version "0.8.0"}}}
+ :aliases {:dev {:extra-deps {cljfmt/cljfmt {:mvn/version "0.8.0"}}}
            :benchmark {:extra-paths ["benchmark"]
                        :extra-deps {reagent/reagent {:mvn/version "1.1.0"}
                                     criterium/criterium {:mvn/version "0.4.5"}
