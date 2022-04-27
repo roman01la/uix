@@ -46,7 +46,7 @@
 
 (defmacro
   ^{:arglists '([name doc-string? attr-map? [params*] prepost-map? body]
-                [name doc-string? attr-map? ([params*] prepost-map? body)+ attr-map?])}
+                [name doc-string? attr-map? ([params*] prepost-map? body) + attr-map?])}
   defui
   "Compiles UIx component into React component at compile-time."
   [sym & fdecl]

@@ -17,9 +17,9 @@
   [{:keys [constructor static prototype]}]
   (let [ctor (fn [props]
                (this-as this
-                 (.apply r/Component this (js-arguments))
-                 (when constructor
-                   (constructor this props)))
+                        (.apply r/Component this (js-arguments))
+                        (when constructor
+                          (constructor this props)))
                nil)]
     (set! (.-prototype ctor) (.create js/Object (.-prototype r/Component)))
     (doseq-loop [[k v] static]
@@ -42,30 +42,30 @@
   (let [constructor (fn [^js/React.Component this _]
                       (set! (.-state this) #js {:argv nil})
                       (specify! (.-state this)
-                        IDeref
-                        (-deref [o]
-                          (.. this -state -argv))
-                        IReset
-                        (-reset! [o new-value]
-                          (.setState this #js {:argv new-value})
-                          new-value)
-                        ISwap
-                        (-swap!
-                          ([o f]
-                           (-reset! o (f (-deref o))))
-                          ([o f a]
-                           (-reset! o (f (-deref o) a)))
-                          ([o f a b]
-                           (-reset! o (f (-deref o) a b)))
-                          ([o f a b xs]
-                           (-reset! o (apply f (-deref o) a b xs))))))
+                                IDeref
+                                (-deref [o]
+                                        (.. this -state -argv))
+                                IReset
+                                (-reset! [o new-value]
+                                         (.setState this #js {:argv new-value})
+                                         new-value)
+                                ISwap
+                                (-swap!
+                                 ([o f]
+                                  (-reset! o (f (-deref o))))
+                                 ([o f a]
+                                  (-reset! o (f (-deref o) a)))
+                                 ([o f a b]
+                                  (-reset! o (f (-deref o) a b)))
+                                 ([o f a b xs]
+                                  (-reset! o (apply f (-deref o) a b xs))))))
         derive-state (fn [error] #js {:argv (error->state error)})
         render (fn []
                  (this-as ^react/Component this
-                   (let [args (.. this -props -argv)
-                         state (.-state this)]
+                          (let [args (.. this -props -argv)
+                                state (.-state this)]
                      ;; `render-fn` should return compiled HyperScript
-                     (render-fn state args))))]
+                            (render-fn state args))))]
     (create-class {:constructor constructor
                    :static {:displayName display-name
                             :getDerivedStateFromError derive-state}
@@ -79,7 +79,7 @@
 
 (defn glue-args [^js props]
   (cond-> (.-argv props)
-          (.-children props) (assoc :children (.-children props))))
+    (.-children props) (assoc :children (.-children props))))
 
 (defn- memo-compare-args [a b]
   (= (glue-args a) (glue-args b)))
@@ -126,24 +126,24 @@
      (when (nil? (.-current ref))
        (set! (.-current ref)
              (specify! #js {:current value}
-               IDeref
-               (-deref [this]
-                 (.-current this))
+                       IDeref
+                       (-deref [this]
+                               (.-current this))
 
-               IReset
-               (-reset! [this v]
-                 (set! (.-current ^js this) v))
+                       IReset
+                       (-reset! [this v]
+                                (set! (.-current ^js this) v))
 
-               ISwap
-               (-swap!
-                 ([this f]
-                  (set! (.-current ^js this) (f (.-current ^js this))))
-                 ([this f a]
-                  (set! (.-current ^js this) (f (.-current ^js this) a)))
-                 ([this f a b]
-                  (set! (.-current ^js this) (f (.-current ^js this) a b)))
-                 ([this f a b xs]
-                  (set! (.-current ^js this) (apply f (.-current ^js this) a b xs)))))))
+                       ISwap
+                       (-swap!
+                        ([this f]
+                         (set! (.-current ^js this) (f (.-current ^js this))))
+                        ([this f a]
+                         (set! (.-current ^js this) (f (.-current ^js this) a)))
+                        ([this f a b]
+                         (set! (.-current ^js this) (f (.-current ^js this) a b)))
+                        ([this f a b xs]
+                         (set! (.-current ^js this) (apply f (.-current ^js this) a b xs)))))))
      (.-current ref))))
 
 (defn create-context

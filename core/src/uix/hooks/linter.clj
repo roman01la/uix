@@ -39,14 +39,14 @@
                sort-by some}})
 
 (defmulti maybe-lint
-          (fn [[sym :as form]]
-            (reduce-kv
-              (fn [ret kw forms]
-                (if (forms sym)
-                  (reduced kw)
-                  ret))
-              form
-              forms)))
+  (fn [[sym :as form]]
+    (reduce-kv
+     (fn [ret kw forms]
+       (if (forms sym)
+         (reduced kw)
+         ret))
+     form
+     forms)))
 
 (defmethod maybe-lint :default [form]
   form)
@@ -121,19 +121,19 @@
   (binding [*in-branch?* in-branch?
             *in-loop?* in-loop?]
     (clojure.walk/prewalk
-      (fn [form]
-        (cond
-          (and (list? form) (hook? (first form)))
-          (do (when *in-branch?* (add-error! form ::hook-in-branch))
-              (when *in-loop?* (add-error! form ::hook-in-loop))
-              nil)
+     (fn [form]
+       (cond
+         (and (list? form) (hook? (first form)))
+         (do (when *in-branch?* (add-error! form ::hook-in-branch))
+             (when *in-loop?* (add-error! form ::hook-in-loop))
+             nil)
 
-          (and (list? form) (or (not *in-branch?*) (not *in-loop?*)))
-          (binding [*source-context* form]
-            (maybe-lint form))
+         (and (list? form) (or (not *in-branch?*) (not *in-loop?*)))
+         (binding [*source-context* form]
+           (maybe-lint form))
 
-          :else form))
-      expr)
+         :else form))
+     expr)
     nil))
 
 (defn lint-hooks! [exprs]
@@ -169,16 +169,16 @@
 (defn find-local-variables [env f]
   (let [syms (atom #{})]
     (clojure.walk/postwalk
-      #(cond
-         (symbol? %)
-         (do (swap! syms conj %)
-             %)
+     #(cond
+        (symbol? %)
+        (do (swap! syms conj %)
+            %)
 
-         (= (type %) JSValue)
-         (.-val %)
+        (= (type %) JSValue)
+        (.-val %)
 
-         :else %)
-      f)
+        :else %)
+     f)
     (filter #(get-in env [:locals % :name]) @syms)))
 
 (defn find-free-variables [env f deps]
@@ -261,8 +261,7 @@
       (and (= (type deps) JSValue) (vector? (.-val deps))) [::deps-array-literal {:source form}]
 
       ;; when deps are neither JS Array nor Clojure's vector, should be a vector instead
-      #_#_
-      (not (vector? deps)) [::deps-coll-literal {:source form}]
+      #_#_(not (vector? deps)) [::deps-coll-literal {:source form}]
 
       ;; when deps vector has a primitive literal, it can be safely removed
       (and (vector? deps) (seq (deps->literals deps)))

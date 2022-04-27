@@ -22,25 +22,25 @@
 (defn use-effect
   ([setup-fn]
    (r/useEffect
-     #(let [ret (setup-fn)]
-        (if (fn? ret) ret js/undefined))))
+    #(let [ret (setup-fn)]
+       (if (fn? ret) ret js/undefined))))
   ([setup-fn deps]
    (r/useEffect
-     #(let [ret (setup-fn)]
-        (if (fn? ret) ret js/undefined))
-     deps)))
+    #(let [ret (setup-fn)]
+       (if (fn? ret) ret js/undefined))
+    deps)))
 
 ;; == Layout effect hook ==
 (defn use-layout-effect
   ([setup-fn]
    (r/useLayoutEffect
-     #(let [ret (setup-fn)]
-        (if (fn? ret) ret js/undefined))))
+    #(let [ret (setup-fn)]
+       (if (fn? ret) ret js/undefined))))
   ([setup-fn deps]
    (r/useLayoutEffect
-     #(let [ret (setup-fn)]
-        (if (fn? ret) ret js/undefined))
-     deps)))
+    #(let [ret (setup-fn)]
+       (if (fn? ret) ret js/undefined))
+    deps)))
 
 ;; == Callback hook ==
 (defn use-callback

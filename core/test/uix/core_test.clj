@@ -22,7 +22,7 @@
   (is (thrown-with-msg? AssertionError #"uix.core\/defui doesn't support multi-arity"
                         (uix.core/parse-sig 'component-name '(([props]) ([props x])))))
   (is (thrown-with-msg? AssertionError #"uix.core\/defui should be a single-arity component"
-        (uix.core/parse-sig 'component-name '([props x])))))
+                        (uix.core/parse-sig 'component-name '([props x])))))
 
 (deftest test-vector->js-array
   (is (= '(uix.core/jsfy-deps (cljs.core/array 1 2 3)) (uix.core/vector->js-array [1 2 3])))
@@ -48,24 +48,23 @@
 
 (deftest test-hooks
   (test-linter
-    '(uix.core/use-effect identity)
-    ["React Hook received a function whose dependencies are unknown. Pass an inline function instead.\n```\n(uix.core/use-effect identity)\n```"])
+   '(uix.core/use-effect identity)
+   ["React Hook received a function whose dependencies are unknown. Pass an inline function instead.\n```\n(uix.core/use-effect identity)\n```"])
   (test-linter
-    '(uix.core/use-effect identity [])
-    ["React Hook received a function whose dependencies are unknown. Pass an inline function instead.\n```\n(uix.core/use-effect identity [])\n```"])
+   '(uix.core/use-effect identity [])
+   ["React Hook received a function whose dependencies are unknown. Pass an inline function instead.\n```\n(uix.core/use-effect identity [])\n```"])
   (let [form `(uix.core/use-effect ~'(fn []) ~(JSValue. []))]
     (test-linter
-      form
-      [(str "React Hook was passed a dependency list that is a JavaScript array, instead of Clojure’s vector. Change it to be a vector literal.\n"
-            (linter/ppr form))]))
-  #_
+     form
+     [(str "React Hook was passed a dependency list that is a JavaScript array, instead of Clojure’s vector. Change it to be a vector literal.\n"
+           (linter/ppr form))]))
+  #_(test-linter
+     `(uix.core/use-effect ~'(fn []) ~'coll)
+     [(str "React Hook was passed a dependency list that is not a vector literal. This means we can’t statically verify whether you've passed the correct dependencies. Change it to be a vector literal with explicit set of dependencies.\n"
+           (linter/ppr '(uix.core/use-effect (fn []) coll)))])
   (test-linter
-    `(uix.core/use-effect ~'(fn []) ~'coll)
-    [(str "React Hook was passed a dependency list that is not a vector literal. This means we can’t statically verify whether you've passed the correct dependencies. Change it to be a vector literal with explicit set of dependencies.\n"
-          (linter/ppr '(uix.core/use-effect (fn []) coll)))])
-  (test-linter
-    `(uix.core/use-effect ~'(fn []) [:kw])
-    [(str "React Hook was passed literal values in dependency vector: [:kw]\nThose are not valid dependencies because they never change. You can safely remove them.\n"
-          (linter/ppr '(uix.core/use-effect (fn []) [:kw])))]))
+   `(uix.core/use-effect ~'(fn []) [:kw])
+   [(str "React Hook was passed literal values in dependency vector: [:kw]\nThose are not valid dependencies because they never change. You can safely remove them.\n"
+         (linter/ppr '(uix.core/use-effect (fn []) [:kw])))]))
   ;; TODO: missing & unnecessary deps
   ;; TODO: set-state w/o deps

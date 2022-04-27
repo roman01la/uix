@@ -69,42 +69,42 @@
   (let [error->state-called? (atom false)
         handle-catch-called? (atom false)
         err-b (uix.core/create-error-boundary
-                {:display-name "err-b-1"
-                 :error->state #(reset! error->state-called? true)
-                 :handle-catch #(reset! handle-catch-called? true)}
-                (fn [err {:keys [done x]}]
-                  (is (= nil @err))
-                  (is (= 1 x))
-                  (is (= false @error->state-called?))
-                  (is (= false @handle-catch-called?))
-                  (done)
-                  x))]
+               {:display-name "err-b-1"
+                :error->state #(reset! error->state-called? true)
+                :handle-catch #(reset! handle-catch-called? true)}
+               (fn [err {:keys [done x]}]
+                 (is (= nil @err))
+                 (is (= 1 x))
+                 (is (= false @error->state-called?))
+                 (is (= false @handle-catch-called?))
+                 (done)
+                 x))]
     (async done
-      (t/render ($ err-b {:done done :x 1})))))
+           (t/render ($ err-b {:done done :x 1})))))
 
 #_(deftest test-create-error-boundary-2
     (let [handle-catch (atom nil)
           child (fn [] (throw (js/Error. "Hello!")))
           err-b (uix.core/create-error-boundary
-                  {:display-name "err-b-2"
-                   :error->state ex-message
-                   :handle-catch (fn [err info] (reset! handle-catch err))}
-                  (fn [cause {:keys [done x child]}]
-                    (is (= 1 x))
-                    (cond
-                      (nil? @cause) child
-                    
-                      (= :recover @cause)
-                      (do
-                        (is (some? @handle-catch))
-                        (done)
-                        x)
-                    
-                      :else (do (is (= "Hello!" @cause))
-                                (js/setTimeout #(reset! cause :recover) 20)
-                                x))))]
+                 {:display-name "err-b-2"
+                  :error->state ex-message
+                  :handle-catch (fn [err info] (reset! handle-catch err))}
+                 (fn [cause {:keys [done x child]}]
+                   (is (= 1 x))
+                   (cond
+                     (nil? @cause) child
+
+                     (= :recover @cause)
+                     (do
+                       (is (some? @handle-catch))
+                       (done)
+                       x)
+
+                     :else (do (is (= "Hello!" @cause))
+                               (js/setTimeout #(reset! cause :recover) 20)
+                               x))))]
       (async done
-        (t/render ($ err-b {:done done :x 1 :child child})))))
+             (t/render ($ err-b {:done done :x 1 :child child})))))
 
 (deftest test-jsfy-deps
   (is (= [1 "str" "k/w" "uix.core/sym" "b53887c9-4910-4d4e-aad9-f3487e6e97f5" nil [] {} #{}]

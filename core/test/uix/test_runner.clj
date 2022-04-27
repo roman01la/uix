@@ -6,6 +6,6 @@
 
 (defn -main [& args]
   (run-tests
-    'uix.core-test
-    'uix.aot-test
-    'uix.hooks.linter-test))
+   'uix.core-test
+   'uix.aot-test
+   'uix.hooks.linter-test))

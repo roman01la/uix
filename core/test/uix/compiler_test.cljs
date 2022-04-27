@@ -43,44 +43,42 @@
                       (.-stack e)))]
         (is (str/includes? stack "uix.compiler-test/some-component"))))))
 
-
-
 (uix.core/defui to-string-test-comp [props]
   ($ :div {} (str "i am " (:foo props))))
 
 (deftest to-string-test []
-                        (is (re-find #"i am foobar"
-                                     (as-string ($ to-string-test-comp {:foo "foobar"})))))
+  (is (re-find #"i am foobar"
+               (as-string ($ to-string-test-comp {:foo "foobar"})))))
 
 (deftest data-aria-test []
-                        (is (re-find #"data-foo"
-                                     (as-string ($ :div {:data-foo "x"}))))
-                        (is (re-find #"aria-labelledby"
-                                     (as-string ($ :div {:aria-labelledby "x"}))))
-                        (is (re-find #"enc[tT]ype"
-                                     (as-string ($ :div {"encType" "x"})))
-                            "Strings are passed through to React, and have to be camelcase.")
-                        (is (re-find #"enc[tT]ype"
-                                     (as-string ($ :div {:enc-type "x"})))
-                            "Strings are passed through to React, and have to be camelcase."))
+  (is (re-find #"data-foo"
+               (as-string ($ :div {:data-foo "x"}))))
+  (is (re-find #"aria-labelledby"
+               (as-string ($ :div {:aria-labelledby "x"}))))
+  (is (re-find #"enc[tT]ype"
+               (as-string ($ :div {"encType" "x"})))
+      "Strings are passed through to React, and have to be camelcase.")
+  (is (re-find #"enc[tT]ype"
+               (as-string ($ :div {:enc-type "x"})))
+      "Strings are passed through to React, and have to be camelcase."))
 
 (deftest dynamic-id-class []
-                          (is (re-find #"id=.foo"
-                                       (as-string ($ :div#foo {:class "bar"}))))
-                          (is (re-find #"class=.foo bar"
-                                       (as-string ($ :div.foo {:class "bar"}))))
-                          (is (re-find #"class=.foo bar"
-                                       (as-string ($ :div.foo.bar))))
-                          (is (re-find #"id=.foo"
-                                       (as-string ($ :div#foo.foo.bar))))
-                          (is (re-find #"class=.xxx bar"
-                                       (as-string ($ :div#foo.xxx.bar))))
-                          (is (re-find #"id=.foo"
-                                       (as-string ($ :div.bar {:id "foo"}))))
-                          (is (re-find #"id=.foo"
-                                       (as-string ($ :div.bar.xxx {:id "foo"}))))
-                          (is (re-find #"id=.foo"
-                                       (as-string ($ :div#bar {:id "foo"})))))
+  (is (re-find #"id=.foo"
+               (as-string ($ :div#foo {:class "bar"}))))
+  (is (re-find #"class=.foo bar"
+               (as-string ($ :div.foo {:class "bar"}))))
+  (is (re-find #"class=.foo bar"
+               (as-string ($ :div.foo.bar))))
+  (is (re-find #"id=.foo"
+               (as-string ($ :div#foo.foo.bar))))
+  (is (re-find #"class=.xxx bar"
+               (as-string ($ :div#foo.xxx.bar))))
+  (is (re-find #"id=.foo"
+               (as-string ($ :div.bar {:id "foo"}))))
+  (is (re-find #"id=.foo"
+               (as-string ($ :div.bar.xxx {:id "foo"}))))
+  (is (re-find #"id=.foo"
+               (as-string ($ :div#bar {:id "foo"})))))
 
 (uix.core/defui null-comp [do-show]
   (when do-show
@@ -127,7 +125,6 @@
 (deftest test-keys
   (with-error #(as-string ($ key-tester))))
 
-
 (deftest style-property-names-are-camel-cased
   (is (re-find #"<div style=\"text-align:center(;?)\">foo</div>"
                (as-string ($ :div {:style {:text-align "center"}} "foo")))))
@@ -165,13 +162,13 @@
     (uix.core/defui comp3 []
       ($ :div {}
          (list
-           ($ :<> {:key 1}
-              ($ :div {} "hello")
-              ($ :div {} "world"))
-           ($ comp4 {:key 2})
-           ($ :<> {:key 3}
-              ($ :div {} "1")
-              ($ :div {} "2")))))
+          ($ :<> {:key 1}
+             ($ :div {} "hello")
+             ($ :div {} "world"))
+          ($ comp4 {:key 2})
+          ($ :<> {:key 3}
+             ($ :div {} "1")
+             ($ :div {} "2")))))
     (is (= "<div><div>hello</div><div>world</div><div>foo</div><div>1</div><div>2</div></div>"
            (as-string ($ comp3))))))
 
