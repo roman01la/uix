@@ -1,5 +1,0 @@
-{:group-id "uix"
- :artifact-id "dom"
- :version "0.0.1-alpha"
- :skip-tag true
- :scm-url "https://github.com/roman01la/uix/tree/master/dom"}

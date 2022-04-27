@@ -1,9 +1,0 @@
-{:output-to "resources/public/example.js"
- :output-dir "resources/public/example-out"
- :optimizations :simple
- :cache-analysis true
- :static-fns true
- :fn-invoke-direct true
- :optimize-constants true
- :verbose true
- :aot-cache false}
