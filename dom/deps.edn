@@ -1,10 +1,4 @@
-{:deps {org.clojure/clojure {:mvn/version "1.10.0"}
-        org.clojure/clojurescript {:mvn/version "1.10.739"}
-        cljsjs/react-dom {:mvn/version "16.13.1-0"
-                          :exclusions [cljsjs/react-dom-server]}
-        uix.core/uix.core {:git/url "https://github.com/pitch-io/uix.git"
-                           :deps/root "core"
-                           :sha "128376f564e5d8e610b8de978b149e55ffb3b9d0"}}
+{:deps {}
  :paths ["src"]
  :aliases {:dev {:extra-deps {uix.core/uix.core {:local/root "../core"}}}
            :release {:extra-deps {appliedscience/deps-library {:mvn/version "0.3.4"}}
