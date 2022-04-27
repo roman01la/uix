@@ -1,4 +1,4 @@
-{:deps {cljs-bean/cljs-bean {:mvn/version "1.5.0"}}
+{:deps {cljs-bean/cljs-bean {:mvn/version "1.8.0"}}
  :paths ["src"]
  :aliases {:dev {:extra-paths ["dev" "resources"]
                  :extra-deps {uix.dom/uix.dom {:local/root "../dom"}
