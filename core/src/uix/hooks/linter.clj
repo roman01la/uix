@@ -4,7 +4,8 @@
             [clojure.string :as str]
             [clojure.pprint :as pp]
             [cljs.analyzer.api :as ana-api])
-  (:import (cljs.tagged_literals JSValue)))
+  (:import (cljs.tagged_literals JSValue)
+           (java.io Writer)))
 
 ;; === Rules of Hooks ===
 
@@ -185,9 +186,14 @@
         deps (set deps)]
     (filter #(nil? (deps %)) all-local-variables)))
 
+(defmethod pp/code-dispatch JSValue [alis]
+  (.write ^Writer *out* "#js ")
+  (pp/code-dispatch (.-val alis)))
+
 (defn ppr [s]
-  (let [source (->> (with-out-str (pp/pprint s))
-                    str/split-lines
+  (let [s (pp/with-pprint-dispatch pp/code-dispatch
+            (with-out-str (pp/pprint s)))
+        source (->> (str/split-lines s)
                     (take 8)
                     (str/join "\n"))]
     (str "```\n" source "\n```")))
