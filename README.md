@@ -2,8 +2,6 @@
 
 _Idiomatic ClojureScript interface to modern React.js_
 
-[Docs and Guides](https://roman01la.gitbook.io/pitch-uix/)
-
 [![CircleCI](https://circleci.com/gh/pitch-io/uix.svg?style=svg)](https://circleci.com/gh/pitch-io/uix)
 
 ```clj
