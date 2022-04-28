@@ -33,7 +33,7 @@ Component instance is also created via `$` macro call, where the first argument 
 
 ## Interop elements
 
-Interop syntax exists to allow using React components written in JavaScript as UIx components. More on that in [“Interop with React”](/docs/interop-with-reacr.md) page.
+Interop syntax exists to allow using React components written in JavaScript as UIx components. More on that in [“Interop with React”](/docs/interop-with-react.md) page.
 
 ```clojure
 ($ :> Button {:on-click #(js/console.log :click)}
