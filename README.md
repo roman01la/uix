@@ -9,10 +9,10 @@ _Idiomatic ClojureScript interface to modern React.js_
 ```clj
 {:deps {uix.core/uix.core {:git/url "https://github.com/pitch-io/uix.git"
                            :deps/root "core"
-                           :sha "128376f564e5d8e610b8de978b149e55ffb3b9d0"}
+                           :sha "0780168c0d82be211ef21a503d49ee7b9d6c1c69"}
         uix.dom/uix.dom {:git/url "https://github.com/pitch-io/uix.git"
                          :deps/root "dom"
-                         :sha "128376f564e5d8e610b8de978b149e55ffb3b9d0"}}}
+                         :sha "0780168c0d82be211ef21a503d49ee7b9d6c1c69"}}}
 ```
 
 ```clj
