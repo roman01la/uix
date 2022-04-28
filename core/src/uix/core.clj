@@ -2,17 +2,25 @@
   "Public API"
   (:require [uix.compiler.aot]
             [uix.source]
-            [cljs.core]))
+            [cljs.core]
+            [uix.hooks.linter :as hooks.linter]))
+
+(def ^:private goog-debug (with-meta 'goog.DEBUG {:tag 'boolean}))
 
 (defn- no-args-component [sym body]
   `(defn ~sym []
-     ~@body))
+     (let [f# (fn [] ~@body)]
+       (if ~goog-debug
+         (binding [*current-component* ~sym] (f#))
+         (f#)))))
 
 (defn- with-args-component [sym args body]
   `(defn ~sym [props#]
      (let [~args (cljs.core/array (glue-args props#))
            f# (fn [] ~@body)]
-       (f#))))
+       (if ~goog-debug
+         (binding [*current-component* ~sym] (f#))
+         (f#)))))
 
 (defn parse-sig [name fdecl]
   (let [[fdecl m] (if (string? (first fdecl))
@@ -38,13 +46,13 @@
 
 (defmacro
   ^{:arglists '([name doc-string? attr-map? [params*] prepost-map? body]
-                [name doc-string? attr-map? ([params*] prepost-map? body)+ attr-map?])}
+                [name doc-string? attr-map? ([params*] prepost-map? body) + attr-map?])}
   defui
   "Compiles UIx component into React component at compile-time."
   [sym & fdecl]
-
   (let [[fname args fdecl] (parse-sig sym fdecl)]
-    (uix.source/register-symbol! sym)
+    (uix.source/register-symbol! &env sym)
+    (hooks.linter/lint! sym fdecl &env)
     `(do
        ~(if (empty? args)
           (no-args-component fname fdecl)
@@ -55,7 +63,7 @@
 (defmacro source
   "Returns source string of UIx component"
   [sym]
-  (uix.source/source sym))
+  (uix.source/source &env sym))
 
 (defmacro $
   "Creates React element
@@ -66,3 +74,64 @@
    (uix.compiler.aot/compile-element [tag]))
   ([tag props & children]
    (uix.compiler.aot/compile-element (into [tag props] children))))
+
+;; === Hooks ===
+
+(defn vector->js-array [coll]
+  (cond
+    (vector? coll) `(jsfy-deps (cljs.core/array ~@coll))
+    (some? coll) `(jsfy-deps ~coll)
+    :else coll))
+
+(defn- make-hook-with-deps [sym env form f deps]
+  (hooks.linter/lint-exhaustive-deps! env form f deps)
+  (if deps
+    `(~sym ~f ~(vector->js-array deps))
+    `(~sym ~f)))
+
+(defmacro use-effect
+  "Takes a function to be executed in an effect and optional vector of dependencies.
+
+  See: https://reactjs.org/docs/hooks-reference.html#useeffect"
+  ([f]
+   (make-hook-with-deps 'uix.hooks.alpha/use-effect &env &form f nil))
+  ([f deps]
+   (make-hook-with-deps 'uix.hooks.alpha/use-effect &env &form f deps)))
+
+(defmacro use-layout-effect
+  "Takes a function to be executed in a layout effect and optional vector of dependencies.
+
+  See: https://reactjs.org/docs/hooks-reference.html#uselayouteffect"
+  ([f]
+   (make-hook-with-deps 'uix.hooks.alpha/use-layout-effect &env &form f nil))
+  ([f deps]
+   (make-hook-with-deps 'uix.hooks.alpha/use-layout-effect &env &form f deps)))
+
+(defmacro use-memo
+  "Takes function f and optional vector of dependencies, and returns memoized result of f.
+
+   See: https://reactjs.org/docs/hooks-reference.html#usememo"
+  ([f]
+   (make-hook-with-deps 'uix.hooks.alpha/use-memo &env &form f nil))
+  ([f deps]
+   (make-hook-with-deps 'uix.hooks.alpha/use-memo &env &form f deps)))
+
+(defmacro use-callback
+  "Takes function f and optional vector of dependencies, and returns memoized f.
+
+  See: https://reactjs.org/docs/hooks-reference.html#usecallback"
+  ([f]
+   (make-hook-with-deps 'uix.hooks.alpha/use-callback &env &form f nil))
+  ([f deps]
+   (make-hook-with-deps 'uix.hooks.alpha/use-callback &env &form f deps)))
+
+(defmacro use-imperative-handle
+  "Customizes the instance value that is exposed to parent components when using ref.
+
+  See: https://reactjs.org/docs/hooks-reference.html#useimperativehandle"
+  ([ref f]
+   (hooks.linter/lint-exhaustive-deps! &env &form f nil)
+   `(uix.hooks.alpha/use-imperative-handle ~ref ~f))
+  ([ref f deps]
+   (hooks.linter/lint-exhaustive-deps! &env &form f deps)
+   `(uix.hooks.alpha/use-imperative-handle ~ref ~f ~(vector->js-array deps))))

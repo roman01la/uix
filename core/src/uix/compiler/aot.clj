@@ -8,17 +8,19 @@
 (defmethod compile-attrs :element [_ attrs {:keys [tag-id-class]}]
   (if (or (map? attrs) (nil? attrs))
     `(cljs.core/array
-       ~(cond-> attrs
-                (and (some? (:style attrs))
-                     (not (map? (:style attrs))))
-                (assoc :style `(uix.compiler.attributes/convert-props ~(:style attrs) (cljs.core/array) true))
-                :always (attrs/set-id-class tag-id-class)
-                :always (attrs/compile-attrs {:custom-element? (last tag-id-class)})
-                :always js/to-js))
+      ~(cond-> attrs
+         (and (some? (:style attrs))
+              (not (map? (:style attrs))))
+         (assoc :style `(uix.compiler.attributes/convert-props ~(:style attrs) (cljs.core/array) true))
+         :always (attrs/set-id-class tag-id-class)
+         :always (attrs/compile-attrs {:custom-element? (last tag-id-class)})
+         :always js/to-js))
     `(uix.compiler.attributes/interpret-attrs ~attrs (cljs.core/array ~@tag-id-class) false)))
 
 (defmethod compile-attrs :component [_ props _]
-  `(uix.compiler.attributes/interpret-props ~props))
+  (if (or (map? props) (nil? props))
+    `(cljs.core/array ~props)
+    `(uix.compiler.attributes/interpret-props ~props)))
 
 (defmethod compile-attrs :fragment [_ attrs _]
   (if (map? attrs)
@@ -33,9 +35,9 @@
 (defmethod compile-attrs :interop [_ props _]
   (if (map? props)
     `(cljs.core/array
-       ~(cond-> props
-                :always (attrs/compile-attrs {:custom-element? true})
-                :always (js/to-js-map true)))
+      ~(cond-> props
+         :always (attrs/compile-attrs {:custom-element? true})
+         :always (js/to-js-map true)))
     `(uix.compiler.attributes/interpret-attrs ~props (cljs.core/array) true)))
 
 ;; Compiles HyperScript into React.createElement

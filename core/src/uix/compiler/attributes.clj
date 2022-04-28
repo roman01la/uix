@@ -26,15 +26,15 @@
     (let [props-class (get props :class)]
       (cond-> props
               ;; Only use ID from tag keyword if no :id in props already
-              (and (some? id) (nil? (get props :id)))
-              (assoc :id id)
+        (and (some? id) (nil? (get props :id)))
+        (assoc :id id)
 
               ;; Merge classes
-              (or class props-class)
-              (assoc :class (cond
-                              (vector? props-class) `(class-names ~class ~@props-class)
-                              props-class `(class-names ~class ~props-class)
-                              :else class))))
+        (or class props-class)
+        (assoc :class (cond
+                        (vector? props-class) `(class-names ~class ~@props-class)
+                        props-class `(class-names ~class ~props-class)
+                        :else class))))
     props))
 
 (defn camel-case
@@ -90,14 +90,14 @@
   ([attrs {:keys [custom-element?]}]
    (if (map? attrs)
      (reduce-kv
-       #(assoc %1
-               (if custom-element?
-                 (camel-case %2)
-                 (case %2
-                   :class :className
-                   :for :htmlFor
-                   (camel-case %2)))
-               (compile-config-kv %2 %3))
-       {}
-       attrs)
+      #(assoc %1
+              (if custom-element?
+                (camel-case %2)
+                (case %2
+                  :class :className
+                  :for :htmlFor
+                  (camel-case %2)))
+              (compile-config-kv %2 %3))
+      {}
+      attrs)
      attrs)))

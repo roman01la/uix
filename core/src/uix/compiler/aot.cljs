@@ -14,7 +14,6 @@
           (fn? tag)
           (instance? MultiFn tag)))))
 
-
 (defn validate-children [children]
   (doseq-loop [child children]
     (cond

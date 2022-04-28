@@ -1,35 +1,16 @@
-{:deps {cljs-bean/cljs-bean {:mvn/version "1.5.0"}}
+{:deps {cljs-bean/cljs-bean {:mvn/version "1.8.0"}}
  :paths ["src"]
- :aliases {:dev {:extra-paths ["dev" "resources"]
-                 :extra-deps {uix.dom/uix.dom {:local/root "../dom"}
-                              com.bhauman/figwheel-main {:mvn/version "0.2.1-SNAPSHOT"}
-                              cljsjs/emotion {:mvn/version "10.0.6-0"}
-                              cljsjs/react-dom-server {:mvn/version "16.13.1-0"}
-                              codox/codox {:mvn/version "0.10.6"}
-                              codox-theme-rdash/codox-theme-rdash {:mvn/version "0.1.2"}
-                              aleph/aleph {:mvn/version "0.4.6"}
-                              cljfmt/cljfmt {:mvn/version "0.6.4"}
-                              rhizome/rhizome {:mvn/version "0.2.9"}}}
-           :rec-front {:extra-deps {com.bhauman/rebel-readline-cljs {:mvn/version "0.1.4"}}
-                       :main-opts ["-m" "figwheel.main" "--build" "dev" "--repl" "--serve"]}
-           :rec-ssr  {:main-opts ["-m" "uix.recipes.server-rendering"]}
+ :aliases {:dev {:extra-deps {cljfmt/cljfmt {:mvn/version "0.8.0"}}}
            :benchmark {:extra-paths ["benchmark"]
                        :extra-deps {reagent/reagent {:mvn/version "1.1.0"}
                                     criterium/criterium {:mvn/version "0.4.5"}
                                     enlive/enlive {:mvn/version "1.1.6"}
                                     hiccup/hiccup {:mvn/version "1.0.5"}
                                     rum/rum {:mvn/version "0.11.2"}}}
-           :bench-front {:main-opts ["-m" "figwheel.main" "-O" "advanced" "--build" "benchmark" "--serve"]}
-           :bench-ssr {:main-opts ["-m" "uix.benchmark"]}
            :test {:extra-paths ["test"]
                   :extra-deps {org.clojure/clojure {:mvn/version "1.10.3"}
                                org.clojure/clojurescript {:mvn/version "1.10.879"}
                                thheller/shadow-cljs {:mvn/version "2.15.5"}
                                uix.dom/uix.dom {:local/root "../dom"}
                                cljsjs/react-dom-server {:mvn/version "16.13.1-0"}
-                               clj-diffmatchpatch/clj-diffmatchpatch {:mvn/version "0.0.9.3"}}}
-           :ci {:extra-paths ["dev"]
-                :extra-deps {cljfmt/cljfmt {:mvn/version "0.6.4"}}}
-           :example {:main-opts ["-m" "cljs.main" "-co" "example.cljs.edn" "-c" "uix.example"]}
-           :release {:extra-deps {appliedscience/deps-library {:mvn/version "0.3.4"}}
-                     :main-opts ["-m" "deps-library.release"]}}}
+                               clj-diffmatchpatch/clj-diffmatchpatch {:mvn/version "0.0.9.3"}}}}}

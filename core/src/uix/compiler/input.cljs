@@ -128,11 +128,11 @@
   (let [this (.-current (react/useRef #js {}))]
     (input-render-setup this (.-props js-props))
     (react/useLayoutEffect
-      (fn []
-        (input-component-set-value this)
-        js/undefined))
+     (fn []
+       (input-component-set-value this)
+       js/undefined))
     (react/useEffect
-      (fn [] #(input-unmount this))
-      #js [])
+     (fn [] #(input-unmount this))
+     #js [])
     (apply react/createElement (.-tag js-props) (.-props js-props) (.-children js-props))))
 

@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+
+clojure -A:dev -m cljfmt.main fix --indents indentation.clj

@@ -3,13 +3,15 @@
   (:require [clojure.java.io :as io]
             [clojure.tools.reader.reader-types :as readers]
             [clojure.tools.reader :as reader]
-            [cljs.tagged-literals :as tags])
+            [cljs.tagged-literals :as tags]
+            [uix.lib])
   (:import (java.io PushbackReader)))
 
 (def components (atom {}))
 
-(defn register-symbol! [sym]
-  (swap! components assoc sym sym))
+(defn register-symbol! [env sym]
+  (let [q-sym (uix.lib/ns-qualify env sym)]
+    (swap! components assoc q-sym sym)))
 
 ;; from cljs.repl/source-fn
 (defn- source-fn [sym]
@@ -29,5 +31,6 @@
                     meta
                     :source)))))))))
 
-(defn source [sym]
-  (source-fn (@components sym)))
+(defn source [env sym]
+  (let [q-sym (uix.lib/ns-qualify env sym)]
+    (source-fn (@components q-sym))))

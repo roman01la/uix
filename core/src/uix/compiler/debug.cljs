@@ -12,7 +12,6 @@
           (str "/" name-part)
           demunge))))
 
-
 (def ^:dynamic *format-display-name* default-format-display-name)
 
 (defn format-display-name [s]
@@ -37,9 +36,9 @@
      (set! (.-displayName f) f-name)))
   ([^js f]
    (when-let [component-name (effective-component-name f)]
-    (when-some [display-name (format-display-name component-name)]
-      (js/Object.defineProperty f "name" #js {:value display-name})
-      (set! (.-displayName f) display-name)))))
+     (when-some [display-name (format-display-name component-name)]
+       (js/Object.defineProperty f "name" #js {:value display-name})
+       (set! (.-displayName f) display-name)))))
 
 ;; ============ Adapting React warnings to UIx ============
 

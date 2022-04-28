@@ -9,13 +9,10 @@ _Idiomatic ClojureScript interface to modern React.js_
 ```clj
 {:deps {uix.core/uix.core {:git/url "https://github.com/pitch-io/uix.git"
                            :deps/root "core"
-                           :sha "de150bc794fa50d7c3e1de2d1950561a27261362"}
+                           :sha "128376f564e5d8e610b8de978b149e55ffb3b9d0"}
         uix.dom/uix.dom {:git/url "https://github.com/pitch-io/uix.git"
                          :deps/root "dom"
-                         :sha "de150bc794fa50d7c3e1de2d1950561a27261362"}
-        uix.rn/uix.rn {:git/url "https://github.com/pitch-io/uix.git"
-                       :deps/root "rn"
-                       :sha "de150bc794fa50d7c3e1de2d1950561a27261362"}}}
+                         :sha "128376f564e5d8e610b8de978b149e55ffb3b9d0"}}}
 ```
 
 ```clj
@@ -36,6 +33,17 @@ _Idiomatic ClojureScript interface to modern React.js_
 
 (uix.dom/render ($ app) (js/document.getElementById "root"))
 ```
+
+## Docs
+
+- [What is UIx?](/docs/what-is-uix.md)
+- [Components](/docs/components.md)
+- [Elements](/docs/elements.md)
+- [State](/docs/state.md)
+- [Effects](/docs/effects.md)
+- [Interop with React](/docs/interop-with-react.md)
+- [Interop with Reagent](/docs/interop-with-reagent.md)
+- [Code-splitting and React.lazy](/docs/code-splitting.md)
 
 ## Testing
 

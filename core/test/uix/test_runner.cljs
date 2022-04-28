@@ -14,8 +14,8 @@
   (js/testsDone))
 
 (cljs.test/run-tests
-  (cljs.test/empty-env)
-  'uix.aot-test
-  'uix.core-test
-  'uix.compiler-test
-  'uix.hooks-test)
+ (cljs.test/empty-env)
+ 'uix.aot-test
+ 'uix.core-test
+ 'uix.compiler-test
+ 'uix.hooks-test)
