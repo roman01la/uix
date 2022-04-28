@@ -50,9 +50,8 @@
   defui
   "Compiles UIx component into React component at compile-time."
   [sym & fdecl]
-
   (let [[fname args fdecl] (parse-sig sym fdecl)]
-    (uix.source/register-symbol! sym)
+    (uix.source/register-symbol! &env sym)
     (hooks.linter/lint! sym fdecl &env)
     `(do
        ~(if (empty? args)
@@ -64,7 +63,7 @@
 (defmacro source
   "Returns source string of UIx component"
   [sym]
-  (uix.source/source sym))
+  (uix.source/source &env sym))
 
 (defmacro $
   "Creates React element
