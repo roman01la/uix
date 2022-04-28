@@ -2,38 +2,22 @@
   (:require [clojure.string :as str]))
 
 (def re-tag
-  "HyperScript tag pattern :div#id.class etc."
-  #"([^\s\.#]+)(?:#([^\s\.#]+))?(?:\.([^\s#]+))?")
+  "HyperScript tag pattern :div :div#id.class etc."
+  #"([^\.#]*)(?:#([^\.#]+))?(?:\.([^#]+))?")
 
-;; https://github.com/tonsky/rum/blob/gh-pages/src/daiquiri/normalize.cljc#L71
-(defn strip-css
-  "Strip the # and . characters from the beginning of `s`."
-  [s]
-  (when s
-    (str/replace s #"^[.#]" "")))
-
-;; https://github.com/tonsky/rum/blob/gh-pages/src/daiquiri/normalize.cljc#L77
 (defn parse-tag
-  "Match `tag` as a CSS tag and return a vector of tag name, CSS id and
-  CSS classes."
+  "Takes HyperScript tag (:div#id.class) and returns parsed tag, id and class fields"
   [tag]
-  (let [matches (re-seq #"[#.]?[^#.]+" (name tag))
-        [tag-name names]
-        (cond (empty? matches)
-              (throw (ex-info (str "Invalid tag name (found: " tag ").") {:tag tag}))
-
-              ;; shorthand for div
-              (contains? #{\# \.} (ffirst matches))
-              ["div" matches]
-
-              :default
-              [(first matches) (rest matches)])
-        class (keep #(when (= \. (first %)) (strip-css %)) names)
-        id (some #(when (= \# (first %1)) %1) names)]
-    [tag-name
-     (when id (strip-css id))
-     (when (seq class) (str/join " " class))
-     (some? (re-find #"-" tag-name))]))
+  (let [tag-str (name tag)]
+    (when (and (not (re-matches re-tag tag-str))
+               (re-find #"[#\.]" tag-str))
+      ;; Throwing NPE here because shadow catches those to bring up error view in a browser
+      (throw (NullPointerException. (str "Invalid tag name (found: " tag-str "). Make sure that the name matches the format and ordering is correct `:tag#id.class`"))))
+    (let [[tag id class-name] (next (re-matches re-tag tag-str))
+          tag (if (= "" tag) "div" tag)
+          class-name (when-not (nil? class-name)
+                       (str/replace class-name #"\." " "))]
+      (list tag id class-name (some? (re-find #"-" tag))))))
 
 (defn set-id-class
   "Takes attributes map and parsed tag, and returns attributes merged with class names and id"
@@ -75,10 +59,16 @@
     (reduce-kv #(assoc %1 (camel-case %2) %3) {} m)
     m))
 
-(defn convert-value [v]
-  (if (symbol? v)
-    `(keyword->string ~v)
-    v))
+(defn convert-value
+  ([v]
+   (if (symbol? v)
+     `(keyword->string ~v)
+     v))
+  ([k v]
+   (cond
+     (str/starts-with? (name k) "on-") v
+     (symbol? v) `(keyword->string ~v)
+     :else v)))
 
 (defn convert-values [m]
   (if (map? m)
@@ -91,7 +81,7 @@
   (convert-values (camel-case-keys value)))
 
 (defmethod compile-config-kv :default [name value]
-  (convert-value value))
+  (convert-value name value))
 
 (defn compile-attrs
   "Takes map of attributes and returns same map with keys translated from Clojure to React naming conventions"
@@ -101,13 +91,13 @@
    (if (map? attrs)
      (reduce-kv
        #(assoc %1
-           (if custom-element?
-             (camel-case %2)
-             (case %2
-               :class :className
-               :for :htmlFor
-               (camel-case %2)))
-           (compile-config-kv %2 %3))
+               (if custom-element?
+                 (camel-case %2)
+                 (case %2
+                   :class :className
+                   :for :htmlFor
+                   (camel-case %2)))
+               (compile-config-kv %2 %3))
        {}
        attrs)
      attrs)))
