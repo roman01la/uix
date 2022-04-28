@@ -3,7 +3,8 @@
   (:require [clojure.java.io :as io]
             [clojure.tools.reader.reader-types :as readers]
             [clojure.tools.reader :as reader]
-            [cljs.tagged-literals :as tags])
+            [cljs.tagged-literals :as tags]
+            [uix.lib])
   (:import (java.io PushbackReader)))
 
 (def components (atom {}))
