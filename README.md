@@ -34,6 +34,17 @@ _Idiomatic ClojureScript interface to modern React.js_
 (uix.dom/render ($ app) (js/document.getElementById "root"))
 ```
 
+## Docs
+
+- [What is UIx?](/docs/what-is-uix.md)
+- [Components](/docs/components.md)
+- [Elements](/docs/elements.md)
+- [State](/docs/state.md)
+- [Effects](/docs/effects.md)
+- [Interop with React](/docs/interop-with-react.md)
+- [Interop with Reagent](/docs/interop-with-reagent.md)
+- [Code-splitting and React.lazy](/docs/code-splitting.md)
+
 ## Testing
 
 ```
