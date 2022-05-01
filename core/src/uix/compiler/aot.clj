@@ -1,7 +1,8 @@
 (ns uix.compiler.aot
   "Compiler code that translates HyperScript into React calls at compile-time."
   (:require [uix.compiler.js :as js]
-            [uix.compiler.attributes :as attrs]))
+            [uix.compiler.attributes :as attrs]
+            [cljs.analyzer :as ana]))
 
 (defmulti compile-attrs (fn [tag attrs opts] tag))
 
@@ -40,9 +41,40 @@
          :always (js/to-js-map true)))
     `(uix.compiler.attributes/interpret-attrs ~props (cljs.core/array) true)))
 
+(defn- input-component? [x]
+  (contains? #{"input" "textarea"} x))
+
+(defn- uix-element?
+  "Returns true when `form` is `(uix.core/$ ...)`"
+  [env form]
+  (and (list? form)
+       (symbol? (first form))
+       (->> (first form) (ana/resolve-var env) :name (= 'uix.core/$))))
+
+(def elements-list-fns
+  '#{for map mapv filter filterv remove keep keep-indexed})
+
+(defn- elements-list?
+  "Returns true when `v` is a seq form normally used to render a list of elements
+  `(map ...)`, `(for ...)`, etc"
+  [v]
+  (and (list? v)
+       (symbol? (first v))
+       (elements-list-fns (first v))))
+
+(defn- normalize-element
+  "When the second item in the element `v` is either UIx element or `elements-list?`,
+  returns normalized element with empty map at props position
+  and child element shifted into children position"
+  [env v]
+  (if (or (uix-element? env (second v))
+          (elements-list? (second v)))
+    (into [(first v) {}] (rest v))
+    v))
+
 ;; Compiles HyperScript into React.createElement
 (defmulti compile-element
-  (fn [[tag]]
+  (fn [[tag] _]
     (cond
       (= :<> tag) :fragment
       (= :# tag) :suspense
@@ -50,11 +82,8 @@
       (keyword? tag) :element
       :else :component)))
 
-(defn- input-component? [x]
-  (contains? #{"input" "textarea"} x))
-
-(defmethod compile-element :element [v]
-  (let [[tag attrs & children] v
+(defmethod compile-element :element [v {:keys [env]}]
+  (let [[tag attrs & children] (normalize-element env v)
         tag-id-class (attrs/parse-tag tag)
         attrs-children (compile-attrs :element attrs {:tag-id-class tag-id-class})
         tag-str (first tag-id-class)
@@ -63,25 +92,25 @@
               `(>el ~tag-str ~attrs-children (cljs.core/array ~@children)))]
     ret))
 
-(defmethod compile-element :component [v]
-  (let [[tag props & children] v
+(defmethod compile-element :component [v {:keys [env]}]
+  (let [[tag props & children] (normalize-element env v)
         tag (vary-meta tag assoc :tag 'js)
         props-children (compile-attrs :component props nil)]
     `(uix.compiler.alpha/component-element ~tag ~props-children (cljs.core/array ~@children))))
 
-(defmethod compile-element :fragment [v]
+(defmethod compile-element :fragment [v _]
   (let [[_ attrs & children] v
         attrs (compile-attrs :fragment attrs nil)
         ret `(>el fragment ~attrs (cljs.core/array ~@children))]
     ret))
 
-(defmethod compile-element :suspense [v]
+(defmethod compile-element :suspense [v _]
   (let [[_ attrs & children] v
         attrs (compile-attrs :suspense attrs nil)
         ret `(>el suspense ~attrs (cljs.core/array ~@children))]
     ret))
 
-(defmethod compile-element :interop [v]
+(defmethod compile-element :interop [v _]
   (let [[_ tag props & children] v
         props (compile-attrs :interop props nil)]
     `(>el ~tag ~props (cljs.core/array ~@children))))

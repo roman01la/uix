@@ -71,9 +71,9 @@
   DOM element: ($ :button#id.class {:on-click handle-click} \"click me\")
   React component: ($ title-bar {:title \"Title\"})"
   ([tag]
-   (uix.compiler.aot/compile-element [tag]))
+   (uix.compiler.aot/compile-element [tag] {:env &env}))
   ([tag props & children]
-   (uix.compiler.aot/compile-element (into [tag props] children))))
+   (uix.compiler.aot/compile-element (into [tag props] children) {:env &env})))
 
 ;; === Hooks ===
 
