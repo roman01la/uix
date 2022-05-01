@@ -66,6 +66,7 @@
      v))
   ([k v]
    (cond
+     (= :children v) v
      (str/starts-with? (name k) "on-") v
      (symbol? v) `(keyword->string ~v)
      :else v)))
