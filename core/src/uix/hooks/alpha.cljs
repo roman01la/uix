@@ -44,17 +44,13 @@
 
 ;; == Callback hook ==
 (defn use-callback
-  ([f]
-   (r/useCallback f))
-  ([f deps]
-   (r/useCallback f deps)))
+  [f deps]
+  (r/useCallback f deps))
 
 ;; == Memo hook ==
 (defn use-memo
-  ([f]
-   (r/useMemo f))
-  ([f deps]
-   (r/useMemo f deps)))
+  [f deps]
+  (r/useMemo f deps))
 
 ;; == Context hook ==
 (defn use-context [v]
