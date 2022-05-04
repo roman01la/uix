@@ -28,7 +28,7 @@ Because state is not directly coupled with components it is possible to build re
 
 ```clojure
 (defn use-validation [initial-value valid?]
-  (let [[value set-value!] (uix.core/use-state initial-value)]
+  (let [[value set-value!] (uix.core/use-state initial-value)
         on-change #(let [v (.. % -target -value)]
                     (when (valid? v)
                       (set-value! v)))]
