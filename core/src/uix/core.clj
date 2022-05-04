@@ -111,22 +111,18 @@
    (make-hook-with-deps 'uix.hooks.alpha/use-layout-effect &env &form f deps)))
 
 (defmacro use-memo
-  "Takes function f and optional vector of dependencies, and returns memoized result of f.
+  "Takes function f and required vector of dependencies, and returns memoized result of f.
 
    See: https://reactjs.org/docs/hooks-reference.html#usememo"
-  ([f]
-   (make-hook-with-deps 'uix.hooks.alpha/use-memo &env &form f nil))
-  ([f deps]
-   (make-hook-with-deps 'uix.hooks.alpha/use-memo &env &form f deps)))
+  [f deps]
+  (make-hook-with-deps 'uix.hooks.alpha/use-memo &env &form f deps))
 
 (defmacro use-callback
-  "Takes function f and optional vector of dependencies, and returns memoized f.
+  "Takes function f and required vector of dependencies, and returns memoized f.
 
   See: https://reactjs.org/docs/hooks-reference.html#usecallback"
-  ([f]
-   (make-hook-with-deps 'uix.hooks.alpha/use-callback &env &form f nil))
-  ([f deps]
-   (make-hook-with-deps 'uix.hooks.alpha/use-callback &env &form f deps)))
+  [f deps]
+  (make-hook-with-deps 'uix.hooks.alpha/use-callback &env &form f deps))
 
 (defmacro use-imperative-handle
   "Customizes the instance value that is exposed to parent components when using ref.
