@@ -267,7 +267,7 @@
       (and (= (type deps) JSValue) (vector? (.-val deps))) [::deps-array-literal {:source form}]
 
       ;; when deps are neither JS Array nor Clojure's vector, should be a vector instead
-      #_#_(not (vector? deps)) [::deps-coll-literal {:source form}]
+      (not (vector? deps)) [::deps-coll-literal {:source form}]
 
       ;; when deps vector has a primitive literal, it can be safely removed
       (and (vector? deps) (seq (deps->literals deps)))
