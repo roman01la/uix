@@ -42,6 +42,7 @@ _Idiomatic ClojureScript interface to modern React.js_
 - [Interop with React](/docs/interop-with-react.md)
 - [Interop with Reagent](/docs/interop-with-reagent.md)
 - [Code-splitting and React.lazy](/docs/code-splitting.md)
+- [Migrating from Reagent](/docs/migrating-from-reagent.md)
 
 ## Testing
 
