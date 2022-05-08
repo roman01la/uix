@@ -78,7 +78,7 @@ Similar to React, child components are passed as `children` in props map. `child
 
 ## :ref attribute
 
-[Refs](https://reactjs.org/docs/refs-and-the-dom.html) provide a way to refer to DOM nodes. In UIx ref is passed as a normal attribute onto DOM elements, similar to React. `use-ref` return a ref with Atom-like API: the ref can be dereferenced `@` and updated with either `reset!` or `swap!`.
+[Refs](https://reactjs.org/docs/refs-and-the-dom.html) provide a way to refer to DOM nodes. In UIx ref is passed as a normal attribute onto DOM elements, similar to React. `use-ref` return a ref with Atom-like API: the ref can be dereferenced `@` and updated with either `clojure.core/reset!` or `clojure.core/swap!`.
 
 ```clojure
 (defui form []
