@@ -183,3 +183,8 @@
             #js []
             coll)
     coll))
+
+(defn lazy [f]
+  (let [lazy-component (react/lazy #(.then (f) (fn [component] #js {:default component})))]
+    (set! (.-uix-component? lazy-component) true)
+    lazy-component))

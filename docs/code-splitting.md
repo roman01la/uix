@@ -1,28 +1,50 @@
 # Code-splitting and React.lazy
 
-Let's say you want to split out a library of UI component into a separate bundle, so that it can be shared across multiple applications that depend on the library.
+Let's say you want to split out a library of UI components into a separate bundle, so that it can be shared across multiple applications that depend on the library.
 
 ```clojure
 (ns app.ui.lib
   (:require [uix.core :refer [defui $]]))
 
-(defui button [{:keys [on-click children]}]
-  ($ :button {:on-click on-click} children))
+(defui modal [{:keys [on-close children]}]
+  ...)
 ```
 
-In the application code you can use `require-lazy` macro that will take care of wiring everything together needed for module loading. Then in UI code you can use React's `Suspense` to load the component lazily and display a fallback UI while it's loading.
-
-> Note that require-lazy can be used only in projects built via [shadow-cljs](https://github.com/thheller/shadow-cljs)
+Similarly to React, with UIx you can use `uix.core/lazy` that will take care of loading UIx component from a separate module. Then in UI code you can use React's `Suspense` to load the component lazily and display a fallback UI while it's loading. The example below demonstrates how to create and load a lazy component using shadow's loader API.
 
 ```clojure
 (ns app.core
-  (:require [uix.core :refer [defui $ require-lazy]]))
+  (:require [uix.core :refer [defui $]]
+            [shadow.lazy]))
 
-(require-lazy '[app.ui.lib :refer [button]])
+;; create shadow's loadable object that references `app.ui.lib/modal` component
+(def loadable-modal (shadow.lazy/loadable app.ui.lib/modal))
+
+;; create React's lazy component that loads the modal using shadow's API
+(def modal (uix.core/lazy #(shadow.lazy/load loadable-modal)))
 
 (defui app []
-  ($ :> react/Suspense {:fallback #el [:div "Loading..."]}
-    ($ button {:on-click js/console.log})))
+  (let [[show-modal? set-show-modal!] (uix.core/use-state false)]
+    ($ :div
+      ($ :button {:on-click #(set-show-modal! true)})
+      ;; wrap the "lazy" `modal` with React's `Suspense` component and provide a fallback UI
+      ($ :> react/Suspense {:fallback ($ :div "Loading...")}
+        (when show-modal?
+          ;; when rendered, React will load the module while displaying the fallback
+          ;; and then render the component referenced from the module
+          ($ modal {:on-close #(set-show-modal! false)}))))))
 ```
 
-Check out [React's documentation page on Code-splitting and React.lazy](https://reactjs.org/docs/code-splitting.html) for more example.
+For the above to compile correctly you'd have to update build config in `shadow-cljs.edn`:
+
+```clojure
+{:module-loader true
+ :modules {:main {:entries [app.core}}
+           :ui-lib {:entries [app.ui.lib}
+                    :depends-on #{:main}}}
+
+```
+
+If you are not familiar with ClojureScript's `:modules` configuration, make sure to read [documentation about this compiler option](https://clojurescript.org/reference/compiler-options#modules).
+
+Also check out [React's documentation page on Code-splitting and React.lazy](https://reactjs.org/docs/code-splitting.html) for more example.

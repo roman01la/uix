@@ -1,17 +1,9 @@
 (ns uix.compiler.alpha
   (:require [react :as react]
-            [uix.hooks.alpha :as hooks]
-            [cljs-bean.core :as bean]
-            [uix.compiler.debug :as debug]))
-
-(defn js-val? [x]
-  (not (identical? "object" (goog/typeOf x))))
+            [cljs-bean.core :as bean]))
 
 (defn symbol-for [s]
   (js* "Symbol.for(~{})" s))
-
-(defn as-lazy-component [f]
-  (debug/with-name f))
 
 (defn as-react [f]
   #(f (bean/bean %)))

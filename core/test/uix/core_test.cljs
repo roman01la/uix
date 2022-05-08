@@ -1,7 +1,6 @@
 (ns uix.core-test
   (:require [clojure.test :refer [deftest is async testing run-tests]]
             [uix.core :refer [defui $]]
-            ;[uix.core.lazy-loader :refer [require-lazy]]
             [uix.lib]
             [react :as r]
             [uix.test-utils :as t]
@@ -43,10 +42,6 @@
   (let [f (uix.core/memo test-memoize-comp)]
     (is (t/react-element-of-type? f "react.memo"))
     (is (= "<h1>1</h1>" (t/as-string ($ f {:x 1}))))))
-
-#_(deftest test-require-lazy
-    (require-lazy '[uix.core :refer [strict-mode]])
-    (is (t/react-element-of-type? strict-mode "react.lazy")))
 
 (deftest test-html
   (is (t/react-element-of-type? ($ :h1 1) "react.element")))
@@ -113,6 +108,19 @@
          (vec (uix.core/jsfy-deps #js [1 "str" :k/w 'uix.core/sym #uuid "b53887c9-4910-4d4e-aad9-f3487e6e97f5" nil [] {} #{}]))))
   (is (= #{} (uix.core/jsfy-deps #{})))
   (is (= {} (uix.core/jsfy-deps {}))))
+
+(deftest test-lazy
+  (async done
+         (let [expected-value :x
+               lazy-f (uix.core/lazy (fn [] (js/Promise. (fn [res] (js/setTimeout #(res expected-value) 100)))))]
+           (is (.-uix-component? lazy-f))
+           (try
+             (._init lazy-f (.-_payload lazy-f))
+             (catch :default e
+               (is (instance? js/Promise e))
+               (.then e (fn [v]
+                          (is (= expected-value (.-default ^js v)))
+                          (done))))))))
 
 (defn -main []
   (run-tests))
