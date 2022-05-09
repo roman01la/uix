@@ -7,14 +7,6 @@
             [uix.hiccup :as hiccup]
             [uix.react :refer [Editor]]))
 
-(defui app []
-  (let [[show-modal? set-show-modal!] (uix.core/use-state false)]
-    ($ :div
-      ($ :button {:on-click #(set-show-modal! true)})
-      ($ :> react/Suspense {:fallback ($ :div "Loading...")}
-        (when show-modal?
-          ($ modal {:on-close #(set-show-modal! false)}))))))
-
 (set! (.-React js/window) react)
 
 (defn render [el]
