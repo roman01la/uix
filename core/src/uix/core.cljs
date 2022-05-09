@@ -1,81 +1,63 @@
 (ns uix.core
   "Public API"
   (:require-macros [uix.core])
-  (:require [react :as r]
+  (:require [goog.object :as gobj]
+            [react]
             [uix.compiler.debug :as debug]
             [uix.hooks.alpha :as hooks]
             [uix.compiler.alpha :as compiler]
             [uix.compiler.aot]
-            [uix.lib :refer [doseq-loop]]))
+            [uix.lib :refer [doseq-loop map->js]]))
 
 (def ^:dynamic *current-component*)
 
 ;; React's top-level API
 
+(def ^:private built-in-static-method-names
+  [:childContextTypes :contextTypes :contextType
+   :getDerivedStateFromProps :getDerivedStateFromError])
+
 (defn create-class
   "Creates class based React component"
-  [{:keys [constructor static prototype]}]
-  (let [ctor (fn [props]
+  [{:keys [constructor getInitialState render
+           ;; lifecycle methods
+           componentDidMount componentDidUpdate componentDidCatch
+           shouldComponentUpdate getSnapshotBeforeUpdate componentWillUnmount
+           ;; static methods
+           childContextTypes contextTypes contextType
+           getDerivedStateFromProps getDerivedStateFromError
+           ;; class properties
+           defaultProps displayName]
+    :as fields}]
+  (let [methods (map->js (apply dissoc fields :displayName :getInitialState :constructor :render
+                                built-in-static-method-names))
+        static-methods (map->js (select-keys fields built-in-static-method-names))
+        ctor (fn [props]
                (this-as this
-                        (.apply r/Component this (js-arguments))
+                        (.apply react/Component this (js-arguments))
                         (when constructor
-                          (constructor this props)))
-               nil)]
-    (set! (.-prototype ctor) (.create js/Object (.-prototype r/Component)))
-    (doseq-loop [[k v] static]
-      (aset ctor (name k) v))
-    (doseq-loop [[k v] prototype]
-      (aset (.-prototype ctor) (name k) v))
+                          (constructor this props))
+                        (when getInitialState
+                          (set! (.-state this) (getInitialState this)))
+                        this))]
+    (gobj/extend (.-prototype ctor) (.-prototype react/Component) methods)
+    (when render (set! (.-render ^js (.-prototype ctor)) render))
+    (gobj/extend ctor react/Component static-methods)
+    (when displayName
+      (set! (.-displayName ctor) displayName)
+      (set! (.-cljs$lang$ctorStr ctor) displayName)
+      (set! (.-cljs$lang$ctorPrWriter ctor)
+            (fn [this writer opt]
+              (-write writer displayName))))
+    (set! (.-cljs$lang$type ctor) true)
+    (set! (.. ctor -prototype -constructor) ctor)
     (set! (.-uix-component? ctor) true)
     ctor))
-
-(defn create-error-boundary
-  "Creates React's Error Boundary component
-
-    display-name — the name of the component to be displayed in stack trace
-    error->state — maps error object to component's state that is used in render-fn
-    handle-catch — for side-effects, logging etc.
-    render-fn — takes state value returned from error->state and a vector of arguments passed into error boundary"
-  [{:keys [display-name error->state handle-catch]
-    :or {display-name (str (gensym "error-boundary"))}}
-   render-fn]
-  (let [constructor (fn [^js/React.Component this _]
-                      (set! (.-state this) #js {:argv nil})
-                      (specify! (.-state this)
-                                IDeref
-                                (-deref [o]
-                                        (.. this -state -argv))
-                                IReset
-                                (-reset! [o new-value]
-                                         (.setState this #js {:argv new-value})
-                                         new-value)
-                                ISwap
-                                (-swap!
-                                 ([o f]
-                                  (-reset! o (f (-deref o))))
-                                 ([o f a]
-                                  (-reset! o (f (-deref o) a)))
-                                 ([o f a b]
-                                  (-reset! o (f (-deref o) a b)))
-                                 ([o f a b xs]
-                                  (-reset! o (apply f (-deref o) a b xs))))))
-        derive-state (fn [error] #js {:argv (error->state error)})
-        render (fn []
-                 (this-as ^react/Component this
-                          (let [args (.. this -props -argv)
-                                state (.-state this)]
-                     ;; `render-fn` should return compiled HyperScript
-                            (render-fn state args))))]
-    (create-class {:constructor constructor
-                   :static {:displayName display-name
-                            :getDerivedStateFromError derive-state}
-                   :prototype {:componentDidCatch handle-catch
-                               :render render}})))
 
 (defn create-ref
   "Creates React's ref type object."
   []
-  (r/createRef))
+  (react/createRef))
 
 (defn glue-args [^js props]
   (cond-> (.-argv props)

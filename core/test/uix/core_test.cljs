@@ -3,6 +3,7 @@
             [uix.core :refer [defui $]]
             [uix.lib]
             [react :as r]
+            [react-dom]
             [uix.test-utils :as t]
             [cljs-bean.core :as bean]))
 
@@ -60,47 +61,6 @@
                   .-type)]
     (is (= (ftype #js {:x 1}) 1))))
 
-(deftest test-create-error-boundary-1
-  (let [error->state-called? (atom false)
-        handle-catch-called? (atom false)
-        err-b (uix.core/create-error-boundary
-               {:display-name "err-b-1"
-                :error->state #(reset! error->state-called? true)
-                :handle-catch #(reset! handle-catch-called? true)}
-               (fn [err {:keys [done x]}]
-                 (is (= nil @err))
-                 (is (= 1 x))
-                 (is (= false @error->state-called?))
-                 (is (= false @handle-catch-called?))
-                 (done)
-                 x))]
-    (async done
-           (t/render ($ err-b {:done done :x 1})))))
-
-#_(deftest test-create-error-boundary-2
-    (let [handle-catch (atom nil)
-          child (fn [] (throw (js/Error. "Hello!")))
-          err-b (uix.core/create-error-boundary
-                 {:display-name "err-b-2"
-                  :error->state ex-message
-                  :handle-catch (fn [err info] (reset! handle-catch err))}
-                 (fn [cause {:keys [done x child]}]
-                   (is (= 1 x))
-                   (cond
-                     (nil? @cause) child
-
-                     (= :recover @cause)
-                     (do
-                       (is (some? @handle-catch))
-                       (done)
-                       x)
-
-                     :else (do (is (= "Hello!" @cause))
-                               (js/setTimeout #(reset! cause :recover) 20)
-                               x))))]
-      (async done
-             (t/render ($ err-b {:done done :x 1 :child child})))))
-
 (deftest test-jsfy-deps
   (is (= [1 "str" "k/w" "uix.core/sym" "b53887c9-4910-4d4e-aad9-f3487e6e97f5" nil [] {} #{}]
          (vec (uix.core/jsfy-deps [1 "str" :k/w 'uix.core/sym #uuid "b53887c9-4910-4d4e-aad9-f3487e6e97f5" nil [] {} #{}]))))
@@ -121,6 +81,37 @@
                (.then e (fn [v]
                           (is (= expected-value (.-default ^js v)))
                           (done))))))))
+
+(deftest test-create-class
+  (let [actual (atom {:constructor {:this nil :props nil}
+                      :getInitialState {:this nil}
+                      :render {:state nil :props nil}
+                      :componentDidMount false
+                      :componentWillUnmount false})
+        component (uix.core/create-class
+                   {:displayName "test-comp"
+                    :constructor (fn [this props]
+                                   (swap! actual assoc :constructor {:this this :props props}))
+                    :getInitialState (fn [this]
+                                       (swap! actual assoc :getInitialState {:this this})
+                                       #js {:x 1})
+                    :componentDidMount #(swap! actual assoc :componentDidMount true)
+                    :componentWillUnmount #(swap! actual assoc :componentWillUnmount true)
+                    :render (fn []
+                              (this-as this
+                                       (swap! actual assoc :render {:state (.-state this) :props (.-props this)})
+                                       "Hello!"))})
+        root (js/document.createElement "div")]
+    (react-dom/render ($ component {:x 1}) root)
+    (is (instance? component (-> @actual :constructor :this)))
+    (is (-> @actual :constructor :props .-argv (= {:x 1})))
+    (is (instance? component (-> @actual :getInitialState :this)))
+    (is (-> @actual :render :props .-argv (= {:x 1})))
+    (is (-> @actual :render :state .-x (= 1)))
+    (is (:componentDidMount @actual))
+    (is (= "Hello!" (.-textContent root)))
+    (react-dom/unmountComponentAtNode root)
+    (is (:componentWillUnmount @actual))))
 
 (defn -main []
   (run-tests))

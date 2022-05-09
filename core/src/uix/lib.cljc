@@ -1,6 +1,7 @@
 (ns uix.lib
   #?(:cljs (:require-macros [uix.lib :refer [doseq-loop]]))
-  #?(:clj (:require [cljs.analyzer :as ana])))
+  #?(:clj (:require [cljs.analyzer :as ana]))
+  #?(:cljs (:require [goog.object :as gobj])))
 
 #?(:clj
    (defmacro doseq-loop [[v vs] & body]
@@ -52,3 +53,11 @@
        (binding [ana/*private-var-access-nowarn* true]
          (->sym (ana/resolve-var env s)))
        (symbol (str ana/*cljs-ns*) (str s)))))
+
+#?(:cljs
+   (defn map->js [m]
+     (reduce-kv (fn [o k v]
+                  (gobj/set o (name k) v)
+                  o)
+                #js {}
+                m)))
