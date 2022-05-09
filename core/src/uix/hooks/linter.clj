@@ -21,8 +21,12 @@
 (defn hook-call? [form]
   (and (list? form) (hook? (first form))))
 
+(def effect-hooks
+  #{"use-effect" "useEffect"
+    "use-layout-effect" "useLayoutEffect"})
+
 (defn effect-hook? [form]
-  (contains? #{"use-effect" "use-layout-effect"} (name (first form))))
+  (contains? effect-hooks (name (first form))))
 
 (declare lint-hooks!*)
 
@@ -219,8 +223,15 @@
               (->> unnecessary-deps
                    (keep (fn [sym]
                            (case (:hook (meta sym))
-                             "use-ref" (str "`" sym "` is an unnecessary dependency because it's a ref that doesn't change")
-                             ("use-state" "use-reducer") (str "`" sym "` is an unnecessary dependency because it's a state updater function that is memoized")
+                             ("use-ref" "useRef")
+                             (str "`" sym "` is an unnecessary dependency because it's a ref that doesn't change")
+
+                             ("use-state" "useState" "use-reducer" "useReducer")
+                             (str "`" sym "` is an unnecessary dependency because it's a state updater function with a stable identity")
+
+                             ("use-event" "useEvent")
+                             (str "`" sym "` is an unnecessary dependency because it's a function created using useEvent hook that has a stable identity")
+
                              nil)))
                    (str/join "\n"))
               "\n"))
@@ -285,7 +296,10 @@
           (name (first form)))))))
 
 (def stable-hooks
-  #{"use-state" "use-reducer" "use-ref"})
+  #{"use-state" "useState"
+    "use-reducer" "useReducer"
+    "use-ref" "useRef"
+    "use-event" "useEvent"})
 
 (defn find-unnecessary-deps [env deps]
   (keep (fn [sym]
@@ -295,7 +309,8 @@
         deps))
 
 (def state-hooks
-  #{"use-state" "use-reducer" "useState" "useReducer"})
+  #{"use-state" "useState"
+    "use-reducer" "useReducer"})
 
 (defn find-unsafe-set-state-calls [env f]
   (let [set-state-calls (->> (find-local-variables env f)
