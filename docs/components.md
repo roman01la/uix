@@ -104,3 +104,23 @@ When you need to pass a ref into child component, pass it as a normal prop.
       ($ :button {:on-click #(.focus @ref)}
         "press to focus on input"))))
 ```
+
+## Class-based components
+Sometimes you want to create a class-based React component, for example an error boundary. For that there's `uix.core/create-class` function.
+
+```clojure
+(def error-boundary
+  (uix.core/create-class
+    {:displayName "error-boundary"
+     :getInitialState (fn [] #js {:error nil})
+     :getDerivedStateFromError (fn [error] #js {:error error})
+     :componentDidCatch (fn [error error-info] ...)
+     :render (fn []
+               (this-as this
+                 (if (.. this -state -error)
+                   ($ :div "error")
+                   (.. this -props -children))))}))
+
+($ error-boundary
+  ($ some-ui-that-can-error))
+```
