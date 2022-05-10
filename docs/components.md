@@ -114,13 +114,17 @@ Sometimes you want to create a class-based React component, for example an error
     {:displayName "error-boundary"
      :getInitialState (fn [] #js {:error nil})
      :getDerivedStateFromError (fn [error] #js {:error error})
-     :componentDidCatch (fn [error error-info] ...)
+     :componentDidCatch (fn [error error-info]
+                          (this-as this
+                            (let [props (.. this -props -argv)]
+                              (when-let [on-error (:on-error props)]
+                                (on-error error)))))
      :render (fn []
                (this-as this
                  (if (.. this -state -error)
                    ($ :div "error")
                    (.. this -props -children))))}))
 
-($ error-boundary
+($ error-boundary {:on-error js/console.error}
   ($ some-ui-that-can-error))
 ```
