@@ -61,7 +61,7 @@
 
 (defn convert-value
   ([v]
-   (if (symbol? v)
+   (if (or (symbol? v) (list? v))
      `(keyword->string ~v)
      v))
   ([k v]

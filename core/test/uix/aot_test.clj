@@ -30,7 +30,9 @@
   (is (= {:className "a" :htmlFor "x"}
          (attrs/compile-attrs {:class "a" :for "x"})))
   (is (= '{:onClick identity, :title (uix.compiler.attributes/keyword->string x), :children [1 2]}
-         (attrs/compile-attrs '{:on-click identity :title x :children [1 2]}))))
+         (attrs/compile-attrs '{:on-click identity :title x :children [1 2]})))
+  (is (= '{:style {:pointerEvents (uix.compiler.attributes/keyword->string (when x :none))}}
+         (attrs/compile-attrs '{:style {:pointer-events (when x :none)}}))))
 
 (deftest test-compile-html
   (is (= (aot/compile-element [:h1] nil)
