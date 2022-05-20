@@ -4,14 +4,20 @@ _Idiomatic ClojureScript interface to modern React.js_
 
 [![CircleCI](https://circleci.com/gh/pitch-io/uix.svg?style=svg)](https://circleci.com/gh/pitch-io/uix)
 
+API compatibility: React v17
+
+## Installation
+
 ```clj
 {:deps {uix.core/uix.core {:git/url "https://github.com/pitch-io/uix.git"
                            :deps/root "core"
-                           :sha "0780168c0d82be211ef21a503d49ee7b9d6c1c69"}
+                           :sha "d5a0e7081ac303f61ccd0e74dc1c0861df01bc16"}
         uix.dom/uix.dom {:git/url "https://github.com/pitch-io/uix.git"
                          :deps/root "dom"
-                         :sha "0780168c0d82be211ef21a503d49ee7b9d6c1c69"}}}
+                         :sha "d5a0e7081ac303f61ccd0e74dc1c0861df01bc16"}}}
 ```
+
+## Usage
 
 ```clj
 (ns my.app
