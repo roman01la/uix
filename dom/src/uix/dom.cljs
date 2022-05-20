@@ -5,7 +5,7 @@
 ;; react-dom top-level API
 
 (defn render
-  "Renders element into DOM node. The first argument is Hiccup or React element."
+  "Renders element into DOM node. The first argument is React element."
   [element node]
   (rdom/render element node))
 
@@ -37,22 +37,6 @@
   (rdom/findDOMNode component))
 
 (defn create-portal
-  "Renders Hiccup element into DOM node"
+  "Renders React element into DOM node"
   [child node]
   (rdom/createPortal child node))
-
-;; react-dom/server top-level API
-
-(defn render-to-string [element]
-  "Renders to HTML string to be used with React"
-  (.renderToString js/ReactDOMServer element))
-
-(defn render-to-static-markup [element]
-  "Renders to HTML string"
-  (.renderToStaticMarkup js/ReactDOMServer element))
-
-(defn render-to-stream [element]
-  (.renderToNodeStream js/ReactDOMServer element))
-
-(defn render-to-static-stream [element]
-  (.renderToStaticNodeStream js/ReactDOMServer element))
