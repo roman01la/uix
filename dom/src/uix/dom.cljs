@@ -9,12 +9,6 @@
   [element node]
   (rdom/render element node))
 
-(defn create-root [node]
-  (rdom/unstable_createRoot node))
-
-(defn render-root [element root]
-  (.render root element))
-
 (defn hydrate
   "Hydrates server rendered document at `node` with `element`."
   [element node]
@@ -22,9 +16,6 @@
 
 (defn flush-sync! [cb]
   (rdom/flushSync cb))
-
-(defn flush-controlled! [cb]
-  (rdom/unstable_flushControlled cb))
 
 (defn unmount-at-node
   "Unmounts React component rendered into DOM node"
@@ -39,4 +30,9 @@
 (defn create-portal
   "Renders React element into DOM node"
   [child node]
-  (rdom/createPortal child node))
+  (let [create-portal (or rdom/createPortal rdom/unstable_createPortal)]
+    (create-portal child node)))
+
+(defn batched-updates [f]
+  (let [batched-updates (or rdom/batchedUpdates rdom/unstable_batchedUpdates)]
+    (batched-updates f)))
