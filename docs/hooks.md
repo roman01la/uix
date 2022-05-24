@@ -6,7 +6,7 @@ There are multiple differences from pure React though.
 
 ## Dependency array
 
-Some hooks accept an array of dependencies as the second argument. While in pure React it has to be an array literal `#js []`, in UIx as Clojure library the deps are a vector literal `[]`.
+Some hooks accept an array of dependencies as the second argument. While in pure React it has to be an array literal `#js []`, in UIx, being a Clojure library, it has to be a vector literal `[]`.
 
 ```clojure
 (uix/use-effect
