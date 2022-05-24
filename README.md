@@ -49,6 +49,7 @@ API compatibility: React v17
 - [Interop with Reagent](/docs/interop-with-reagent.md)
 - [Code-splitting and React.lazy](/docs/code-splitting.md)
 - [Migrating from Reagent](/docs/migrating-from-reagent.md)
+- [Hot reloading](/docs/hot-reloading.md)
 
 ## Testing
 

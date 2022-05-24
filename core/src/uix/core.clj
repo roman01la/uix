@@ -3,7 +3,8 @@
   (:require [uix.compiler.aot]
             [uix.source]
             [cljs.core]
-            [uix.hooks.linter :as hooks.linter]))
+            [uix.hooks.linter :as hooks.linter]
+            [uix.dev]))
 
 (def ^:private goog-debug (with-meta 'goog.DEBUG {:tag 'boolean}))
 
@@ -54,14 +55,17 @@
   "Compiles UIx component into React component at compile-time."
   [sym & fdecl]
   (let [[fname args fdecl] (parse-sig sym fdecl)]
-    (uix.source/register-symbol! &env sym)
-    (hooks.linter/lint! sym fdecl &env)
-    `(do
-       ~(if (empty? args)
-          (no-args-component fname fdecl)
-          (with-args-component fname args fdecl))
-       (set! (.-uix-component? ~(with-meta sym {:tag 'js})) true)
-       (with-name ~sym ~(-> &env :ns :name str) ~(str sym)))))
+    (let [sym (with-meta sym {:tag 'js})
+          body (uix.dev/with-fast-refresh sym fdecl)]
+      (uix.source/register-symbol! &env sym)
+      (hooks.linter/lint! sym fdecl &env)
+      `(do
+         ~(if (empty? args)
+            (no-args-component fname body)
+            (with-args-component fname args body))
+         (set! (.-uix-component? ~sym) true)
+         (with-name ~sym ~(-> &env :ns :name str) ~(str sym))
+         ~(uix.dev/fast-refresh-signature sym body)))))
 
 (defmacro source
   "Returns source string of UIx component"
