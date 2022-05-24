@@ -65,7 +65,7 @@ In addition to JavaScript's primitive types like `Number` or `String`, ClojureSc
 
 ## Return value in effect hooks
 
-The _setup_ function that is passed into one of effect hooks requires the return value to be either a function (that will be called on _cleanup_) or `js/undefined`. Otherwise React will throw an error saying that it got something else.
+The _setup_ function, that is passed into one of the effect hooks, requires the return value to be either a function (that will be called on _cleanup_) or `js/undefined`. Otherwise React will throw an error saying that it got something else.
 
 ```clojure
 (react/useEffect
