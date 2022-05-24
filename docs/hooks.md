@@ -37,7 +37,7 @@ When the same dependency has a different value between component updates, a hook
 
 That works as expected for primitive values like numbers and strings, but what about Clojure's maps and vectors that can be compared by value `(= {:x 1} {:x 1}) ;; true`?
 
-Two maps equal by value but with different identity are considered to be not equal when React compares dependencies. This is happening because React is JS library that is not aware of Clojure's equality algorithm, instead React is comparing values by identity `===` or `Object.is`. Thus it's important to think about what type of values you are passing as dependencies of a hook. It applies to JS as well, objects and arrays are still compared by reference.
+Two maps equal by value but with different identity are considered to be not equal when React compares dependencies. This is happening because React is a JS library that is not aware of Clojure's equality algorithm, instead React is comparing values by identity `===` or `Object.is`. Thus it's important to think about what type of values you are passing as dependencies of a hook. It applies to JS as well, objects and arrays are still compared by reference.
 
 ```clojure
 ;; 1st update
