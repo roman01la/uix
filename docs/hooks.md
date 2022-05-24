@@ -16,7 +16,7 @@ Some hooks accept an array of dependencies as the second argument. While in pure
 
 ## How depedencies are compared?
 
-When the same depency has a different value between component updates, a hook will re-run.
+When the same dependency has a different value between component updates, a hook will re-run.
 
 ```clojure
 ;; 1st update
