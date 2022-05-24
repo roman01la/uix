@@ -61,7 +61,7 @@ Two maps equal by value but with different identity are considered to be not equ
 
 ### What about other Clojure's primitives?
 
-In addition to JavaScript's primitive types like `Number` or `String`, ClojureScript has keywords, symbols and UUIDs that are represented as JS objects when compiled into JS and thus fall into the same trap with equality check. To make things simpler UIx automatically stringifies those three types when passed in dependency vector.
+In addition to JavaScript's primitive types like `Number` or `String`, ClojureScript has keywords, symbols and UUIDs that are represented as JS objects when compiled into JS and thus fall into the same trap with equality check. To make things simpler UIx automatically stringifies those three types when passed in the dependency vector.
 
 ## Return value in effect hooks
 
