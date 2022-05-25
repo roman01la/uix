@@ -93,7 +93,9 @@ Thus when using React hooks directly you'd have to explicitly return `js/undefin
   #js [])
 ```
 
-In UIx this incompatibility is handled in the library. However keep in mind, that since in Clojure the last expression is always returned implicitly, you still have to think about the return value and make sure that unexpected values are not returned from the _setup_ function.
+This complication is also handled by UIx and if the return value is `nil` it will automatically return `js/undefined`. However keep in mind that since in Clojure the last expression is always returned implicitly, you still have to think about the return value and make sure that unexpected values are not returned from the _setup_ function.
+
+In other words, make sure you ultimately only return `nil` or a function when using the UIx hooks, otherwise React will throw an error.
 
 ```clojure
 (uix/use-effect
