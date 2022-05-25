@@ -97,20 +97,26 @@ Thus when using React hooks directly you'd have to explicitly return `js/undefin
   #js [])
 ```
 
-This complication is also handled by UIx and if the return value is `nil` it will automatically return `js/undefined`. However keep in mind that since in Clojure the last expression is always returned implicitly, you still have to think about the return value and make sure that unexpected values are not returned from the _setup_ function.
+This complication is also handled by UIx and if the return value is not a function it will automatically return `js/undefined`. However keep in mind that since in Clojure the last expression is always returned implicitly, you still have to make sure that an expression doesn't return a function accidentally, because it's going to be executed in _cleanup_ phase of an effect hook.
 
-In other words, make sure you ultimately only return `nil` or a function when using the UIx hooks, otherwise React will throw an error.
+In other words, React will never complain about return value in UIx's effect hooks, unlike in pure React. And since Clojure has implicit return, make sure you don't return a function by accident.
 
 ```clojure
 (uix/use-effect
   (fn []
-    (when false (prn :x))) ;; `nil` is handled, doesn't throw
+    (when false (prn :x))) ;; `nil` is not a function, nothing from here
   [])
 
 (uix/use-effect
   (fn []
-    (map inc [1 2 3])) ;; returns a collection and thus React throws
+    (map inc [1 2 3])) ;; return value is a collection, nothing wrong here as well
   [])
+
+  (uix/use-effect
+    (fn []
+      (map inc)) ;; return value is a function (transducer),
+    [])          ;; it's gonna be executed as a cleanup function,
+                 ;; is that intended?
 ```
 
 ## Differences from `use-callback` and `use-memo` hooks
