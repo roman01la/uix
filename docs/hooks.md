@@ -32,7 +32,7 @@ When the same dependency has a different value between component updates, the ho
 ;; 3rd update
 (uix/use-effect
   (fn [] (prn x)) ;; prn 2
-  [x]) ;; x = 2, `x` has changed, re-run the hook
+  [x]) ;; x = 2, `x` has changed, rerun the hook
 ```
 
 That works as expected for primitive values like numbers and strings, but what about Clojure's maps and vectors that can be compared by value `(= {:x 1} {:x 1}) ;; true`?
