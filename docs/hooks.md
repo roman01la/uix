@@ -107,7 +107,7 @@ In UIx this incompatibility is handled in the library. However keep in mind, tha
   [])
 ```
 
-## Differences for `use-callback` and `use-memo` hooks
+## Differences from `use-callback` and `use-memo` hooks
 
 In pure React both `use-callback` and `use-memo` hooks accept dependency array as an optional argument. But since the purpose of both hooks is memoization, it doesn't make sense to call them without any dependencies. Not providing deps effectively means there's no memoization applied. In JavaScript this is enforced by ESLint rule, in UIx on the other hand we just removed single-arity method for those hooks, so that it's impossible to not pass deps.
 
