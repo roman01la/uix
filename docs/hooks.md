@@ -97,7 +97,7 @@ Thus when using React hooks directly you'd have to explicitly return `js/undefin
   #js [])
 ```
 
-This complication is also handled by UIx and if the return value is not a function it will automatically return `js/undefined`. However keep in mind that since in Clojure the last expression is always returned implicitly, you still have to make sure that an expression doesn't return a function accidentally, because it's going to be executed in _cleanup_ phase of an effect hook.
+This complication is also handled by UIx and if the return value is not a function it will automatically return `js/undefined`. However keep in mind that, since in Clojure the last expression is always returned implicitly, you still have to make sure the hook doesn't return a function accidentally, because it's going to be executed in its _cleanup_ phase.
 
 In other words, React will never complain about return value in UIx's effect hooks, unlike in pure React. And since Clojure has implicit return, make sure you don't return a function by accident.
 
