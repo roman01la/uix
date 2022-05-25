@@ -109,7 +109,7 @@ In UIx this incompatibility is handled in the library. However keep in mind, tha
 
 ## Differences from `use-callback` and `use-memo` hooks
 
-In pure React both `use-callback` and `use-memo` hooks accept dependency array as an optional argument. But since the purpose of both hooks is memoization, it doesn't make sense to call them without any dependencies. Not providing deps effectively means there's no memoization applied. In JavaScript this is enforced by ESLint rule, in UIx on the other hand we just removed single-arity method for those hooks, so that it's impossible to not pass deps.
+In pure React both the `use-callback` and `use-memo` hooks accept an optional dependency array. However, since the purpose of both hooks is memoization it generally doesn't make sense to call them without any dependencies; not providing the dependency array effectively means there's no memoization applied. In JavaScript this is enforced by ESLint rule, in UIx on the other hand we simply removed the single arity method for those hooks, and so you must always pass a dependency vector.
 
 ## `use-ref` hook
 
