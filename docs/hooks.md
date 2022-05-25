@@ -123,6 +123,8 @@ The `use-ref` hook returns an object that has a stable identity throughout the l
 
 While in pure React `useRef` returns an object with `current` property, in UIx `use-ref` returns the same object, but with an API identical to `Atom`. The ref can be dereferenced `@` to read its current value, and updated via `reset!` or `swap!` to set a new value.
 
+Note that unlike `r/atom` in Reagent, a ref in UIx and React is not a state primitive, it's a mutable value that doesn't trigger an update.
+
 ```clojure
 (defui component []
   (let [ref (uix/use-ref)]
