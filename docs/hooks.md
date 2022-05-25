@@ -14,7 +14,7 @@ Some hooks accept an array of dependencies as the second argument. While in pure
   [x])
 ```
 
-## How depedencies are compared?
+## How are dependencies compared?
 
 When the same dependency has a different value between component updates, a hook will re-run.
 
