@@ -113,7 +113,7 @@ In pure React both the `use-callback` and `use-memo` hooks accept an optional de
 
 ## `use-ref` hook
 
-The `use-ref` hook returns an object that has a stable identity throughout the lifecycle of a component and allows storing random values inside of it. Basically a ref is a mutable container bound to an instance of a component. This aligns pretty well with Clojure's `ref` types, namely `Atom` which is commonly used as a mutable container for immutable values.
+The `use-ref` hook returns an object that has a stable identity throughout the lifecycle of a component and allows storing arbitrary values inside of it. A ref is basically a mutable container bound to an instance of a component. This aligns pretty well with Clojure's `ref` types, namely `Atom` which is commonly used as a mutable container for immutable values.
 
 While in pure React `useRef` returns an object with `current` property, in UIx `use-ref` returns the same object, but with an API identical to `Atom`. The ref can be dereferenced `@` to read its current value, and updated via `reset!` or `swap!` to set a new value.
 
