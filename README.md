@@ -43,6 +43,7 @@ API compatibility: React v17
 - [What is UIx?](/docs/what-is-uix.md)
 - [Components](/docs/components.md)
 - [Elements](/docs/elements.md)
+- [Hooks](/docs/hooks.md)
 - [State](/docs/state.md)
 - [Effects](/docs/effects.md)
 - [Interop with React](/docs/interop-with-react.md)
