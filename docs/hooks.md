@@ -1,6 +1,6 @@
 # Hooks
 
-UIx wraps existing React hooks to cut some corners and provide a more idiomatic interface for Clojure. `uix.core` exposes only the default React hooks, named after their JS counterparts but in kebab-case.
+UIx wraps existing React hooks to smooth over some rough spots and provide a more idiomatic interface for Clojure. `uix.core` exposes only the default React hooks, named equivalently to the JS versions except in kebab-case, e.g. `useEffect` becomes `use-effect`.
 
 There are multiple differences from pure React though.
 
