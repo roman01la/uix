@@ -35,13 +35,13 @@ When the same dependency has a different value between component updates, the ho
   [x]) ;; x = 2, `x` has changed, rerun the hook
 ```
 
-That works as expected for primitive values like numbers and strings, but what about Clojure's maps and vectors that can be compared by value?
+That works as expected for primitive values that map to identical constructs in JS like numbers and strings, but what about Clojure's maps and vectors that can be compared by value?
 
-```clojure
-(= {:x 1} {:x 1}) ;; true
-```
+TL;DR: As a rule of thumb, you should prefer to use only primitives as dependencies inside of a hook.
 
-Two maps equal by value but with different identity are considered to be not equal when React compares dependencies. This is happening because React is a JS library that is not aware of Clojure's equality algorithm, instead React is comparing values by identity `===` or `Object.is`. Thus it's important to think about what type of values you are passing as dependencies of a hook. It applies to JS as well, objects and arrays are still compared by reference.
+In React, comparison is done by identity, not value, and in JS, while two primitives with the same value have the same identity, two objects with the same value do not. Since a Clojure map is compiled into a JS object, even if two maps has the same value, they will never have the same identity, meaning that React will always see them as different. In other words, comparison in React is done using JS's `===` or `Object.is`, not Clojure's `=`.
+
+Thus it's important to think about what type of values you are passing as dependencies of a hook. This principle applies to JS as well, as objects and arrays are still compared by reference.
 
 ```clojure
 ;; 1st update
@@ -65,7 +65,9 @@ Two maps equal by value but with different identity are considered to be not equ
 
 ### What about other Clojure's primitives?
 
-In addition to JavaScript's primitive types like `Number` or `String`, ClojureScript has keywords, symbols and UUIDs that are represented as JS objects when compiled into JS and thus fall into the same trap with equality check. To make things simpler UIx automatically stringifies those three types when passed in the dependency vector.
+In addition to JavaScript's primitives like `Number` or `String`, ClojureScript has keywords, symbols and UUIDs that are represented as JS objects when compiled into JS and thus fall into the same trap with equality check.
+
+To make things more idiomatic and less cumbersome in Clojure, UIx automatically stringifies those three types when passed in the dependency vector.
 
 ## Return value in effect hooks
 
@@ -78,7 +80,7 @@ The _setup_ function, that is passed into one of the effect hooks, requires the 
   #js [])
 ```
 
-Now in ClojureScript, when an expression returns _nothing_, it actually returns `nil`, which is compiled into `null` in JS. Since `null` is neither a function, nor `undefined`, React will throw as well.
+In ClojureScript, when an expression returns _nothing_, it actually returns `nil`, which is compiled into `null` in JS. Since `null` is neither a function nor `undefined` React will throw in this case as well.
 
 ```clojure
 (react/useEffect
@@ -87,7 +89,7 @@ Now in ClojureScript, when an expression returns _nothing_, it actually returns 
   #js [])
 ```
 
-Thus when using React hooks directly you'd have to explicitly return `js/undefined` in such cases.
+Thus when using React hooks directly you'd have to explicitly return `js/undefined` in most cases.
 
 ```clojure
 (react/useEffect
