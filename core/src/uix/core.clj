@@ -4,7 +4,8 @@
             [uix.source]
             [cljs.core]
             [uix.hooks.linter :as hooks.linter]
-            [uix.dev]))
+            [uix.dev]
+            [uix.lib]))
 
 (def ^:private goog-debug (with-meta 'goog.DEBUG {:tag 'boolean}))
 
@@ -38,14 +39,16 @@
                     [fdecl m])
         m (conj {:arglists (list 'quote (#'cljs.core/sigs fdecl))} m)
         m (conj (if (meta name) (meta name) {}) m)]
-    (assert (= 1 (count fdecl))
-            (str `defui " doesn't support multi-arity.\n"
-                 "If you meant to make props an optional argument, you can safely skip it and have a single-arity component.\n
+    (uix.lib/assert!
+     (= 1 (count fdecl))
+     (str `defui " doesn't support multi-arity.\n"
+          "If you meant to make props an optional argument, you can safely skip it and have a single-arity component.\n
                  It's safe to destructure the props value even if it's `nil`."))
     (let [[args & fdecl] (first fdecl)]
-      (assert (>= 1 (count args))
-              (str `defui " is a single argument component taking a map of props, found: " args "\n"
-                   "If you meant to retrieve `children`, they are under `:children` field in props map."))
+      (uix.lib/assert!
+       (>= 1 (count args))
+       (str `defui " is a single argument component taking a map of props, found: " args "\n"
+            "If you meant to retrieve `children`, they are under `:children` field in props map."))
       [(with-meta name m) args fdecl])))
 
 (defmacro

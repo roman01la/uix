@@ -4,6 +4,11 @@
   #?(:cljs (:require [goog.object :as gobj])))
 
 #?(:clj
+   (defmacro assert! [x message]
+     `(when-not ~x
+        (throw (new AssertionError (str "Assert failed: " ~message "\n" (pr-str '~x)))))))
+
+#?(:clj
    (defmacro doseq-loop [[v vs] & body]
      `(let [v# ~vs]
         (when (seq v#)
