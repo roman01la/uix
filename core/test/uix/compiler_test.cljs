@@ -3,7 +3,7 @@
             [uix.compiler.alpha :as uixc]
             [uix.test-utils :refer [as-string js-equal? with-error symbol-for]]
             [uix.compiler.debug :as debug]
-            [uix.core :refer [$]]
+            [uix.core :refer [defui $]]
             [uix.dom]
             [clojure.string :as str]))
 
@@ -216,6 +216,15 @@
   (when ^boolean goog.DEBUG
     (uix.core/defui test-comp [] "x")
     (is (= test-comp (.-type ($ test-comp))))))
+
+(deftest test-nil-attrs
+  (defui test-nil-attrs-component [])
+  (let [f-el #($ :div (when % "x") "y")
+        f-comp #($ test-nil-attrs-component (when % "x") "y")]
+    (is (= [nil "y"] (vec (.. (f-el false) -props -children))))
+    (is (= ["x" "y"] (vec (.. (f-el true) -props -children))))
+    (is (= [nil "y"] (vec (.. (f-comp false) -props -children))))
+    (is (= ["x" "y"] (vec (.. (f-comp true) -props -children))))))
 
 (defn -main []
   (run-tests))

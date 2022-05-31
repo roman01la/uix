@@ -127,19 +127,17 @@
 (defn set-id-class
   "Takes attributes map and parsed tag, and returns attributes merged with class names and id"
   [props id-class]
-  (if (or (map? props) (nil? props))
-    (let [props-class (get props :class)
-          id (aget id-class 1)
-          class (aget id-class 2)]
-      (cond-> props
-              ;; Only use ID from tag keyword if no :id in props already
-        (and (some? id) (nil? (get props :id)))
-        (assoc :id id)
+  (let [props-class (get props :class)
+        id (aget id-class 1)
+        class (aget id-class 2)]
+    (cond-> props
+            ;; Only use ID from tag keyword if no :id in props already
+      (and (some? id) (nil? (get props :id)))
+      (assoc :id id)
 
               ;; Merge classes
-        (or class props-class)
-        (assoc :class (class-names class props-class))))
-    props))
+      (or class props-class)
+      (assoc :class (class-names class props-class)))))
 
 (defn convert-props
   "Converts `props` Clojure map into JS object suitable for
@@ -165,7 +163,7 @@
   - [attrs] when `attrs` is actually a map of attributes
   - [nil attrs] when `attrs` is not a map, thus a child element"
   [maybe-attrs id-class shallow?]
-  (if (or (map? maybe-attrs) (nil? maybe-attrs))
+  (if (map? maybe-attrs)
     #js [(convert-props maybe-attrs id-class shallow?)]
     #js [(convert-props {} id-class shallow?) maybe-attrs]))
 
@@ -175,6 +173,6 @@
   - [props] when `props` is actually a map of attributes
   - [nil props] when `props` is not a map, thus a child element"
   [props]
-  (if (or (map? props) (nil? props))
+  (if (map? props)
     #js [props]
     #js [nil props]))

@@ -22,20 +22,18 @@
 (defn set-id-class
   "Takes attributes map and parsed tag, and returns attributes merged with class names and id"
   [props [_ id class]]
-  (if (or (map? props) (nil? props))
-    (let [props-class (get props :class)]
-      (cond-> props
-              ;; Only use ID from tag keyword if no :id in props already
-        (and (some? id) (nil? (get props :id)))
-        (assoc :id id)
+  (let [props-class (get props :class)]
+    (cond-> props
+            ;; Only use ID from tag keyword if no :id in props already
+      (and (some? id) (nil? (get props :id)))
+      (assoc :id id)
 
               ;; Merge classes
-        (or class props-class)
-        (assoc :class (cond
-                        (vector? props-class) `(class-names ~class ~@props-class)
-                        props-class `(class-names ~class ~props-class)
-                        :else class))))
-    props))
+      (or class props-class)
+      (assoc :class (cond
+                      (vector? props-class) `(class-names ~class ~@props-class)
+                      props-class `(class-names ~class ~props-class)
+                      :else class)))))
 
 (defn camel-case
   "Turns kebab-case keyword into camel-case keyword"
