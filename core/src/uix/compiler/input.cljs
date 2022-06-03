@@ -51,9 +51,7 @@
     ;; enough, but if you are tempted to change it, be aware of
     ;; all the scenarios you have handle.
     (let [node-value (.-value node)]
-      (if (not= node-value dom-value)
-        ;; IE has not notified us of the change yet, so check again later
-        (do-after-render #(input-component-set-value component))
+      (when (= node-value dom-value)
         (let [existing-offset-from-end (- (count node-value)
                                           (.-selectionStart node))
               new-cursor-offset        (- (count rendered-value)
