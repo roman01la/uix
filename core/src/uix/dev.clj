@@ -18,10 +18,13 @@
     @hooks))
 
 (defn with-fast-refresh [sym fdecl]
-  (cons `(when ~goog-debug
-           (when-let [f# (.-fast-refresh-signature ~sym)]
-             (f#)))
-        fdecl))
+  (let [signature `(when ~goog-debug
+                     (when-let [f# (.-fast-refresh-signature ~sym)]
+                       (f#)))
+        maybe-conds (first fdecl)]
+    (if (and (map? maybe-conds) (or (:pre maybe-conds) (:post maybe-conds)))
+      (cons maybe-conds (cons signature (rest fdecl)))
+      (cons signature fdecl))))
 
 (defn fast-refresh-signature [sym body]
   `(when ~goog-debug
