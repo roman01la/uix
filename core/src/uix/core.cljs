@@ -140,8 +140,6 @@
   [context]
   (hooks/use-context context))
 
-(def with-name debug/with-name)
-
 (defn as-react
   "Interop with React components. Takes UIx component function and returns same component wrapped into interop layer."
   [f]
