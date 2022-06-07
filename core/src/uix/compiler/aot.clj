@@ -28,11 +28,6 @@
     `(cljs.core/array ~(-> attrs attrs/compile-attrs js/to-js))
     `(uix.compiler.attributes/interpret-attrs ~attrs (cljs.core/array) false)))
 
-(defmethod compile-attrs :suspense [_ attrs _]
-  (if (map? attrs)
-    `(cljs.core/array ~(-> attrs attrs/compile-attrs js/to-js))
-    `(uix.compiler.attributes/interpret-attrs ~attrs (cljs.core/array) false)))
-
 (defmethod compile-attrs :interop [_ props _]
   (if (map? props)
     `(cljs.core/array
@@ -77,7 +72,6 @@
   (fn [[tag] _]
     (cond
       (= :<> tag) :fragment
-      (= :# tag) :suspense
       (= :> tag) :interop
       (keyword? tag) :element
       :else :component)))
@@ -102,12 +96,6 @@
   (let [[_ attrs & children] v
         attrs (compile-attrs :fragment attrs nil)
         ret `(>el fragment ~attrs (cljs.core/array ~@children))]
-    ret))
-
-(defmethod compile-element :suspense [v _]
-  (let [[_ attrs & children] v
-        attrs (compile-attrs :suspense attrs nil)
-        ret `(>el suspense ~attrs (cljs.core/array ~@children))]
     ret))
 
 (defmethod compile-element :interop [v _]

@@ -153,10 +153,6 @@
     (is (= "<div><div>hello</div><div>world</div><div>foo</div><div>1</div><div>2</div></div>"
            (as-string ($ comp3))))))
 
-(deftest test-suspense
-  (is (.-type ($ :# {:fallback 1} 2))
-      (symbol-for "react.suspense")))
-
 (deftest test-interop
   (testing "Interop element type"
     (is (.-type ($ :> inc))
