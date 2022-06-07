@@ -170,16 +170,16 @@
     (catch :default e
       (is "Target container is not a DOM element." (.-message e)))))
 
-#_(deftest test-as-react
-    (uix.core/defui test-c [props]
-      (is (map? props) true)
-      (is "TEXT" (:text props))
-      ($ :h1 (:text props)))
-    (let [h1 (uixc/as-react test-c)
-          el (h1 #js {:text "TEXT"})
-          props (.-props el)]
-      (is (.-type el) "h1")
-      (is (.-children props) "TEXT")))
+(deftest test-as-react
+  (uix.core/defui test-c [props]
+    (is (map? props))
+    (is (= "TEXT" (:text props)))
+    ($ :h1 (:text props)))
+  (let [h1 (uixc/as-react test-c)
+        el (h1 #js {:text "TEXT"})
+        props (.-props el)]
+    (is (= (.-type el) "h1"))
+    (is (= (.-children props) "TEXT"))))
 
 (deftest test-validate-component
   (is (thrown-with-msg? js/Error #"Invalid use of a non-UIx component test in `\$` form\..*"

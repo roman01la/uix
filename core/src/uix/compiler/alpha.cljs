@@ -6,7 +6,7 @@
   (js* "Symbol.for(~{})" s))
 
 (defn as-react [f]
-  #(f (bean/bean %)))
+  #(f #js {:argv (bean/bean %)}))
 
 (defn validate-component [^js component-type]
   (when-not ^boolean (.-uix-component? component-type)

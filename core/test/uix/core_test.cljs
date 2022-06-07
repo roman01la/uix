@@ -52,15 +52,6 @@
     ($ :h1 {} children))
   (is (= (t/as-string ($ h1 {} 1))) "<h1>1</h1>"))
 
-(deftest test-as-react
-  (let [ctor (fn [props]
-               (is (= @#'bean/Bean (type props)))
-               (:x props))
-        ftype (-> (uix.core/as-react ctor)
-                  ^js (r/createElement)
-                  .-type)]
-    (is (= (ftype #js {:x 1}) 1))))
-
 (deftest test-jsfy-deps
   (is (= [1 "str" "k/w" "uix.core/sym" "b53887c9-4910-4d4e-aad9-f3487e6e97f5" nil [] {} #{}]
          (vec (uix.core/jsfy-deps [1 "str" :k/w 'uix.core/sym #uuid "b53887c9-4910-4d4e-aad9-f3487e6e97f5" nil [] {} #{}]))))
