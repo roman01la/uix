@@ -2,40 +2,40 @@
 
 ## Using React components in UIx
 
-In [“Elements”](/docs/elements.md) section we've learned about special interop syntax for consuming React components written in JavaScript.
+In [“Elements”](/docs/elements.md) section it was briefly mentioned that React components written in JavaScript can be used in `$` macro, but with a difference in how props are passed into such a component.
 
 As an example lets say we have `Button` component that we want to use in UIx component.
 
 ```js
-function Button({ onClick, children }) {
-  return <button onClick={onClick}>{children}</button>;
+function Button({ onClick, title, style, className, children }) {
+  return (
+    <button
+      onClick={onClick}
+      title={title}
+      style={style}
+      className={className.join(" ")}
+    >
+      {children}
+    </button>
+  );
 }
 ```
 
 Here’s how to use it in UIx:
 
 ```clojure
-($ :> Button {:on-click #(js/console.log :click)}
-    "press me")
+($ Button {:on-click #(js/console.log :click)
+           :title "this is a button"
+           :style #js {:border "1px solid red"}
+           :class-name #js ["hello" "world"]}
+  "press me")
 ```
 
-Interop element starts with a special marker `:>`, followed by JS component, that instructs UIx to handle provided component in a special way:
+When a non-UIx component is passed into `$`, props map is converted into JS object using the following set of rules:
 
-1. The first argument to JS component is optional map of attributes
-   - Map of attributes is _shallowly_ transformed into JavaScript object, meaning that it is your responsibility to pass nested objects as proper JS objects or arrays
-   - `:style` attribute is the only exception, the value can be Clojure’s hash map which will be turned into JS object
-   - Keys in kebab case are transformed into camel case
-2. The rest are child components
-
-> UIx components wrapped with React.lazy or React.memo can be created as usual UIx components, there's no need for :> syntax, this will not actually work.
-
-```clojure
-(defui button [props] ...)
-
-(def memoized-button (react/memo button))
-
-($ memoized-button {:on-click handle-click})
-```
+1. kebab-cased keys are automatically converted into camel-cased keys.
+1. When a component expects a kebab-cased key, it can be passed as a string to avoid conversion.
+1. props map is converted _shallowly_ into JavaScript object, meaning that nested collections and maps are not converted. If a JS component expects a prop to hold an array or object, you have to pass it explicitly. This is illustrated in the example above where `Button` expects `className` props to be JS array and `style` to be an object.
 
 ## Using UIx components in React
 

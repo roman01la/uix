@@ -51,24 +51,12 @@
           v)))
     k))
 
-(defn convert-interop-prop-value [k v]
-  (cond
-    (= k :style) (if (vector? v)
-                   (-reduce ^not-native v
-                            (fn [a v]
-                              (.push a (convert-prop-value-shallow v))
-                              a)
-                            #js [])
-                   (convert-prop-value-shallow v))
-    (keyword? v) (-name ^not-native v)
-    :else v))
-
 (defn kv-conv [o k v]
   (gobj/set o (cached-prop-name k) (convert-prop-value v))
   o)
 
 (defn kv-conv-shallow [o k v]
-  (gobj/set o (cached-prop-name k) (convert-interop-prop-value k v))
+  (gobj/set o (cached-custom-prop-name k) v)
   o)
 
 (defn custom-kv-conv [o k v]
@@ -141,21 +129,20 @@
 
 (defn convert-props
   "Converts `props` Clojure map into JS object suitable for
-  passing as `props` object into `React.crteateElement`
+  passing as `props` object into `React.createElement`
 
   - `props` — Clojure map of props
   - `id-class` — a triplet of parsed tag, id and class names
   - `shallow?` — indicates whether `props` map should be converted shallowly or not"
   [props id-class ^boolean shallow?]
-  (let [props (set-id-class props id-class)]
-    (cond
-      ^boolean (aget id-class 3)
-      (convert-custom-prop-value props)
+  (cond
+    ^boolean (aget id-class 3)
+    (convert-custom-prop-value (set-id-class props id-class))
 
-      shallow?
-      (convert-prop-value-shallow props)
+    shallow?
+    (convert-prop-value-shallow props)
 
-      :else (convert-prop-value props))))
+    :else (convert-prop-value (set-id-class props id-class))))
 
 (defn interpret-attrs
   "Returns a tuple of attributes and a child element

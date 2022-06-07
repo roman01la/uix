@@ -154,11 +154,12 @@
            (as-string ($ comp3))))))
 
 (deftest test-interop
+  (defn testc-interop [])
   (testing "Interop element type"
-    (is (.-type ($ :> inc))
-        inc))
+    (is (.-type ($ testc-interop))
+        testc-interop))
   (testing "Shallowly converted props"
-    (let [el ($ :> inc {:a 1 :b {:c 2}} :child)
+    (let [el ($ testc-interop {:a 1 :b {:c 2}} :child)
           props (.-props el)]
       (is (.-a props) 1)
       (is (.-b props) {:c 2})
@@ -182,17 +183,17 @@
     (is (= (.-children props) "TEXT"))))
 
 (deftest test-validate-component
-  (is (thrown-with-msg? js/Error #"Invalid use of a non-UIx component test in `\$` form\..*"
-                        (uixc/validate-component #js {:name "test"})))
-  (when ^boolean goog.DEBUG
-    (is (thrown-with-msg? js/Error #"Invalid use of a non-UIx component cljs\$core\$inc in `\$` form\..*"
-                          ($ inc))))
-  (let [target #js {:name "test"}]
-    (set! (.-uix-component? target) true)
-    (is (true? (uixc/validate-component target))))
-  (when ^boolean goog.DEBUG
-    (uix.core/defui test-comp [] "x")
-    (is (= test-comp (.-type ($ test-comp))))))
+  (defn testc-validate-component-1 [])
+  (defn testc-validate-component-2 [])
+  (defn testc-validate-component-3 [])
+  (aset testc-validate-component-1 "G_1" testc-validate-component-1)
+  (is (thrown-with-msg? js/Error #"Invalid use of Reagent component uix\$compiler_test\$testc_validate_component_1 in.*"
+                        (uixc/validate-component testc-validate-component-1)))
+  (is (thrown-with-msg? js/Error #"Invalid use of Reagent component uix\$compiler_test\$testc_validate_component_1 in.*"
+                        ($ testc-validate-component-1)))
+  (set! (.-uix-component? ^clj testc-validate-component-2) true)
+  (is (true? (uixc/validate-component testc-validate-component-2)))
+  (is (true? (uixc/validate-component testc-validate-component-3))))
 
 (deftest test-nil-attrs
   (defui test-nil-attrs-component [])

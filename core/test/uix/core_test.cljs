@@ -5,7 +5,7 @@
             [react :as r]
             [react-dom]
             [uix.test-utils :as t]
-            [cljs-bean.core :as bean]))
+            [uix.compiler.attributes :as attrs]))
 
 (deftest test-lib
   (is (= (seq (uix.lib/re-seq* (re-pattern "foo") "foo bar foo baz foo zot"))
@@ -103,6 +103,32 @@
     (is (= "Hello!" (.-textContent root)))
     (react-dom/unmountComponentAtNode root)
     (is (:componentWillUnmount @actual))))
+
+(deftest test-convert-props
+  (testing "shallow conversion"
+    (let [obj (attrs/convert-props
+               {:x 1
+                :y :keyword
+                :f identity
+                :style {:border :red}
+                :class :class
+                :for :for
+                :charset :charset
+                :hello-world "yo"
+                "yo-yo" "string"
+                :plugins [1 2 3]}
+               #js []
+               true)]
+      (is (= 1 (.-x obj)))
+      (is (= :keyword (.-y obj)))
+      (is (= identity (.-f obj)))
+      (is (= {:border :red} (.-style obj)))
+      (is (= :class (.-class obj)))
+      (is (= :for (.-for obj)))
+      (is (= :charset (.-charset obj)))
+      (is (= "yo" (.-helloWorld obj)))
+      (is (= [1 2 3] (.-plugins obj)))
+      (is (= "string" (aget obj "yo-yo"))))))
 
 (defn -main []
   (run-tests))

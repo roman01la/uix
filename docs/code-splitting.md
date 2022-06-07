@@ -28,7 +28,7 @@ Similarly to React, with UIx you can use `uix.core/lazy` that will take care of 
     ($ :div
       ($ :button {:on-click #(set-show-modal! true)})
       ;; wrap the "lazy" `modal` with React's `Suspense` component and provide a fallback UI
-      ($ :> react/Suspense {:fallback ($ :div "Loading...")}
+      ($ react/Suspense {:fallback ($ :div "Loading...")}
         (when show-modal?
           ;; when rendered, React will load the module while displaying the fallback
           ;; and then render the component referenced from the module
