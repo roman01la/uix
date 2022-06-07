@@ -33,9 +33,11 @@
     (.apply react/createElement nil args)))
 
 (defn create-uix-input [tag attrs-children children]
-  (let [props (aget attrs-children 0)
-        children (.concat #js [(aget attrs-children 1)] children)]
-    (react/createElement uix.compiler.input/reagent-input #js {:props props :tag tag :children children})))
+  (if (uix.compiler.input/should-use-reagent-input?)
+    (let [props (aget attrs-children 0)
+          children (.concat #js [(aget attrs-children 1)] children)]
+      (react/createElement uix.compiler.input/reagent-input #js {:props props :tag tag :children children}))
+    (>el tag attrs-children children)))
 
 (def suspense react/Suspense)
 (def fragment react/Fragment)

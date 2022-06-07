@@ -1,7 +1,6 @@
 (ns uix.compiler.input
   "Copied and adapted from https://github.com/reagent-project/reagent/blob/3b2047391ee2d217f257d9b8a7a99b3b4eff29d2/src/reagent/impl/input.cljs"
-  (:require [scheduler]
-            [react]))
+  (:require [react]))
 
 ;; <input type="??" >
 ;; The properties 'selectionStart' and 'selectionEnd' only exist on some inputs
@@ -13,8 +12,12 @@
   [input-type]
   (contains? these-inputs-have-selection-api input-type))
 
+(defn should-use-reagent-input? []
+  (and (exists? js/reagent.impl.util.*non-reactive*)
+       (not js/reagent.impl.util.*non-reactive*)))
+
 (defn do-after-render [f]
-  (scheduler/unstable_scheduleCallback scheduler/unstable_ImmediatePriority f))
+  (js/reagent.impl.batching.do-after-render f))
 
 (declare input-component-set-value)
 
