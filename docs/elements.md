@@ -33,7 +33,7 @@ Component instance is also created via `$` macro call, where the first argument 
 
 ## React component instances
 
-React components wriiten in JavaScript can be used directly in UIx with a minor difference in how props are passed into a component, more on that in [“Interop with React”](/docs/interop-with-react.md) page.
+React components written in JavaScript can be used directly in UIx with a minor difference in how props are passed into a component, more on that in [“Interop with React”](/docs/interop-with-react.md) page.
 
 ```clojure
 ($ Button {:on-click #(js/console.log :click)}
