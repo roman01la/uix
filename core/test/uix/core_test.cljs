@@ -110,7 +110,8 @@
                {:x 1
                 :y :keyword
                 :f identity
-                :style {:border :red}
+                :style {:border :red
+                        :margin-top "12px"}
                 :class :class
                 :for :for
                 :charset :charset
@@ -123,6 +124,7 @@
       (is (= "keyword" (.-y obj)))
       (is (= identity (.-f obj)))
       (is (= "red" (.. obj -style -border)))
+      (is (= "12px" (.. obj -style -marginTop)))
       (is (= "class" (.-className obj)))
       (is (= "for" (.-htmlFor obj)))
       (is (= "charset" (.-charSet obj)))
