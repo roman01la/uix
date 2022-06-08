@@ -11,10 +11,10 @@ API compatibility: React v17
 ```clj
 {:deps {uix.core/uix.core {:git/url "https://github.com/pitch-io/uix.git"
                            :deps/root "core"
-                           :sha "288d098bec35b0ee8ecc03f5ff6cda5eeb49b3b9"}
+                           :sha "a9be95ed5033dddcb77f67a1c6faa08e58ea08b2"}
         uix.dom/uix.dom {:git/url "https://github.com/pitch-io/uix.git"
                          :deps/root "dom"
-                         :sha "288d098bec35b0ee8ecc03f5ff6cda5eeb49b3b9"}}}
+                         :sha "a9be95ed5033dddcb77f67a1c6faa08e58ea08b2"}}}
 ```
 
 ## Usage
