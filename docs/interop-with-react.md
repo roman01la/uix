@@ -34,7 +34,7 @@ When a non-UIx component is passed into `$`, props map is converted into JS obje
      - `:for` -> `"htmlFor"`
      - `:charset` -> `"charSet"`
 1. When a component expects a kebab-cased key, it can be passed as a string to avoid conversion.
-1. props map is converted _shallowly_ into JavaScript object, meaning that nested collections and maps are not converted. If a JS component expects a prop to hold an array or object, you have to pass it explicitly. There are two exceptions though:
+1. props map is converted _shallowly_ into a JavaScript object, meaning that nested collections and maps are not converted. If a JS component expects a prop to hold an array or an object, you have to pass it explicitly. There are two exceptions though:
 
    - `:style` map is an exceptions, it is always converted into JS object because it's a common prop when passing styles into a third-party component.
    - Keyword values are converted into string.
