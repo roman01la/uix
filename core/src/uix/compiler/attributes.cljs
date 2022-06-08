@@ -51,12 +51,24 @@
           v)))
     k))
 
+(defn convert-interop-prop-value [k v]
+  (cond
+    (= k :style) (if (vector? v)
+                   (-reduce ^not-native v
+                            (fn [a v]
+                              (.push a (convert-prop-value-shallow v))
+                              a)
+                            #js [])
+                   (convert-prop-value-shallow v))
+    (keyword? v) (-name ^not-native v)
+    :else v))
+
 (defn kv-conv [o k v]
   (gobj/set o (cached-prop-name k) (convert-prop-value v))
   o)
 
 (defn kv-conv-shallow [o k v]
-  (gobj/set o (cached-custom-prop-name k) v)
+  (gobj/set o (cached-prop-name k) (convert-interop-prop-value k v))
   o)
 
 (defn custom-kv-conv [o k v]

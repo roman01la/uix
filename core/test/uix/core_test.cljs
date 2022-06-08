@@ -120,12 +120,12 @@
                #js []
                true)]
       (is (= 1 (.-x obj)))
-      (is (= :keyword (.-y obj)))
+      (is (= "keyword" (.-y obj)))
       (is (= identity (.-f obj)))
-      (is (= {:border :red} (.-style obj)))
-      (is (= :class (.-class obj)))
-      (is (= :for (.-for obj)))
-      (is (= :charset (.-charset obj)))
+      (is (= "red" (.. obj -style -border)))
+      (is (= "class" (.-className obj)))
+      (is (= "for" (.-htmlFor obj)))
+      (is (= "charset" (.-charSet obj)))
       (is (= "yo" (.-helloWorld obj)))
       (is (= [1 2 3] (.-plugins obj)))
       (is (= "string" (aget obj "yo-yo"))))))
