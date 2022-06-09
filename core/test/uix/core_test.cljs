@@ -5,7 +5,7 @@
             [react :as r]
             [react-dom]
             [uix.test-utils :as t]
-            [cljs-bean.core :as bean]))
+            [uix.compiler.attributes :as attrs]))
 
 (deftest test-lib
   (is (= (seq (uix.lib/re-seq* (re-pattern "foo") "foo bar foo baz foo zot"))
@@ -103,6 +103,39 @@
     (is (= "Hello!" (.-textContent root)))
     (react-dom/unmountComponentAtNode root)
     (is (:componentWillUnmount @actual))))
+
+(deftest test-convert-props
+  (testing "shallow conversion"
+    (let [obj (attrs/convert-props
+               {:x 1
+                :y :keyword
+                :f identity
+                :style {:border :red
+                        :margin-top "12px"}
+                :class :class
+                :for :for
+                :charset :charset
+                :hello-world "yo"
+                "yo-yo" "string"
+                :plugins [1 2 3]
+                :data-test-id "hello"
+                :aria-role "button"}
+               #js []
+               true)]
+      (is (= 1 (.-x obj)))
+      (is (= "keyword" (.-y obj)))
+      (is (= identity (.-f obj)))
+      (is (= "red" (.. obj -style -border)))
+      (is (= "12px" (.. obj -style -marginTop)))
+      (is (= "class" (.-className obj)))
+      (is (= "for" (.-htmlFor obj)))
+      (is (= "charset" (.-charSet obj)))
+      (is (= "yo" (.-helloWorld obj)))
+      (is (= [1 2 3] (.-plugins obj)))
+      (is (= "string" (aget obj "yo-yo")))
+      (is (= "hello" (aget obj "data-test-id")))
+      (is (= "button" (aget obj "aria-role")))
+      (is (= "a b c" (.-className (attrs/convert-props {:class [:a :b "c"]} #js [] true)))))))
 
 (defn -main []
   (run-tests))

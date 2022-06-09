@@ -141,7 +141,7 @@
 
 (defn convert-props
   "Converts `props` Clojure map into JS object suitable for
-  passing as `props` object into `React.crteateElement`
+  passing as `props` object into `React.createElement`
 
   - `props` — Clojure map of props
   - `id-class` — a triplet of parsed tag, id and class names

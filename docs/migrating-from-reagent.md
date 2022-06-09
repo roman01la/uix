@@ -153,6 +153,6 @@ In Reagent it's common to have shared state in a form of a global var that holds
   ;; declare local state to be shared in UI subtree
   (let [[n set-n!] (uix/use-state 0)]
     ;; share the state with the subtree via context
-    ($ :> (.-Provider state-context) {:value [n set-n!]}
+    ($ (.-Provider state-context) {:value [n set-n!]}
       ($ child-component))))
 ```
