@@ -1,16 +1,11 @@
 (ns uix.dev
   (:require ["react-refresh/runtime" :as refresh]))
 
-(set! (.-$$Register$$ js/window) refresh/register)
-(set! (.-$$Signature$$ js/window) refresh/createSignatureFunctionForTransform)
-
 (defn signature! []
-  (when (exists? (.-$$Signature$$ js/window))
-    (.$$Signature$$ js/window)))
+  (refresh/createSignatureFunctionForTransform))
 
 (defn register! [type id]
-  (when (exists? (.-$$Register$$ js/window))
-    (.$$Register$$ js/window type id)))
+  (refresh/register type id))
 
 ;;;; Public API ;;;;
 
