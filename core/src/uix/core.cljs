@@ -3,7 +3,6 @@
   (:require-macros [uix.core])
   (:require [goog.object :as gobj]
             [react]
-            [uix.compiler.debug :as debug]
             [uix.hooks.alpha :as hooks]
             [uix.compiler.alpha :as compiler]
             [uix.compiler.aot]

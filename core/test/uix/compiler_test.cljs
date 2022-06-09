@@ -2,10 +2,8 @@
   (:require [clojure.test :refer [deftest is are testing run-tests]]
             [uix.compiler.alpha :as uixc]
             [uix.test-utils :refer [as-string js-equal? with-error symbol-for]]
-            [uix.compiler.debug :as debug]
             [uix.core :refer [defui $]]
-            [uix.dom]
-            [clojure.string :as str]))
+            [uix.dom]))
 
 (enable-console-print!)
 
@@ -15,14 +13,6 @@
 
 (deftest test-seq-return
   (is (= (as-string ($ test-seq-return-comp)) "<span>0</span><span>1</span>")))
-
-(when ^boolean goog.DEBUG
-  (deftest test-default-format-display-name
-    (is (= (debug/default-format-display-name (.-name js-equal?))
-           "uix.test-utils/js-equal?"))
-    (let [f-hello (fn [])]
-      (is (= (debug/default-format-display-name (.-name f-hello))
-             "f-hello")))))
 
 (uix.core/defui to-string-test-comp [props]
   ($ :div {} (str "i am " (:foo props))))
