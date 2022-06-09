@@ -117,7 +117,9 @@
                 :charset :charset
                 :hello-world "yo"
                 "yo-yo" "string"
-                :plugins [1 2 3]}
+                :plugins [1 2 3]
+                :data-test-id "hello"
+                :aria-role "button"}
                #js []
                true)]
       (is (= 1 (.-x obj)))
@@ -130,7 +132,10 @@
       (is (= "charset" (.-charSet obj)))
       (is (= "yo" (.-helloWorld obj)))
       (is (= [1 2 3] (.-plugins obj)))
-      (is (= "string" (aget obj "yo-yo"))))))
+      (is (= "string" (aget obj "yo-yo")))
+      (is (= "hello" (aget obj "data-test-id")))
+      (is (= "button" (aget obj "aria-role")))
+      (is (= "a b c" (.-className (attrs/convert-props {:class [:a :b "c"]} #js [] true)))))))
 
 (defn -main []
   (run-tests))

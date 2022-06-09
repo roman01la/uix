@@ -147,14 +147,15 @@
   - `id-class` — a triplet of parsed tag, id and class names
   - `shallow?` — indicates whether `props` map should be converted shallowly or not"
   [props id-class ^boolean shallow?]
-  (cond
-    ^boolean (aget id-class 3)
-    (convert-custom-prop-value (set-id-class props id-class))
+  (let [props (set-id-class props id-class)]
+    (cond
+      ^boolean (aget id-class 3)
+      (convert-custom-prop-value props)
 
-    shallow?
-    (convert-prop-value-shallow props)
+      shallow?
+      (convert-prop-value-shallow props)
 
-    :else (convert-prop-value (set-id-class props id-class))))
+      :else (convert-prop-value props))))
 
 (defn interpret-attrs
   "Returns a tuple of attributes and a child element
