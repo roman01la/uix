@@ -6,7 +6,8 @@
   #"([^\.#]*)(?:#([^\.#]+))?(?:\.([^#]+))?")
 
 (defn parse-tag
-  "Takes HyperScript tag (:div#id.class) and returns parsed tag, id and class fields"
+  "Takes HyperScript tag (:div#id.class) and returns parsed tag, id and class fields,
+  and boolean indicating if tag name is a custom element (a custom DOM element that has hyphen in the name)"
   [tag]
   (let [tag-str (name tag)]
     (when (and (not (re-matches re-tag tag-str))
@@ -20,7 +21,8 @@
       (list tag id class-name (some? (re-find #"-" tag))))))
 
 (defn set-id-class
-  "Takes attributes map and parsed tag, and returns attributes merged with class names and id"
+  "Takes attributes map and parsed tag triplet,
+  and returns attributes merged with class names and id"
   [props [_ id class]]
   (let [props-class (get props :class)]
     (cond-> props
@@ -35,8 +37,9 @@
                       props-class `(class-names ~class ~props-class)
                       :else class)))))
 
-(defn camel-case
-  "Turns kebab-case keyword into camel-case keyword"
+(defn camel-case-dom
+  "Turns kebab-case keyword into camel-case keyword,
+  kebab-cased DOM attributes aria-* and data-* are not converted"
   [k]
   (if (keyword? k)
     (let [[first-word & words] (str/split (name k) #"-")]
@@ -54,7 +57,7 @@
   "Takes map of attributes and returns same map with camel-cased keys"
   [m]
   (if (map? m)
-    (reduce-kv #(assoc %1 (camel-case %2) %3) {} m)
+    (reduce-kv #(assoc %1 (camel-case-dom %2) %3) {} m)
     m))
 
 (defn convert-value
@@ -71,7 +74,7 @@
 
 (defn convert-values [m]
   (if (map? m)
-    (reduce-kv #(assoc %1 (camel-case %2) (convert-value %3)) {} m)
+    (reduce-kv #(assoc %1 (camel-case-dom %2) (convert-value %3)) {} m)
     m))
 
 (defmulti compile-config-kv (fn [name value] name))
@@ -83,7 +86,12 @@
   (convert-value name value))
 
 (defn compile-attrs
-  "Takes map of attributes and returns same map with keys translated from Clojure to React naming conventions"
+  "Takes map of attributes and returns same map with keys
+  translated from Clojure to React naming conventions
+
+  :class -> :className
+  :margin-right -> :marginRight
+  :on-click -> :onClick"
   ([attrs]
    (compile-attrs attrs nil))
   ([attrs {:keys [custom-element?]}]
@@ -91,11 +99,11 @@
      (reduce-kv
       #(assoc %1
               (if custom-element?
-                (camel-case %2)
+                (camel-case-dom %2)
                 (case %2
                   :class :className
                   :for :htmlFor
-                  (camel-case %2)))
+                  (camel-case-dom %2)))
               (compile-config-kv %2 %3))
       {}
       attrs)

@@ -110,6 +110,7 @@
       (.join classes " "))))
 
 (defn ^string class-names
+  "Merges a collection of class names into a string"
   ([a]
    (cond
      (or (array? a) (coll? a)) (class-names-coll a)

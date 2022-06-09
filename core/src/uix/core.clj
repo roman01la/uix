@@ -55,7 +55,8 @@
   ^{:arglists '([name doc-string? attr-map? [params*] prepost-map? body]
                 [name doc-string? attr-map? ([params*] prepost-map? body) + attr-map?])}
   defui
-  "Compiles UIx component into React component at compile-time."
+  "Creates UIx component. Similar to defn, but doesn't support multi arity.
+  A component should have a single argument of props."
   [sym & fdecl]
   (let [[fname args fdecl] (parse-sig sym fdecl)]
     (let [sym (with-meta sym {:tag 'js})

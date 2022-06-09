@@ -4,18 +4,27 @@
             [uix.compiler.attributes :as attrs]
             [cljs.analyzer :as ana]))
 
-(defmulti compile-attrs (fn [tag attrs opts] tag))
+(defmulti compile-attrs
+  "Compiles a map of attributes into JS object,
+  or emits interpretation call for runtime, when a value
+  at props position is dynamic (symbol)"
+  (fn [tag attrs opts] tag))
 
 (defmethod compile-attrs :element [_ attrs {:keys [tag-id-class]}]
   (if (or (map? attrs) (nil? attrs))
     `(cljs.core/array
       ~(cond-> attrs
+         ;; interpret :style if it's not map literal
          (and (some? (:style attrs))
               (not (map? (:style attrs))))
          (assoc :style `(uix.compiler.attributes/convert-props ~(:style attrs) (cljs.core/array) true))
+         ;; merge parsed id and class with attrs map
          :always (attrs/set-id-class tag-id-class)
+         ;; camel-casify the map
          :always (attrs/compile-attrs {:custom-element? (last tag-id-class)})
+         ;; emit JS object literal
          :always js/to-js))
+    ;; otherwise emit interpretation call
     `(uix.compiler.attributes/interpret-attrs ~attrs (cljs.core/array ~@tag-id-class) false)))
 
 (defmethod compile-attrs :component [_ props _]
@@ -42,7 +51,7 @@
   '#{for map mapv filter filterv remove keep keep-indexed})
 
 (defn- elements-list?
-  "Returns true when `v` is a seq form normally used to render a list of elements
+  "Returns true when `v` is form commonly used to render a list of elements
   `(map ...)`, `(for ...)`, etc"
   [v]
   (and (list? v)
@@ -59,8 +68,8 @@
     (into [(first v) {}] (rest v))
     v))
 
-;; Compiles HyperScript into React.createElement
 (defmulti compile-element
+  "Compiles UIx elements into React.createElement"
   (fn [[tag] _]
     (cond
       (= :<> tag) :fragment

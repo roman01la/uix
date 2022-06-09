@@ -1,4 +1,5 @@
-(ns uix.compiler.js)
+(ns uix.compiler.js
+  "Helper functions to convert Clojure literals into JS")
 
 (defmulti to-js
   (fn [x]

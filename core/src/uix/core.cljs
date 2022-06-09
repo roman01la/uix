@@ -140,7 +140,8 @@
   (hooks/use-context context))
 
 (defn as-react
-  "Interop with React components. Takes UIx component function and returns same component wrapped into interop layer."
+  "Interop with React components. Takes UIx component function
+  and returns same component wrapped into interop layer."
   [f]
   #(f #js {:argv (bean/bean %)}))
 
@@ -163,7 +164,9 @@
             coll)
     coll))
 
-(defn lazy [f]
+(defn lazy
+  "Like React.lazy, but supposed to be used with UIx components"
+  [f]
   (let [lazy-component (react/lazy #(.then (f) (fn [component] #js {:default component})))]
     (set! (.-uix-component? lazy-component) true)
     lazy-component))
