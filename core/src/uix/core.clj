@@ -61,7 +61,6 @@
   (let [[fname args fdecl] (parse-sig sym fdecl)]
     (let [sym (with-meta sym {:tag 'js})
           body (uix.dev/with-fast-refresh sym fdecl)]
-      (uix.source/register-symbol! &env sym)
       (hooks.linter/lint! sym fdecl &env)
       `(do
          ~(if (empty? args)

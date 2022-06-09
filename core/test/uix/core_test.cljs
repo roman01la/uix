@@ -7,15 +7,6 @@
             [uix.test-utils :as t]
             [uix.compiler.attributes :as attrs]))
 
-(deftest test-lib
-  (is (= (seq (uix.lib/re-seq* (re-pattern "foo") "foo bar foo baz foo zot"))
-         (list "foo" "foo" "foo")))
-
-  (is (= (map vec (uix.lib/re-seq* (re-pattern "f(.)o") "foo bar foo baz foo zot"))
-         (list ["foo" "o"] ["foo" "o"] ["foo" "o"])))
-
-  (is (= '("") (seq (uix.lib/re-seq* #"\s*" "")))))
-
 (deftest test-use-ref
   (uix.core/defui test-use-ref-comp [_]
     (let [ref1 (uix.core/use-ref)
