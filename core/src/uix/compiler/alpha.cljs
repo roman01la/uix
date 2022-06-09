@@ -4,9 +4,6 @@
             [uix.compiler.attributes :as attrs]
             [clojure.string :as str]))
 
-(defn symbol-for [s]
-  (js* "Symbol.for(~{})" s))
-
 (defn- reagent-component? [^js component-type]
   (->> (.keys js/Object component-type)
        (some #(when (str/starts-with? % "G_")

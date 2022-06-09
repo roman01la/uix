@@ -2,7 +2,7 @@
   "Runtime helpers for HyperScript compiled into React"
   (:require [react :as react]
             [uix.compiler.input]
-            [uix.compiler.alpha :as r]
+            [uix.compiler.alpha]
             [uix.compiler.attributes]
             [uix.lib :refer [doseq-loop]]))
 
@@ -39,5 +39,4 @@
       (react/createElement uix.compiler.input/reagent-input #js {:props props :tag tag :children children}))
     (>el tag attrs-children children)))
 
-(def suspense react/Suspense)
 (def fragment react/Fragment)

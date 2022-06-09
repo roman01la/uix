@@ -4,7 +4,6 @@
   (:require [goog.object :as gobj]
             [react]
             [uix.hooks.alpha :as hooks]
-            [uix.compiler.alpha :as compiler]
             [uix.compiler.aot]
             [uix.lib :refer [doseq-loop map->js]]
             [cljs-bean.core :as bean]))
