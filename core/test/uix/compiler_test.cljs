@@ -161,17 +161,6 @@
     (catch :default e
       (is "Target container is not a DOM element." (.-message e)))))
 
-(deftest test-as-react
-  (uix.core/defui test-c [props]
-    (is (map? props))
-    (is (= "TEXT" (:text props)))
-    ($ :h1 (:text props)))
-  (let [h1 (uixc/as-react test-c)
-        el (h1 #js {:text "TEXT"})
-        props (.-props el)]
-    (is (= (.-type el) "h1"))
-    (is (= (.-children props) "TEXT"))))
-
 (deftest test-validate-component
   (defn testc-validate-component-1 [])
   (defn testc-validate-component-2 [])

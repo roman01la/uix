@@ -137,5 +137,16 @@
       (is (= "button" (aget obj "aria-role")))
       (is (= "a b c" (.-className (attrs/convert-props {:class [:a :b "c"]} #js [] true)))))))
 
+(deftest test-as-react
+  (uix.core/defui test-c [props]
+    (is (map? props))
+    (is (= "TEXT" (:text props)))
+    ($ :h1 (:text props)))
+  (let [h1 (uix.core/as-react test-c)
+        el (h1 #js {:text "TEXT"})
+        props (.-props el)]
+    (is (= (.-type el) "h1"))
+    (is (= (.-children props) "TEXT"))))
+
 (defn -main []
   (run-tests))

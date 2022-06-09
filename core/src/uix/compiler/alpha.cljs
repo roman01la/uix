@@ -1,15 +1,11 @@
 (ns uix.compiler.alpha
-  (:require [react :as react]
-            [cljs-bean.core :as bean]
+  (:require [react]
             [goog.object :as gobj]
             [uix.compiler.attributes :as attrs]
             [clojure.string :as str]))
 
 (defn symbol-for [s]
   (js* "Symbol.for(~{})" s))
-
-(defn as-react [f]
-  #(f #js {:argv (bean/bean %)}))
 
 (defn- reagent-component? [^js component-type]
   (->> (.keys js/Object component-type)

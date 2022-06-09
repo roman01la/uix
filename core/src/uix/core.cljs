@@ -6,7 +6,8 @@
             [uix.hooks.alpha :as hooks]
             [uix.compiler.alpha :as compiler]
             [uix.compiler.aot]
-            [uix.lib :refer [doseq-loop map->js]]))
+            [uix.lib :refer [doseq-loop map->js]]
+            [cljs-bean.core :as bean]))
 
 (def ^:dynamic *current-component*)
 
@@ -142,7 +143,7 @@
 (defn as-react
   "Interop with React components. Takes UIx component function and returns same component wrapped into interop layer."
   [f]
-  (compiler/as-react f))
+  #(f #js {:argv (bean/bean %)}))
 
 (defn stringify-clojure-primitives [v]
   (cond
