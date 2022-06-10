@@ -12,7 +12,7 @@ clojure -A:test -m uix.test-runner
 echo "<div id=root></div><script src="out/main.js"></script>" > index.html
 
 echo "Building ClojureScript tests..."
-clojure -A:test -m shadow.cljs.devtools.cli compile test
+clojure -A:test:benchmark -m shadow.cljs.devtools.cli compile test
 
 echo "Running ClojureScript tests..."
 scripts/test.js $(pwd)

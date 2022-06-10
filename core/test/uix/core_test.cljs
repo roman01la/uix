@@ -5,7 +5,8 @@
             [react :as r]
             [react-dom]
             [uix.test-utils :as t]
-            [uix.compiler.attributes :as attrs]))
+            [uix.compiler.attributes :as attrs]
+            [uix.hiccup :refer [row-compiled]]))
 
 (deftest test-use-ref
   (uix.core/defui test-use-ref-comp [_]
@@ -138,6 +139,17 @@
         props (.-props el)]
     (is (= (.-type el) "h1"))
     (is (= (.-children props) "TEXT"))))
+
+(defui test-source-component []
+  "HELLO")
+
+(deftest test-source
+  (is (= (uix.core/source test-source-component)
+         "(defui test-source-component []\n  \"HELLO\")"))
+  (is (= (uix.core/source uix.hiccup/form-compiled)
+         "(defui form-compiled [{:keys [children]}]\n  ($ :form children))"))
+  (is (= (uix.core/source row-compiled)
+         "(defui row-compiled [{:keys [children]}]\n  ($ :div.row children))")))
 
 (defn -main []
   (run-tests))
