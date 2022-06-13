@@ -13,14 +13,6 @@
               (rdom/render node))
      :clj nil))
 
-(defn create-root [node]
-  #?(:cljs (rdom/unstable_createRoot node)
-     :clj nil))
-
-(defn render-root [element root]
-  #?(:cljs (.render root (compiler/as-element element))
-     :clj nil))
-
 (defn hydrate
   "Hydrates server rendered document at `node` with `element`."
   [element node]
@@ -31,17 +23,9 @@
   #?(:cljs (rdom/flushSync cb)
      :clj nil))
 
-(defn flush-controlled! [cb]
-  #?(:cljs (rdom/unstable_flushControlled cb)
-     :clj nil))
-
 #?(:clj
    (defmacro flush-sync [& body]
      `(flush-sync! (fn [] ~@body))))
-
-#?(:clj
-   (defmacro flush-controlled [& body]
-     `(flush-controlled! (fn [] ~@body))))
 
 (defn unmount-at-node
   "Unmounts React component rendered into DOM node"
