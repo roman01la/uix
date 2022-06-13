@@ -1,6 +1,6 @@
 {:deps {org.clojure/clojure {:mvn/version "1.10.0"}
         org.clojure/clojurescript {:mvn/version "1.10.739"}
-        cljsjs/react-dom {:mvn/version "16.13.1-0"
+        cljsjs/react-dom {:mvn/version "17.0.2-0"
                           :exclusions [cljsjs/react-dom-server]}
         uix.core/uix.core {:git/url "https://github.com/roman01la/uix.git"
                            :deps/root "core"
