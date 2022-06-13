@@ -35,3 +35,7 @@
 
 (deftest test-memo
   (is (= 1 (core/memo (constantly 1)))))
+
+(deftest test-reducer
+  (let [[value dispatch] (core/reducer identity 1 inc)]
+    (is (= 2 value))))

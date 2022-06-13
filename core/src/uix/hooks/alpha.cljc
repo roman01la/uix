@@ -49,6 +49,14 @@
                         #js [value set-value]))
      :clj (atom value)))
 
+(defn reducer
+  ([f initial-value]
+   (reducer f initial-value identity))
+  ([f initial-value init-f]
+   #?(:cljs (r/useReducer #(f %1 %2) initial-value init-f)
+      :clj (let [ref (atom (init-f initial-value))]
+             [@ref #(swap! ref f %)]))))
+
 (defprotocol IRef
   (unwrap [this]))
 

@@ -159,6 +159,14 @@
   [value]
   (hooks/state value))
 
+(defn reducer
+  "Takes state setting fn, initial state value and optional initializer fn.
+  Returns a tuple of current state value dispatch function."
+  ([f initial-value]
+   (hooks/reducer f initial-value))
+  ([f initial-value init-f]
+   (hooks/reducer f initial-value init-f)))
+
 (defn cursor-in
   "Takes ref type value and path vector and returns ref type cursor value watching into original ref"
   [ref path]

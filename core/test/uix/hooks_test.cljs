@@ -19,6 +19,16 @@
     (async done
       (t/render [f-state done]))))
 
+(deftest test-reducer-hook
+  (let [f-state (fn [done]
+                  (let [[value dispatch] (core/reducer (fn [value event] (inc value)) 1 inc)]
+                    (is (or (== value 2) (== value 3)))
+                    (if (== value 3)
+                      (done)
+                      (dispatch [:inc]))))]
+    (async done
+      (t/render [f-state done]))))
+
 (deftest test-cursor-in-hook
   (let [f-state (fn [done]
                   (let [state (core/state {:x 1})
