@@ -359,6 +359,12 @@
 (defn- render-attr-str! [sb attr value]
   (append! sb " " attr "=\"" (escape-html (to-str value)) "\""))
 
+(def booleanish-string
+  (into #{}
+        (map normalize-attr-key)
+        #{:content-editable :draggable :spell-check :value
+          :auto-reverse :external-resources-required :focusable :preserve-alpha}))
+
 (defn render-attr! [tag key value sb]
   (let [attr (normalize-attr-key key)]
     (cond
@@ -373,7 +379,11 @@
                (= "textarea" tag))) :nop
       (.startsWith attr "aria-") (render-attr-str! sb attr value)
       (not value) :nop
-      (true? value) (append! sb " " attr "=\"\"")
+
+      (and (true? value)
+           (not (contains? booleanish-string attr)))
+      (append! sb " " attr "=\"\"")
+
       (.startsWith attr "on") (if (string? value)
                                 (render-attr-str! sb attr value)
                                 :nop)
