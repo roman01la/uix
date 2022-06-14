@@ -35,6 +35,16 @@
      (is (= (render ($ :div {:class ["c"]} "hi")) "<div class=\"c\">hi</div>"))
      (is (= (render ($ :div.a.b {:class ["c"]} "hi")) "<div class=\"a b c\">hi</div>"))))
 
+#?(:clj
+   (deftest test-defui
+     (defui test-defui-comp-1 [props]
+       (is (= {:x "hello" :children "child"} props))
+       (:x props))
+     (defui test-defui-comp-1 [props]
+       (is (= {:x "hello" :ref 1 :children ["child" "more"]} props))
+       (:x props))
+     (is (= "hello" (render ($ test-defui-comp-1 {:x "hello" :key "k" :ref 1} "child" "more"))))))
+
 ;; Adapted from https://github.com/tonsky/rum/blob/gh-pages/test/rum/test/server_render.cljc
 
 (defui comp-simple []

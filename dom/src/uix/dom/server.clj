@@ -471,7 +471,10 @@
             (let [props (if (map? props)
                           (cond-> (dissoc props :key)
                                   (seq children) (assoc :children children))
-                          {:children (into [props] children)})]
+                          {:children (into [props] children)})
+                  props (if (:children props)
+                          (update props :children #(if (== 1 (count %)) (first %) %))
+                          props)]
               (if (seq props)
                 (f props)
                 (f))))]
