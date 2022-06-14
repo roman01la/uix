@@ -2,9 +2,11 @@
 
 _Idiomatic ClojureScript interface to modern React.js_
 
-[![CircleCI](https://circleci.com/gh/pitch-io/uix.svg?style=svg)](https://circleci.com/gh/pitch-io/uix)
-
 API compatibility: React v17
+
+UIx v1 is in [roman01la/uix](https://github.com/roman01la/uix) repo
+
+[![CircleCI](https://circleci.com/gh/pitch-io/uix.svg?style=svg)](https://circleci.com/gh/pitch-io/uix)
 
 ## Installation
 
