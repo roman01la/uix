@@ -3,3 +3,8 @@
 .nrepl-port
 .clj-kondo
 .lsp
+node_modules
+.cpcache
+.shadow-cljs
+out
+server_render_test

@@ -51,6 +51,21 @@
             "If you meant to retrieve `children`, they are under `:children` field in props map."))
       [(with-meta name m) args fdecl])))
 
+(defn- cljs-component [env sym fname args fdecl]
+  (let [sym (with-meta sym {:tag 'js})
+        body (uix.dev/with-fast-refresh sym fdecl)]
+    `(do
+       ~(if (empty? args)
+          (no-args-component fname body)
+          (with-args-component fname args body))
+       (set! (.-uix-component? ~sym) true)
+       (set! (.-displayName ~sym) ~(str (-> env :ns :name) "/" sym))
+       ~(uix.dev/fast-refresh-signature sym body))))
+
+(defn- clj-component [fname args fdecl]
+  `(defn ~fname ~args
+     ~@fdecl))
+
 (defmacro
   ^{:arglists '([name doc-string? attr-map? [params*] prepost-map? body]
                 [name doc-string? attr-map? ([params*] prepost-map? body) + attr-map?])}
@@ -59,16 +74,10 @@
   A component should have a single argument of props."
   [sym & fdecl]
   (let [[fname args fdecl] (parse-sig sym fdecl)]
-    (let [sym (with-meta sym {:tag 'js})
-          body (uix.dev/with-fast-refresh sym fdecl)]
-      (hooks.linter/lint! sym fdecl &env)
-      `(do
-         ~(if (empty? args)
-            (no-args-component fname body)
-            (with-args-component fname args body))
-         (set! (.-uix-component? ~sym) true)
-         (set! (.-displayName ~sym) ~(str (-> &env :ns :name) "/" sym))
-         ~(uix.dev/fast-refresh-signature sym body)))))
+    (hooks.linter/lint! sym fdecl &env)
+    (if (uix.lib/cljs-env? &env)
+      (cljs-component &env sym fname args fdecl)
+      (clj-component fname args fdecl))))
 
 (defmacro source
   "Returns source string of UIx component"
@@ -81,9 +90,15 @@
   DOM element: ($ :button#id.class {:on-click handle-click} \"click me\")
   React component: ($ title-bar {:title \"Title\"})"
   ([tag]
-   (uix.compiler.aot/compile-element [tag] {:env &env}))
+   (let [el [tag]]
+     (if (uix.lib/cljs-env? &env)
+       (uix.compiler.aot/compile-element el {:env &env})
+       el)))
   ([tag props & children]
-   (uix.compiler.aot/compile-element (into [tag props] children) {:env &env})))
+   (let [el (into [tag props] children)]
+     (if (uix.lib/cljs-env? &env)
+       (uix.compiler.aot/compile-element el {:env &env})
+       el))))
 
 ;; === Hooks ===
 

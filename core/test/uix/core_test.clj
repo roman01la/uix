@@ -17,12 +17,13 @@
   (is (nil? (uix.core/vector->js-array nil))))
 
 (deftest test-$
-  (is (= (macroexpand-1 '(uix.core/$ :h1))
-         '(uix.compiler.aot/>el "h1" (cljs.core/array nil) (cljs.core/array))))
-  (is (= (macroexpand-1 '(uix.core/$ identity {} 1 2))
-         '(uix.compiler.alpha/component-element identity (cljs.core/array {}) (cljs.core/array 1 2))))
-  (is (= (macroexpand-1 '(uix.core/$ identity {:x 1 :ref 2} 1 2))
-         '(uix.compiler.alpha/component-element identity (cljs.core/array {:x 1 :ref 2}) (cljs.core/array 1 2)))))
+  (with-redefs [uix.lib/cljs-env? (fn [_] true)]
+    (is (= (macroexpand-1 '(uix.core/$ :h1))
+           '(uix.compiler.aot/>el "h1" (cljs.core/array nil) (cljs.core/array))))
+    (is (= (macroexpand-1 '(uix.core/$ identity {} 1 2))
+           '(uix.compiler.alpha/component-element identity (cljs.core/array {}) (cljs.core/array 1 2))))
+    (is (= (macroexpand-1 '(uix.core/$ identity {:x 1 :ref 2} 1 2))
+           '(uix.compiler.alpha/component-element identity (cljs.core/array {:x 1 :ref 2}) (cljs.core/array 1 2))))))
 
 (defn test-linter [form expected-messages]
   (let [errors (atom [])
