@@ -280,6 +280,15 @@
      :aria-disabled "true"
      :aria-checked "false"}))
 
+(uix.core/defcontext *context*)
+
+(defui comp-context-consumer []
+  (uix.core/use-context *context*))
+
+(defui comp-context []
+  ($ *context* {:value 2}
+    ($ comp-context-consumer)))
+
 (def components
   {"simple" comp-simple
    "tag" comp-tag
@@ -301,7 +310,8 @@
    "html" comp-html
    "inputs" comp-inputs
    "svg" comp-svg
-   "aria" comp-aria})
+   "aria" comp-aria
+   "context" comp-context})
 
 (def render-dir "server_render_test")
 

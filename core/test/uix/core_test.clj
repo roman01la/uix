@@ -19,7 +19,8 @@
 
 (deftest test-$
   (testing "in cljs env"
-    (with-redefs [uix.lib/cljs-env? (fn [_] true)]
+    (with-redefs [uix.lib/cljs-env? (fn [_] true)
+                  ana/resolve-var (fn [_ _] nil)]
       (is (= (macroexpand-1 '(uix.core/$ :h1))
              '(uix.compiler.aot/>el "h1" (cljs.core/array nil) (cljs.core/array))))
       (is (= (macroexpand-1 '(uix.core/$ identity {} 1 2))
@@ -81,6 +82,17 @@
 (deftest test-create-context
   (let [context (uix.core/create-context 1)]
     (is (== 1 context))))
+
+(uix.core/defcontext *context* 1)
+
+(deftest test-context
+  (is (== 1 (uix.core/use-context *context*))))
+
+(deftest test-$-context
+  (let [[marker f children] (uix.core/$ *context* {:value 2} 1 2 3)]
+    (is (= marker :uix/bind-context))
+    (is (= [1 2 3] children))
+    (is (= 2 (f (fn [] *context*))))))
 
 (deftest test-as-react
   (is (identical? identity (uix.core/as-react identity))))

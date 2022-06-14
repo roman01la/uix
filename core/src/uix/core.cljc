@@ -43,15 +43,9 @@
       DOM element: ($ :button#id.class {:on-click handle-click} \"click me\")
       React component: ($ title-bar {:title \"Title\"})"
       ([tag]
-       (let [el [tag]]
-         (if (uix.lib/cljs-env? &env)
-           (uix.compiler.aot/compile-element el {:env &env})
-           el)))
+       (uix.compiler.aot/compile-element [tag] {:env &env}))
       ([tag props & children]
-       (let [el (into [tag props] children)]
-         (if (uix.lib/cljs-env? &env)
-           (uix.compiler.aot/compile-element el {:env &env})
-           el)))))
+       (uix.compiler.aot/compile-element (into [tag props] children) {:env &env}))))
 
 ;; React's top-level API
 
@@ -257,6 +251,20 @@
   ([default-value]
    #?(:cljs (react/createContext default-value)
       :clj default-value)))
+
+#?(:clj
+   (defmacro defcontext
+     "Creates React context with initial value set to `value`."
+     ([name]
+      (let [sym (with-meta name {:uix/context true :dynamic true})]
+        (if (uix.lib/cljs-env? &env)
+          `(def ~sym (create-context))
+          `(def ~sym))))
+     ([name value]
+      (let [sym (with-meta name {:uix/context true :dynamic true})]
+        (if (uix.lib/cljs-env? &env)
+          `(def ~sym (create-context ~value))
+          `(def ~sym ~value))))))
 
 (defn use-context
   "Takes React context and returns its current value"

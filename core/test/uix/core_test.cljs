@@ -151,5 +151,17 @@
   (is (= (uix.core/source row-compiled)
          "(defui row-compiled [{:keys [children]}]\n  ($ :div.row children))")))
 
+(uix.core/defcontext *context* 1)
+(uix.core/defui context-consumer-comp []
+  (uix.core/use-context *context*))
+
+(deftest test-context
+  (let [el ($ *context* {:value 2} ($ context-consumer-comp))
+        root (js/document.createElement "div")]
+    (is (identical? (.-type el) (.-Provider *context*)))
+    (react-dom/render el root)
+    (is (= "2" (.-textContent root)))
+    (react-dom/unmountComponentAtNode root)))
+
 (defn -main []
   (run-tests))
