@@ -2,32 +2,42 @@
   (:require [clojure.test :refer :all]
             [uix.core]
             [cljs.analyzer :as ana]
-            [uix.hooks.linter :as linter])
+            [uix.hooks.linter :as linter]
+            [uix.core.impl :as impl])
   (:import (cljs.tagged_literals JSValue)))
 
 (deftest test-parse-sig
   (is (thrown-with-msg? AssertionError #"uix.core\/defui doesn't support multi-arity"
-                        (uix.core/parse-sig 'component-name '(([props]) ([props x])))))
+                        (impl/parse-sig 'component-name '(([props]) ([props x])))))
   (is (thrown-with-msg? AssertionError #"uix.core\/defui is a single argument component"
-                        (uix.core/parse-sig 'component-name '([props x])))))
+                        (impl/parse-sig 'component-name '([props x])))))
 
 (deftest test-vector->js-array
-  (is (= '(uix.core/jsfy-deps (cljs.core/array 1 2 3)) (uix.core/vector->js-array [1 2 3])))
-  (is (= '(uix.core/jsfy-deps x) (uix.core/vector->js-array 'x)))
-  (is (nil? (uix.core/vector->js-array nil))))
+  (is (= '(uix.core/jsfy-deps (cljs.core/array 1 2 3)) (impl/vector->js-array [1 2 3])))
+  (is (= '(uix.core/jsfy-deps x) (impl/vector->js-array 'x)))
+  (is (nil? (impl/vector->js-array nil))))
 
 (deftest test-$
-  (with-redefs [uix.lib/cljs-env? (fn [_] true)]
+  (testing "in cljs env"
+    (with-redefs [uix.lib/cljs-env? (fn [_] true)]
+      (is (= (macroexpand-1 '(uix.core/$ :h1))
+             '(uix.compiler.aot/>el "h1" (cljs.core/array nil) (cljs.core/array))))
+      (is (= (macroexpand-1 '(uix.core/$ identity {} 1 2))
+             '(uix.compiler.alpha/component-element identity (cljs.core/array {}) (cljs.core/array 1 2))))
+      (is (= (macroexpand-1 '(uix.core/$ identity {:x 1 :ref 2} 1 2))
+             '(uix.compiler.alpha/component-element identity (cljs.core/array {:x 1 :ref 2}) (cljs.core/array 1 2))))))
+  (testing "in clj env"
     (is (= (macroexpand-1 '(uix.core/$ :h1))
-           '(uix.compiler.aot/>el "h1" (cljs.core/array nil) (cljs.core/array))))
+           [:h1]))
     (is (= (macroexpand-1 '(uix.core/$ identity {} 1 2))
-           '(uix.compiler.alpha/component-element identity (cljs.core/array {}) (cljs.core/array 1 2))))
+           '[identity {} 1 2]))
     (is (= (macroexpand-1 '(uix.core/$ identity {:x 1 :ref 2} 1 2))
-           '(uix.compiler.alpha/component-element identity (cljs.core/array {:x 1 :ref 2}) (cljs.core/array 1 2))))))
+           '[identity {:x 1 :ref 2} 1 2]))))
 
 (defn test-linter [form expected-messages]
   (let [errors (atom [])
-        _ (with-redefs [ana/warning #(swap! errors conj %&)]
+        _ (with-redefs [uix.lib/cljs-env? (fn [_] true)
+                        ana/warning #(swap! errors conj %&)]
             (macroexpand-1 form))
         actual-messages (map (fn [[warning-type _ extra]]
                                (ana/error-message warning-type extra))
@@ -56,3 +66,30 @@
          (linter/ppr '(uix.core/use-effect (fn []) [:kw])))]))
   ;; TODO: missing & unnecessary deps
   ;; TODO: set-state w/o deps
+
+(uix.core/defui clj-component [props] props)
+(deftest test-defui
+  (is (= {:x 1} (clj-component {:x 1}))))
+
+;; FIXME
+#_#_
+(uix.core/defui test-source-component [] "HELLO")
+(deftest test-source
+  (is (= (uix.core/source test-source-component)
+         "(defui test-source-component []\n  \"HELLO\")")))
+
+(deftest test-create-context
+  (let [context (uix.core/create-context 1)]
+    (is (== 1 context))))
+
+(deftest test-as-react
+  (is (identical? identity (uix.core/as-react identity))))
+
+(deftest test-lazy
+  (is (identical? identity (uix.core/lazy identity))))
+
+(deftest test-memo
+  (is (identical? identity (uix.core/memo identity))))
+
+(deftest test-create-ref
+  (is (instance? clojure.lang.Atom (uix.core/create-ref))))
