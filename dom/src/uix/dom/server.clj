@@ -528,23 +528,35 @@
 
 ;;;;;;;;;;;;;; Public API
 
-(defn render-to-string [src]
+(defn render-to-string
+  "Takes UIx element and returns an HTML string that should be hydrated on the client"
+  [src]
   (let [^StaticBuilder sb (make-static-builder)
         state (volatile! :state/root)]
     (-render-html src state sb)
     (str (.sb sb))))
 
-(defn render-to-static-markup [src]
+(defn render-to-static-markup
+  "Takes UIx element and returns HTML string, can be used for templating"
+  [src]
   (let [^StaticBuilder sb (make-static-builder)]
     (-render-html src (volatile! :state/static) sb)
     (str (.sb sb))))
 
-(defn render-to-stream [src {:keys [on-chunk]}]
+(defn render-to-stream
+  "Same as `render-to-string`, but doesn't return anything,
+  instead calls `on-chunk` for every chunk of generated HTML.
+  Should be used for streaming HTML to clients to deliver markup faster."
+  [src {:keys [on-chunk]}]
   (let [^StreamBuilder sb (make-stream-builder on-chunk)
         state (volatile! :state/root)]
     (-render-html src state sb)))
 
-(defn render-to-static-stream [src {:keys [on-chunk]}]
+(defn render-to-static-stream
+  "Same as `render-to-static-markup`, but doesn't return anything,
+  instead calls `on-chunk` for every chunk of generated HTML.
+  Should be used for streaming HTML to clients to deliver markup faster."
+  [src {:keys [on-chunk]}]
   (let [^StreamBuilder sb (make-stream-builder on-chunk)
         state (volatile! :state/static)]
     (-render-html src state sb)))
