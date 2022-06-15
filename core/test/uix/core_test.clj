@@ -79,10 +79,6 @@
   (is (= (uix.core/source test-source-component)
          "(defui test-source-component []\n  \"HELLO\")")))
 
-(deftest test-create-context
-  (let [context (uix.core/create-context 1)]
-    (is (== 1 context))))
-
 (uix.core/defcontext *context* 1)
 
 (deftest test-context

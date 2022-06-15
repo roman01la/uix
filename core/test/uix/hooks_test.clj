@@ -34,4 +34,4 @@
     (is (== 1 @ref))))
 
 (deftest test-use-context
-  (is (== 1 (uix.core/use-context (uix.core/create-context 1)))))
+  (is (== 1 (uix.core/use-context 1))))

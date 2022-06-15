@@ -93,11 +93,36 @@
         (set! (.-uix-component? ctor) true)
         ctor)))
 
+#?(:cljs
+    (defn atomify-ref [ref value]
+      (when (nil? (.-current ref))
+        (set! (.-current ref)
+              (specify! #js {:current value}
+                IDeref
+                (-deref [this]
+                  (.-current this))
+
+                IReset
+                (-reset! [this v]
+                  (set! (.-current ^js this) v))
+
+                ISwap
+                (-swap!
+                  ([this f]
+                   (set! (.-current ^js this) (f (.-current ^js this))))
+                  ([this f a]
+                   (set! (.-current ^js this) (f (.-current ^js this) a)))
+                  ([this f a b]
+                   (set! (.-current ^js this) (f (.-current ^js this) a b)))
+                  ([this f a b xs]
+                   (set! (.-current ^js this) (apply f (.-current ^js this) a b xs)))))))
+      (.-current ref)))
+
 (defn create-ref
-  "Creates React's ref type object."
+  "Creates React's ref type object wrapped in atom-like type."
   []
-  #?(:cljs (react/createRef) ;; TODO: as atom
-     :clj (atom nil)))
+  #?(:clj (atom nil)
+     :cljs (atomify-ref (react/createRef) nil)))
 
 #?(:cljs
     (defn glue-args [^js props]
@@ -215,42 +240,15 @@
    (use-ref nil))
   ([value]
    #?(:clj (atom value)
-      :cljs
-      (let [ref (hooks/use-ref nil)]
-        (when (nil? (.-current ref))
-          (set! (.-current ref)
-                (specify! #js {:current value}
-                          IDeref
-                          (-deref [this]
-                                  (.-current this))
+      :cljs (atomify-ref (hooks/use-ref nil) value))))
 
-                          IReset
-                          (-reset! [this v]
-                                   (set! (.-current ^js this) v))
-
-                          ISwap
-                          (-swap!
-                           ([this f]
-                            (set! (.-current ^js this) (f (.-current ^js this))))
-                           ([this f a]
-                            (set! (.-current ^js this) (f (.-current ^js this) a)))
-                           ([this f a b]
-                            (set! (.-current ^js this) (f (.-current ^js this) a b)))
-                           ([this f a b xs]
-                            (set! (.-current ^js this) (apply f (.-current ^js this) a b xs)))))))
-        (.-current ref)))))
-
-(defn create-context
-  "Creates React Context with an optional default value
-
-  Should be dynamic var on JVM:
-  (def ^:dynamic context (create-context default-value))"
-  ([]
-   #?(:cljs (react/createContext)
-      :clj nil))
-  ([default-value]
-   #?(:cljs (react/createContext default-value)
-      :clj default-value)))
+#?(:cljs
+    (defn create-context
+      "Creates React Context with an optional default value"
+      ([]
+       (react/createContext))
+      ([default-value]
+       (react/createContext default-value))))
 
 #?(:clj
    (defmacro defcontext
