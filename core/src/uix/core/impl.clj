@@ -35,15 +35,15 @@
         m (conj {:arglists (list 'quote (#'cljs.core/sigs fdecl))} m)
         m (conj (if (meta name) (meta name) {}) m)]
     (uix.lib/assert!
-      (= 1 (count fdecl))
-      (str "uix.core/defui doesn't support multi-arity.\n"
-           "If you meant to make props an optional argument, you can safely skip it and have a single-arity component.\n
+     (= 1 (count fdecl))
+     (str "uix.core/defui doesn't support multi-arity.\n"
+          "If you meant to make props an optional argument, you can safely skip it and have a single-arity component.\n
                   It's safe to destructure the props value even if it's `nil`."))
     (let [[args & fdecl] (first fdecl)]
       (uix.lib/assert!
-        (>= 1 (count args))
-        (str "uix.core/defui is a single argument component taking a map of props, found: " args "\n"
-             "If you meant to retrieve `children`, they are under `:children` field in props map."))
+       (>= 1 (count args))
+       (str "uix.core/defui is a single argument component taking a map of props, found: " args "\n"
+            "If you meant to retrieve `children`, they are under `:children` field in props map."))
       [(with-meta name m) args fdecl])))
 
 (defn cljs-component [env sym fname args fdecl]

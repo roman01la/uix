@@ -49,60 +49,55 @@
 
 (defui comp-simple []
   ($ :div
-    ($ :div "A"
-      ($ :span "A1")
-      ($ :span "A2"))
-    ($ :div "B")
-    ($ :div "C" "D")
-    ($ :div "E"
-      ($ :span "E1"))
-    ($ :div nil)
-    ($ :div nil "F")
-    ($ :div {} ((constantly nil)) "G")))
+     ($ :div "A"
+        ($ :span "A1")
+        ($ :span "A2"))
+     ($ :div "B")
+     ($ :div "C" "D")
+     ($ :div "E"
+        ($ :span "E1"))
+     ($ :div nil)
+     ($ :div nil "F")
+     ($ :div {} ((constantly nil)) "G")))
 
 (defui comp-tag []
   ($ :div#up.header "test"))
 
-
 (defui comp-list []
   ($ :ul
-    ($ :li {:key "F"})
-    ($ :li {:key "M"})))
-
+     ($ :li {:key "F"})
+     ($ :li {:key "M"})))
 
 (defui comp-lists []
   ($ :div
-    ($ :.a (list ($ :.b {:key "b"})))
-    ($ :.c "d" (list ($ :.e {:key "e"})))
-    ($ :.f "g" (list ($ :.h {:key "i"})) "i")))
-
+     ($ :.a (list ($ :.b {:key "b"})))
+     ($ :.c "d" (list ($ :.e {:key "e"})))
+     ($ :.f "g" (list ($ :.h {:key "i"})) "i")))
 
 (defui comp-root-array []
   (list
-    ($ :.a "A")
-    ($ :.b "B")
-    ($ :.c "C")))
+   ($ :.a "A")
+   ($ :.b "B")
+   ($ :.c "C")))
 
 (defui comp-header []
   ($ :ul.nav__content
-    (list ($ :li.menu-item {:key "F"} "Female")
-          ($ :li.menu-item {:key "M"} "Male"))
-    ($ :li.menu-item {:key "outlet"} "Outlet")))
-
+     (list ($ :li.menu-item {:key "F"} "Female")
+           ($ :li.menu-item {:key "M"} "Male"))
+     ($ :li.menu-item {:key "outlet"} "Outlet")))
 
 (defui comp-nil1 []
   "In this case nil will be not counted against reactid"
   ($ :div {:class "parent"}
-    nil
-    ($ :div.child)))
-
+     nil
+     ($ :div.child)))
 
 (defui comp-nil2 []
   "In this case *both* nils will be counted against reactid"
   ($ :div {:class "parent"}
-    nil
-    ($ :div.child)
-    (list
+     nil
+     ($ :div.child)
+     (list
       nil
       ($ :div.child2 {:key "a"}))))
 
@@ -111,27 +106,27 @@
 
 (defui comp-nothing2 []
   ($ :div
-    ($ :div ($ comp-nothing))
-    ($ :div "a" ($ comp-nothing))
-    ($ :div ($ comp-nothing) "b")
-    ($ :div "a" ($ comp-nothing) "b" ($ :span "x"))
-    ($ :div ($ :.a) ($ comp-nothing) ($ :.b))
-    ($ :div ($ comp-nothing {:key "K"}))))
+     ($ :div ($ comp-nothing))
+     ($ :div "a" ($ comp-nothing))
+     ($ :div ($ comp-nothing) "b")
+     ($ :div "a" ($ comp-nothing) "b" ($ :span "x"))
+     ($ :div ($ :.a) ($ comp-nothing) ($ :.b))
+     ($ :div ($ comp-nothing {:key "K"}))))
 
 (defui comp-span []
   ($ :span
-    "a" "b"
-    "a" ($ :tag "b") "c"
-    "a" (list "b" "c") "d"
-    "a" (list "b" "c") (list "d" "e") "f"
-    (list "a" "b") ($ :tag "c") (list "d" "e")
-    "a" nil "b"
-    "a" ($ comp-nothing) "b"
-    "a" (list nil) "b"))
+     "a" "b"
+     "a" ($ :tag "b") "c"
+     "a" (list "b" "c") "d"
+     "a" (list "b" "c") (list "d" "e") "f"
+     (list "a" "b") ($ :tag "c") (list "d" "e")
+     "a" nil "b"
+     "a" ($ comp-nothing) "b"
+     "a" (list nil) "b"))
 
 (defui comp-campaign []
   ($ :div#today.content.wrapper
-    (list
+     (list
       ($ :div.banner {:class " big "
                       :style {:background-image "url(123)"}
                       :key "campaign-20871"})
@@ -151,134 +146,132 @@
 
 (defui comp-styles []
   ($ :div
-    ($ :div.a {:style {}})
-    ($ :div.b {:style {:background-color nil}})
-    ($ :div.c {:style {:background-color ""}})
-    ($ :div.d {:style
-               {:background-image "url(\"123\")"               ;; should escape quotes
-                :line-height 24                                ;; unitless, should not add 'px'
-                :-webkit-box-flex 3                            ;; prefixed unitless
-                :margin-top 17                                 ;; should add 'px'
-                :margin-right 17.1
-                :margin-left 0}})                              ;; no 'px' added to 0
-    ($ :div.e {:style
-               {:border-width " 1  "                           ;; trim  numeric & append 'px'
-                :padding-right " 1.2 "
-                :padding-bottom "1em"                          ;; do not add 'px' if unit already specified
-                :text-align " left  "                          ;; trim non-numeric values
-                :flex-grow " 1  "}})                           ;; trim unitless values
-    ($ :div.f {:style
-               {:background-image "url('123')"                 ;; should escape quotes
-                :fontWeight 10                                 ;; should convert from react-style properties to CSS
-                "WebkitFlex" 1                                 ;; prefixed react-style prop
-                "msFlex" 1                                     ;; prefixed react-style prop (lowecase ms)
-                "zIndex" 1}})))                                ;; accept strings too
+     ($ :div.a {:style {}})
+     ($ :div.b {:style {:background-color nil}})
+     ($ :div.c {:style {:background-color ""}})
+     ($ :div.d {:style
+                {:background-image "url(\"123\")"               ;; should escape quotes
+                 :line-height 24                                ;; unitless, should not add 'px'
+                 :-webkit-box-flex 3                            ;; prefixed unitless
+                 :margin-top 17                                 ;; should add 'px'
+                 :margin-right 17.1
+                 :margin-left 0}})                              ;; no 'px' added to 0
+     ($ :div.e {:style
+                {:border-width " 1  "                           ;; trim  numeric & append 'px'
+                 :padding-right " 1.2 "
+                 :padding-bottom "1em"                          ;; do not add 'px' if unit already specified
+                 :text-align " left  "                          ;; trim non-numeric values
+                 :flex-grow " 1  "}})                           ;; trim unitless values
+     ($ :div.f {:style
+                {:background-image "url('123')"                 ;; should escape quotes
+                 :fontWeight 10                                 ;; should convert from react-style properties to CSS
+                 "WebkitFlex" 1                                 ;; prefixed react-style prop
+                 "msFlex" 1                                     ;; prefixed react-style prop (lowecase ms)
+                 "zIndex" 1}})))                                ;; accept strings too
 
 (defui comp-attrs []
   ($ :div
-    (for [[a v] [[:data-attr-ibute "b"]                      ;; should not touch data-* and aria* attr names
-                 [:aria-checked "c"]
-                 [:form-enc-type "text/plain"]               ;; should normalize (remove dashes)
-                 [:checked false]                            ;; nil and false attrs not printed
-                 [:allow-full-screen true]                   ;; true printed as attr=""
-                 [:href "/a=b&c=d"]]]
-      (let [props (assoc {:key v} a v)]
-        ($ :div props)))))
+     (for [[a v] [[:data-attr-ibute "b"]                      ;; should not touch data-* and aria* attr names
+                  [:aria-checked "c"]
+                  [:form-enc-type "text/plain"]               ;; should normalize (remove dashes)
+                  [:checked false]                            ;; nil and false attrs not printed
+                  [:allow-full-screen true]                   ;; true printed as attr=""
+                  [:href "/a=b&c=d"]]]
+       (let [props (assoc {:key v} a v)]
+         ($ :div props)))))
 
 (defui comp-attrs-capitalization []
   ($ :div
-    (for [a [:accept-charset :access-key :auto-complete :cell-padding :cell-spacing :char-set :class-id :content-editable :context-menu :cross-origin :date-time :enc-type :form-action :form-enc-type :form-method :form-target :frame-border :href-lang :http-equiv :input-mode :key-params :key-type :margin-height :margin-width :max-length :media-group :min-length :radio-group :referrer-policy :spell-check :src-doc :src-lang :src-set :tab-index :use-map :auto-capitalize :auto-correct :auto-save :item-prop :item-type :item-id :item-ref]]
-      (let [props {a "_" :key a}]
-        ($ :div props)))
+     (for [a [:accept-charset :access-key :auto-complete :cell-padding :cell-spacing :char-set :class-id :content-editable :context-menu :cross-origin :date-time :enc-type :form-action :form-enc-type :form-method :form-target :frame-border :href-lang :http-equiv :input-mode :key-params :key-type :margin-height :margin-width :max-length :media-group :min-length :radio-group :referrer-policy :spell-check :src-doc :src-lang :src-set :tab-index :use-map :auto-capitalize :auto-correct :auto-save :item-prop :item-type :item-id :item-ref]]
+       (let [props {a "_" :key a}]
+         ($ :div props)))
 
-    ($ :table
-      ($ :td {:col-span 1
-              :row-span 1}))
+     ($ :table
+        ($ :td {:col-span 1
+                :row-span 1}))
 
-    ($ :svg
-      (for [a [:allow-reorder :attribute-name :attribute-type :auto-reverse :base-frequency :base-profile :calc-mode :clip-path-units :content-script-type :content-style-type :diffuse-constant :edge-mode :external-resources-required :filter-res :filter-units :glyph-ref :gradient-transform :gradient-units :kernel-matrix :kernel-unit-length :key-points :key-splines :key-times :length-adjust :limiting-cone-angle :marker-height :marker-units :marker-width :mask-content-units :mask-units :num-octaves :path-length :pattern-content-units :pattern-transform :pattern-units :points-at-x :points-at-y :points-at-z :preserve-alpha :preserve-aspect-ratio :primitive-units :ref-x :ref-y :repeat-count :repeat-dur :required-extensions :required-features :specular-constant :specular-exponent :spread-method :start-offset :std-deviation :stitch-tiles :surface-scale :system-language :table-values :target-x :target-y :view-box :view-target :x-channel-selector :xlink-actuate :xlink-arcrole :xlink-href :xlink-role :xlink-show :xlink-title :xlink-type :xml-base :xmlns-xlink :xml-lang :xml-space :y-channel-selector :zoom-and-pan]]
-        (let [props {a "_" :key a}]
-          ($ :path props))))
+     ($ :svg
+        (for [a [:allow-reorder :attribute-name :attribute-type :auto-reverse :base-frequency :base-profile :calc-mode :clip-path-units :content-script-type :content-style-type :diffuse-constant :edge-mode :external-resources-required :filter-res :filter-units :glyph-ref :gradient-transform :gradient-units :kernel-matrix :kernel-unit-length :key-points :key-splines :key-times :length-adjust :limiting-cone-angle :marker-height :marker-units :marker-width :mask-content-units :mask-units :num-octaves :path-length :pattern-content-units :pattern-transform :pattern-units :points-at-x :points-at-y :points-at-z :preserve-alpha :preserve-aspect-ratio :primitive-units :ref-x :ref-y :repeat-count :repeat-dur :required-extensions :required-features :specular-constant :specular-exponent :spread-method :start-offset :std-deviation :stitch-tiles :surface-scale :system-language :table-values :target-x :target-y :view-box :view-target :x-channel-selector :xlink-actuate :xlink-arcrole :xlink-href :xlink-role :xlink-show :xlink-title :xlink-type :xml-base :xmlns-xlink :xml-lang :xml-space :y-channel-selector :zoom-and-pan]]
+          (let [props {a "_" :key a}]
+            ($ :path props))))
 
-    (for [a [:allow-full-screen :auto-play :form-no-validate :no-validate :read-only :item-scope]]
-      (let [props (assoc {:key a} a true)]
-        ($ :div props)))))
+     (for [a [:allow-full-screen :auto-play :form-no-validate :no-validate :read-only :item-scope]]
+       (let [props (assoc {:key a} a true)]
+         ($ :div props)))))
 
 (defui comp-attrs-order []
   ($ :div
-    ($ :a {:title "a"
-           :alt "b"
-           :rel "c"
-           :target "d"
-           :src "e"})
-    ($ :a {:src "a"
-           :target "b"
-           :rel "c"
-           :alt "d"
-           :title "e"})
-    ($ :a {:title "a" :class "b" :rel "d"})
-    ($ :a {:title "a" :class ["b" "c"] :rel "d"})
-    ($ :a.clazz {:title "a" :class "b" :rel "d"})
-    ($ :a.clazz {:title "a" :class ["b" "c"] :rel "d"})
-    ($ :a#id.clazz {:title "a"})
-    ($ :a#id.clazz {:title "a" :class "b"})
-    ($ :a#clazz.id {:title "a" :class "b"})))
+     ($ :a {:title "a"
+            :alt "b"
+            :rel "c"
+            :target "d"
+            :src "e"})
+     ($ :a {:src "a"
+            :target "b"
+            :rel "c"
+            :alt "d"
+            :title "e"})
+     ($ :a {:title "a" :class "b" :rel "d"})
+     ($ :a {:title "a" :class ["b" "c"] :rel "d"})
+     ($ :a.clazz {:title "a" :class "b" :rel "d"})
+     ($ :a.clazz {:title "a" :class ["b" "c"] :rel "d"})
+     ($ :a#id.clazz {:title "a"})
+     ($ :a#id.clazz {:title "a" :class "b"})
+     ($ :a#clazz.id {:title "a" :class "b"})))
 
 (defui comp-classes []
   ($ :div
-    ($ :div {:class [nil]})
-    ($ :div {:class :c3})
-    ($ :div {:class [:c3 :c4]})                                ;; list form
-    ($ :div {:class "c3"})                                     ;; string form
-    ($ :div {:class ["c3" "c4"]})
-    ($ :div {:class [" c3  " "  c4 "]})                        ;; trimming
-    ($ :div {:class [:c3 nil :c4]})                            ;; nils are not removed
-    ($ :div {:class [:c2 :c3]})                                ;; removing duplicates
-    ($ :.c1 {:class nil})
-    ($ :.c1 {:class (when false "...")})                       ;; see #99
-    ($ :.c1.c2 {:class :c3})
-    ($ :.c1.c2 {:class [:c3 :c4]})                             ;; list form
-    ($ :.c1.c2 {:class "c3"})                                  ;; string form
-    ($ :.c1.c2 {:class ["c3" "c4"]})
-    ($ :.c1.c2 {:class [" c3  " "  c4 "]})                     ;; trimming
-    ($ :.c1.c2 {:class [:c3 nil :c4]})                         ;; nils are not removed
-    ($ :.c1.c2 {:class [:c2 :c3]})))                           ;; not removing duplicates
-
+     ($ :div {:class [nil]})
+     ($ :div {:class :c3})
+     ($ :div {:class [:c3 :c4]})                                ;; list form
+     ($ :div {:class "c3"})                                     ;; string form
+     ($ :div {:class ["c3" "c4"]})
+     ($ :div {:class [" c3  " "  c4 "]})                        ;; trimming
+     ($ :div {:class [:c3 nil :c4]})                            ;; nils are not removed
+     ($ :div {:class [:c2 :c3]})                                ;; removing duplicates
+     ($ :.c1 {:class nil})
+     ($ :.c1 {:class (when false "...")})                       ;; see #99
+     ($ :.c1.c2 {:class :c3})
+     ($ :.c1.c2 {:class [:c3 :c4]})                             ;; list form
+     ($ :.c1.c2 {:class "c3"})                                  ;; string form
+     ($ :.c1.c2 {:class ["c3" "c4"]})
+     ($ :.c1.c2 {:class [" c3  " "  c4 "]})                     ;; trimming
+     ($ :.c1.c2 {:class [:c3 nil :c4]})                         ;; nils are not removed
+     ($ :.c1.c2 {:class [:c2 :c3]})))                           ;; not removing duplicates
 
 (defui comp-html []
   ($ :div {:dangerouslySetInnerHTML {:__html "<span>test</span>"}}))
 
 (defui comp-inputs []
   ($ :div
-    ($ :input#id {:class "x" :type "text" :auto-complete "off"})
-    ($ :input {:type "text" :default-value "x"})
-    ($ :input {:type "checkbox" :default-checked true})
-    ($ :input {:type "radio" :default-checked true})
-    ($ :select {:default-value "A" :on-change identity}
-      ($ :option {:value "A" :on-change identity} "Apple")
-      ($ :option {:value "B" :on-change identity} "Banana"))
-    ($ :select {:value "A" :on-change identity}
-      ($ :option#id.class {:value "A" :on-change identity} "Apple")
-      ($ :option#id.class {:value "B" :on-change identity} "Banana"))
-    ($ :textarea {:value "text" :on-change identity})
-    ($ :textarea {:default-value "text"})))
+     ($ :input#id {:class "x" :type "text" :auto-complete "off"})
+     ($ :input {:type "text" :default-value "x"})
+     ($ :input {:type "checkbox" :default-checked true})
+     ($ :input {:type "radio" :default-checked true})
+     ($ :select {:default-value "A" :on-change identity}
+        ($ :option {:value "A" :on-change identity} "Apple")
+        ($ :option {:value "B" :on-change identity} "Banana"))
+     ($ :select {:value "A" :on-change identity}
+        ($ :option#id.class {:value "A" :on-change identity} "Apple")
+        ($ :option#id.class {:value "B" :on-change identity} "Banana"))
+     ($ :textarea {:value "text" :on-change identity})
+     ($ :textarea {:default-value "text"})))
 
 (defui comp-svg []
   ($ :svg.cclogo
-    {:width 100
-     :height 100
-     :view-box "0 232.5 333.2 232.5"                         ;; should be rendered as viewBox
-     :vector-effect "effect"                                 ;; should be rendered as vector-effect
-     :version "1.1"
-     :dangerouslySetInnerHTML {:__html "[...tons of raw SVG removed...]"}}))
-
+     {:width 100
+      :height 100
+      :view-box "0 232.5 333.2 232.5"                         ;; should be rendered as viewBox
+      :vector-effect "effect"                                 ;; should be rendered as vector-effect
+      :version "1.1"
+      :dangerouslySetInnerHTML {:__html "[...tons of raw SVG removed...]"}}))
 
 (defui comp-aria []
   ($ :div
-    {:aria-hidden true
-     :aria-readonly false
-     :aria-disabled "true"
-     :aria-checked "false"}))
+     {:aria-hidden true
+      :aria-readonly false
+      :aria-disabled "true"
+      :aria-checked "false"}))
 
 (uix.core/defcontext *context*)
 
@@ -287,7 +280,7 @@
 
 (defui comp-context []
   ($ *context* {:value 2}
-    ($ comp-context-consumer)))
+     ($ comp-context-consumer)))
 
 (def components
   {"simple" comp-simple

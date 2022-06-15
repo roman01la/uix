@@ -284,8 +284,8 @@
                                     (into [:default-checked :default-value :value :checked])))
                 attrs)
         attrs (cond-> attrs
-                      (and tag-id (not (contains? attrs :id))) (assoc :id tag-id)
-                      (and classes (not (contains? attrs :class))) (assoc :class classes))]
+                (and tag-id (not (contains? attrs :id))) (assoc :id tag-id)
+                (and classes (not (contains? attrs :class))) (assoc :class classes))]
     [tag attrs children]))
 
 ;;; render attributes
@@ -386,9 +386,7 @@
 (defn render-attrs! [tag attrs sb]
   (reduce-kv (fn [_ k v] (render-attr! tag k v sb)) nil attrs))
 
-
 ;;; render html
-
 
 (defprotocol HtmlRenderer
   (-render-html [this *state sb]
@@ -470,7 +468,7 @@
             (f)
             (let [props (if (map? props)
                           (cond-> (dissoc props :key)
-                                  (seq children) (assoc :children children))
+                            (seq children) (assoc :children children))
                           {:children (into [props] children)})
                   props (if (:children props)
                           (update props :children #(if (== 1 (count %)) (first %) %))
@@ -491,10 +489,9 @@
               children (seq (nth element 2 nil))]
           (binder #(-render-html children *state sb)))
         (identical? :<> tag) (render-fragment! element *state sb)
-        #_#_#_#_#_#_
-        (identical? :# tag) (render-suspense! element)
-        (identical? :-> tag) (render-portal! element)
-        (identical? :> tag) (render-interop! element)
+        #_#_#_#_#_#_(identical? :# tag) (render-suspense! element)
+                (identical? :-> tag) (render-portal! element)
+            (identical? :> tag) (render-interop! element)
         (keyword? tag) (render-html-element! element *state sb)
         :else (render-component! element *state sb)))))
 

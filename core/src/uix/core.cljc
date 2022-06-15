@@ -15,106 +15,106 @@
 (def ^:dynamic *current-component*)
 
 #?(:clj
-    (defmacro
-      ^{:arglists '([name doc-string? attr-map? [params*] prepost-map? body]
-                    [name doc-string? attr-map? ([params*] prepost-map? body) + attr-map?])}
-      defui
-      "Creates UIx component. Similar to defn, but doesn't support multi arity.
+   (defmacro
+     ^{:arglists '([name doc-string? attr-map? [params*] prepost-map? body]
+                   [name doc-string? attr-map? ([params*] prepost-map? body) + attr-map?])}
+     defui
+     "Creates UIx component. Similar to defn, but doesn't support multi arity.
       A component should have a single argument of props."
-      [sym & fdecl]
-      (let [[fname args fdecl] (impl/parse-sig sym fdecl)]
-        (hooks.linter/lint! sym fdecl &env)
-        (if (uix.lib/cljs-env? &env)
-          (impl/cljs-component &env sym fname args fdecl)
-          (impl/clj-component fname args fdecl)))))
+     [sym & fdecl]
+     (let [[fname args fdecl] (impl/parse-sig sym fdecl)]
+       (hooks.linter/lint! sym fdecl &env)
+       (if (uix.lib/cljs-env? &env)
+         (impl/cljs-component &env sym fname args fdecl)
+         (impl/clj-component fname args fdecl)))))
 
 #?(:clj
-    (defmacro source
-      "Returns source string of UIx component"
-      [sym]
-      (uix.source/source &env sym)))
+   (defmacro source
+     "Returns source string of UIx component"
+     [sym]
+     (uix.source/source &env sym)))
 
 #?(:clj
-    (defmacro $
-      "Creates React element
+   (defmacro $
+     "Creates React element
 
       DOM element: ($ :button#id.class {:on-click handle-click} \"click me\")
       React component: ($ title-bar {:title \"Title\"})"
-      ([tag]
-       (uix.compiler.aot/compile-element [tag] {:env &env}))
-      ([tag props & children]
-       (uix.compiler.aot/compile-element (into [tag props] children) {:env &env}))))
+     ([tag]
+      (uix.compiler.aot/compile-element [tag] {:env &env}))
+     ([tag props & children]
+      (uix.compiler.aot/compile-element (into [tag props] children) {:env &env}))))
 
 ;; React's top-level API
 
 #?(:cljs
-    (def ^:private built-in-static-method-names
-      [:childContextTypes :contextTypes :contextType
-       :getDerivedStateFromProps :getDerivedStateFromError]))
+   (def ^:private built-in-static-method-names
+     [:childContextTypes :contextTypes :contextType
+      :getDerivedStateFromProps :getDerivedStateFromError]))
 
 ;; TODO: clj
 #?(:cljs
-    (defn create-class
-      "Creates class based React component"
-      [{:keys [constructor getInitialState render
+   (defn create-class
+     "Creates class based React component"
+     [{:keys [constructor getInitialState render
                ;; lifecycle methods
-               componentDidMount componentDidUpdate componentDidCatch
-               shouldComponentUpdate getSnapshotBeforeUpdate componentWillUnmount
+              componentDidMount componentDidUpdate componentDidCatch
+              shouldComponentUpdate getSnapshotBeforeUpdate componentWillUnmount
                ;; static methods
-               childContextTypes contextTypes contextType
-               getDerivedStateFromProps getDerivedStateFromError
+              childContextTypes contextTypes contextType
+              getDerivedStateFromProps getDerivedStateFromError
                ;; class properties
-               defaultProps displayName]
-        :as fields}]
-      (let [methods (uix.lib/map->js (apply dissoc fields :displayName :getInitialState :constructor :render
-                                            built-in-static-method-names))
-            static-methods (uix.lib/map->js (select-keys fields built-in-static-method-names))
-            ctor (fn [props]
-                   (this-as this
-                            (.apply react/Component this (js-arguments))
-                            (when constructor
-                              (constructor this props))
-                            (when getInitialState
-                              (set! (.-state this) (getInitialState this)))
-                            this))]
-        (gobj/extend (.-prototype ctor) (.-prototype react/Component) methods)
-        (when render (set! (.-render ^js (.-prototype ctor)) render))
-        (gobj/extend ctor react/Component static-methods)
-        (when displayName
-          (set! (.-displayName ctor) displayName)
-          (set! (.-cljs$lang$ctorStr ctor) displayName)
-          (set! (.-cljs$lang$ctorPrWriter ctor)
-                (fn [this writer opt]
-                  (-write writer displayName))))
-        (set! (.-cljs$lang$type ctor) true)
-        (set! (.. ctor -prototype -constructor) ctor)
-        (set! (.-uix-component? ctor) true)
-        ctor)))
+              defaultProps displayName]
+       :as fields}]
+     (let [methods (uix.lib/map->js (apply dissoc fields :displayName :getInitialState :constructor :render
+                                           built-in-static-method-names))
+           static-methods (uix.lib/map->js (select-keys fields built-in-static-method-names))
+           ctor (fn [props]
+                  (this-as this
+                           (.apply react/Component this (js-arguments))
+                           (when constructor
+                             (constructor this props))
+                           (when getInitialState
+                             (set! (.-state this) (getInitialState this)))
+                           this))]
+       (gobj/extend (.-prototype ctor) (.-prototype react/Component) methods)
+       (when render (set! (.-render ^js (.-prototype ctor)) render))
+       (gobj/extend ctor react/Component static-methods)
+       (when displayName
+         (set! (.-displayName ctor) displayName)
+         (set! (.-cljs$lang$ctorStr ctor) displayName)
+         (set! (.-cljs$lang$ctorPrWriter ctor)
+               (fn [this writer opt]
+                 (-write writer displayName))))
+       (set! (.-cljs$lang$type ctor) true)
+       (set! (.. ctor -prototype -constructor) ctor)
+       (set! (.-uix-component? ctor) true)
+       ctor)))
 
 #?(:cljs
-    (defn atomify-ref [ref value]
-      (when (nil? (.-current ref))
-        (set! (.-current ref)
-              (specify! #js {:current value}
-                IDeref
-                (-deref [this]
-                  (.-current this))
+   (defn atomify-ref [ref value]
+     (when (nil? (.-current ref))
+       (set! (.-current ref)
+             (specify! #js {:current value}
+                       IDeref
+                       (-deref [this]
+                               (.-current this))
 
-                IReset
-                (-reset! [this v]
-                  (set! (.-current ^js this) v))
+                       IReset
+                       (-reset! [this v]
+                                (set! (.-current ^js this) v))
 
-                ISwap
-                (-swap!
-                  ([this f]
-                   (set! (.-current ^js this) (f (.-current ^js this))))
-                  ([this f a]
-                   (set! (.-current ^js this) (f (.-current ^js this) a)))
-                  ([this f a b]
-                   (set! (.-current ^js this) (f (.-current ^js this) a b)))
-                  ([this f a b xs]
-                   (set! (.-current ^js this) (apply f (.-current ^js this) a b xs)))))))
-      (.-current ref)))
+                       ISwap
+                       (-swap!
+                        ([this f]
+                         (set! (.-current ^js this) (f (.-current ^js this))))
+                        ([this f a]
+                         (set! (.-current ^js this) (f (.-current ^js this) a)))
+                        ([this f a b]
+                         (set! (.-current ^js this) (f (.-current ^js this) a b)))
+                        ([this f a b xs]
+                         (set! (.-current ^js this) (apply f (.-current ^js this) a b xs)))))))
+     (.-current ref)))
 
 (defn create-ref
   "Creates React's ref type object wrapped in atom-like type."
@@ -123,9 +123,9 @@
      :cljs (atomify-ref (react/createRef) nil)))
 
 #?(:cljs
-    (defn glue-args [^js props]
-      (cond-> (.-argv props)
-        (.-children props) (assoc :children (.-children props)))))
+   (defn glue-args [^js props]
+     (cond-> (.-argv props)
+       (.-children props) (assoc :children (.-children props)))))
 
 (defn- memo-compare-args [a b]
   #?(:cljs (= (glue-args a) (glue-args b))))
@@ -141,10 +141,10 @@
    (memo f memo-compare-args))
   ([f should-update?]
    #?(:cljs
-       (let [fm (react/memo f should-update?)]
-         (when (.-uix-component? ^js f)
-           (set! (.-uix-component? fm) true))
-         fm)
+      (let [fm (react/memo f should-update?)]
+        (when (.-uix-component? ^js f)
+          (set! (.-uix-component? fm) true))
+        fm)
       :clj f)))
 
 #?(:clj
@@ -154,62 +154,62 @@
 ;;;;;;;;; Hooks
 
 #?(:clj
-    (defmacro use-effect
-      "Takes a function to be executed in an effect and optional vector of dependencies.
+   (defmacro use-effect
+     "Takes a function to be executed in an effect and optional vector of dependencies.
 
       See: https://reactjs.org/docs/hooks-reference.html#useeffect"
-      ([f]
-       (when (uix.lib/cljs-env? &env)
-         (impl/make-hook-with-deps 'uix.hooks.alpha/use-effect &env &form f nil)))
-      ([f deps]
-       (when (uix.lib/cljs-env? &env)
-         (impl/make-hook-with-deps 'uix.hooks.alpha/use-effect &env &form f deps)))))
+     ([f]
+      (when (uix.lib/cljs-env? &env)
+        (impl/make-hook-with-deps 'uix.hooks.alpha/use-effect &env &form f nil)))
+     ([f deps]
+      (when (uix.lib/cljs-env? &env)
+        (impl/make-hook-with-deps 'uix.hooks.alpha/use-effect &env &form f deps)))))
 
 #?(:clj
-    (defmacro use-layout-effect
-      "Takes a function to be executed in a layout effect and optional vector of dependencies.
+   (defmacro use-layout-effect
+     "Takes a function to be executed in a layout effect and optional vector of dependencies.
 
       See: https://reactjs.org/docs/hooks-reference.html#uselayouteffect"
-      ([f]
-       (when (uix.lib/cljs-env? &env)
-         (impl/make-hook-with-deps 'uix.hooks.alpha/use-layout-effect &env &form f nil)))
-      ([f deps]
-       (when (uix.lib/cljs-env? &env)
-         (impl/make-hook-with-deps 'uix.hooks.alpha/use-layout-effect &env &form f deps)))))
+     ([f]
+      (when (uix.lib/cljs-env? &env)
+        (impl/make-hook-with-deps 'uix.hooks.alpha/use-layout-effect &env &form f nil)))
+     ([f deps]
+      (when (uix.lib/cljs-env? &env)
+        (impl/make-hook-with-deps 'uix.hooks.alpha/use-layout-effect &env &form f deps)))))
 
 #?(:clj
-    (defmacro use-memo
-      "Takes function f and required vector of dependencies, and returns memoized result of f.
+   (defmacro use-memo
+     "Takes function f and required vector of dependencies, and returns memoized result of f.
 
       See: https://reactjs.org/docs/hooks-reference.html#usememo"
-      [f deps]
-      (if (uix.lib/cljs-env? &env)
-        (impl/make-hook-with-deps 'uix.hooks.alpha/use-memo &env &form f deps)
-        `(~f))))
+     [f deps]
+     (if (uix.lib/cljs-env? &env)
+       (impl/make-hook-with-deps 'uix.hooks.alpha/use-memo &env &form f deps)
+       `(~f))))
 
 #?(:clj
-    (defmacro use-callback
-      "Takes function f and required vector of dependencies, and returns memoized f.
+   (defmacro use-callback
+     "Takes function f and required vector of dependencies, and returns memoized f.
 
       See: https://reactjs.org/docs/hooks-reference.html#usecallback"
-      [f deps]
-      (if (uix.lib/cljs-env? &env)
-        (impl/make-hook-with-deps 'uix.hooks.alpha/use-callback &env &form f deps)
-        f)))
+     [f deps]
+     (if (uix.lib/cljs-env? &env)
+       (impl/make-hook-with-deps 'uix.hooks.alpha/use-callback &env &form f deps)
+       f)))
 
 #?(:clj
-    (defmacro use-imperative-handle
-      "Customizes the instance value that is exposed to parent components when using ref.
+   (defmacro use-imperative-handle
+     "Customizes the instance value that is exposed to parent components when using ref.
 
       See: https://reactjs.org/docs/hooks-reference.html#useimperativehandle"
-      ([ref f]
-       (when (uix.lib/cljs-env? &env)
-         (hooks.linter/lint-exhaustive-deps! &env &form f nil)
-         `(uix.hooks.alpha/use-imperative-handle ~ref ~f)))
-      ([ref f deps]
-       (when (uix.lib/cljs-env? &env)
-         (hooks.linter/lint-exhaustive-deps! &env &form f deps)
-         `(uix.hooks.alpha/use-imperative-handle ~ref ~f ~(impl/vector->js-array deps))))))
+     ([ref f]
+      (when (uix.lib/cljs-env? &env)
+        (hooks.linter/lint-exhaustive-deps! &env &form f nil)
+        `(uix.hooks.alpha/use-imperative-handle ~ref ~f)))
+     ([ref f deps]
+      (when (uix.lib/cljs-env? &env)
+        (hooks.linter/lint-exhaustive-deps! &env &form f deps)
+        `(uix.hooks.alpha/use-imperative-handle ~ref ~f ~(impl/vector->js-array deps))))))
 
 (defn use-state
   "Takes initial value or a function that computes it and returns a stateful value,
@@ -241,12 +241,12 @@
       :cljs (atomify-ref (hooks/use-ref nil) value))))
 
 #?(:cljs
-    (defn create-context
-      "Creates React Context with an optional default value"
-      ([]
-       (react/createContext))
-      ([default-value]
-       (react/createContext default-value))))
+   (defn create-context
+     "Creates React Context with an optional default value"
+     ([]
+      (react/createContext))
+     ([default-value]
+      (react/createContext default-value))))
 
 #?(:clj
    (defmacro defcontext
@@ -276,31 +276,31 @@
      :clj f))
 
 #?(:cljs
-    (defn stringify-clojure-primitives [v]
-      (cond
+   (defn stringify-clojure-primitives [v]
+     (cond
         ;; fast direct lookup for a string value
         ;; already stored on the instance of the known type
-        (keyword? v) (.-fqn v)
-        (uuid? v) (.-uuid v)
-        (symbol? v) (.-str v)
-        :else v)))
+       (keyword? v) (.-fqn v)
+       (uuid? v) (.-uuid v)
+       (symbol? v) (.-str v)
+       :else v)))
 
 #?(:cljs
-    (defn jsfy-deps [coll]
-      (if (or (js/Array.isArray coll)
-              (vector? coll))
-        (reduce (fn [arr v]
-                  (.push arr (stringify-clojure-primitives v))
-                  arr)
-                #js []
-                coll)
-        coll)))
+   (defn jsfy-deps [coll]
+     (if (or (js/Array.isArray coll)
+             (vector? coll))
+       (reduce (fn [arr v]
+                 (.push arr (stringify-clojure-primitives v))
+                 arr)
+               #js []
+               coll)
+       coll)))
 
 (defn lazy
   "Like React.lazy, but supposed to be used with UIx components"
   [f]
   #?(:cljs
-      (let [lazy-component (react/lazy #(.then (f) (fn [component] #js {:default component})))]
-        (set! (.-uix-component? lazy-component) true)
-        lazy-component)
+     (let [lazy-component (react/lazy #(.then (f) (fn [component] #js {:default component})))]
+       (set! (.-uix-component? lazy-component) true)
+       lazy-component)
      :clj f))

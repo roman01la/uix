@@ -4,4 +4,4 @@
 
 (defn -main [& args]
   (run-tests
-    'uix.dom.server-test))
+   'uix.dom.server-test))
