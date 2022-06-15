@@ -26,4 +26,6 @@
                   :source))))))))
 
 (defn source [env sym]
-  (-> (ana/resolve-var env sym) :meta source-fn))
+  (if (uix.lib/cljs-env? env)
+    (-> (ana/resolve-var env sym) :meta source-fn)
+    (-> (resolve sym) meta source-fn)))

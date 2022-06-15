@@ -32,9 +32,7 @@
     (defmacro source
       "Returns source string of UIx component"
       [sym]
-      ;; FIXME
-      (if (uix.lib/cljs-env? &env)
-        (uix.source/source &env sym))))
+      (uix.source/source &env sym)))
 
 #?(:clj
     (defmacro $

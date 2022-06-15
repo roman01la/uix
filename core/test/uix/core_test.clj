@@ -72,12 +72,10 @@
 (deftest test-defui
   (is (= {:x 1} (clj-component {:x 1}))))
 
-;; FIXME
-#_#_
 (uix.core/defui test-source-component [] "HELLO")
 (deftest test-source
   (is (= (uix.core/source test-source-component)
-         "(defui test-source-component []\n  \"HELLO\")")))
+         "(uix.core/defui test-source-component [] \"HELLO\")")))
 
 (uix.core/defcontext *context* 1)
 
