@@ -1,5 +1,5 @@
 {:deps {}
  :paths ["src"]
  :aliases {:dev {:extra-deps {uix.core/uix.core {:local/root "../core"}}}
-           :release {:extra-deps {appliedscience/deps-library {:mvn/version "0.3.4"}}
+           :release {:extra-deps {appliedscience/deps-library {:mvn/version "0.4.0"}}
                      :main-opts ["-m" "deps-library.release"]}}}
