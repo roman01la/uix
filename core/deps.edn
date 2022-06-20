@@ -13,4 +13,6 @@
                                thheller/shadow-cljs {:mvn/version "2.15.5"}
                                uix.dom/uix.dom {:local/root "../dom"}
                                cljsjs/react-dom-server {:mvn/version "16.13.1-0"}
-                               clj-diffmatchpatch/clj-diffmatchpatch {:mvn/version "0.0.9.3"}}}}}
+                               clj-diffmatchpatch/clj-diffmatchpatch {:mvn/version "0.0.9.3"}}}
+           :release {:extra-deps {appliedscience/deps-library {:mvn/version "0.3.4"}
+                                  :main-opts ["-m" "deps-library.release"]}}}}
