@@ -7,16 +7,14 @@ API compatibility: React v17
 UIx v1 is in [roman01la/uix](https://github.com/roman01la/uix) repo
 
 [![CircleCI](https://circleci.com/gh/pitch-io/uix.svg?style=svg)](https://circleci.com/gh/pitch-io/uix)
+[![Clojars Project](https://img.shields.io/clojars/v/com.pitch/uix.core.svg)](https://clojars.org/com.pitch/uix.core)
+[![Clojars Project](https://img.shields.io/clojars/v/com.pitch/uix.dom.svg)](https://clojars.org/com.pitch/uix.dom)
 
 ## Installation
 
 ```clj
-{:deps {uix.core/uix.core {:git/url "https://github.com/pitch-io/uix.git"
-                           :deps/root "core"
-                           :sha "a9be95ed5033dddcb77f67a1c6faa08e58ea08b2"}
-        uix.dom/uix.dom {:git/url "https://github.com/pitch-io/uix.git"
-                         :deps/root "dom"
-                         :sha "a9be95ed5033dddcb77f67a1c6faa08e58ea08b2"}}}
+{:deps {com.pitch/uix.core {:mvn/version "0.1.0"}
+        com.pitch/uix.dom {:mvn/version "0.1.0"}}}
 ```
 
 ## Usage
