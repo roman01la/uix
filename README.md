@@ -52,6 +52,7 @@ UIx v1 is in [roman01la/uix](https://github.com/roman01la/uix) repo
 - [Migrating from Reagent](/docs/migrating-from-reagent.md)
 - [Hot reloading](/docs/hot-reloading.md)
 - [React DevTools](/docs/react-devtools.md)
+- [Hooks linter](/docs/hooks-linter.md)
 
 ## Testing
 
