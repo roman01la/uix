@@ -191,10 +191,22 @@
     ;; return only those that are local in `env`
     (filter #(get-in env [:locals % :name]) @syms)))
 
-(defn find-free-variables [env f deps]
-  (let [all-local-variables (find-local-variables env f)
+(defn- ast->seq [ast]
+  (tree-seq :children (fn [{:keys [children] :as ast}]
+                        (let [get-children (apply juxt children)]
+                          (->> (get-children ast)
+                               (mapcat #(if (vector? %) % [%])))))
+            ast))
+
+(defn- find-free-variables [env f deps]
+  (let [ast (ana/analyze env f)
         deps (set deps)]
-    (filter #(nil? (deps %)) all-local-variables)))
+    (->> (ast->seq ast)
+         (filter #(and (= :local (:op %)) ;; should be a local
+                       (get-in env [:locals (:name %) :name]) ;; from an outer scope
+                       (-> % :info :shadow not) ;; but not a local shadowing locals from outer scope
+                       (not (deps (:name %))))) ;; and not declared in deps vector
+         (map :name))))
 
 (defmethod pp/code-dispatch JSValue [alis]
   (.write ^Writer *out* "#js ")
