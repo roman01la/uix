@@ -350,10 +350,10 @@
   (let [free-vars (find-free-variables env f deps)
         all-unnecessary-deps (set (find-unnecessary-deps env (concat free-vars deps)))
         declared-unnecessary-deps (keep all-unnecessary-deps deps)
-        #_#_missing-deps (filter (comp not all-unnecessary-deps) free-vars)
+        missing-deps (filter (comp not all-unnecessary-deps) free-vars)
         suggested-deps (-> (filter (comp not (set declared-unnecessary-deps)) deps)
-                           #_(into missing-deps))]
-    [#_missing-deps declared-unnecessary-deps suggested-deps]))
+                           (into missing-deps))]
+    [missing-deps declared-unnecessary-deps suggested-deps]))
 
 (defn- lint-body [env form f deps]
   (cond
@@ -361,10 +361,11 @@
     (not (fn-literal? f)) [::inline-function {:source form}]
 
     (vector? deps)
-    (let [[#_missing-deps declared-unnecessary-deps suggested-deps] (find-missing-and-unnecessary-deps env f deps)]
+    (let [[missing-deps declared-unnecessary-deps suggested-deps] (find-missing-and-unnecessary-deps env f deps)]
       ;; when hook function is referencing vars from out scope that are missing in deps vector
-      (when (or #_(seq missing-deps) (seq declared-unnecessary-deps))
-        [::missing-deps {#_#_:missing-deps missing-deps
+      (when (or (and (:lint-deps (meta deps)) (seq missing-deps))
+                (seq declared-unnecessary-deps))
+        [::missing-deps {:missing-deps missing-deps
                          :unnecessary-deps declared-unnecessary-deps
                          :suggested-deps suggested-deps
                          :source form}]))

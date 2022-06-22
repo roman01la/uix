@@ -218,6 +218,9 @@
       (is (str/includes? out-str (str ::hooks.linter/missing-deps)))
       (is (str/includes? out-str "React Hook has missing dependencies: [x]")))
 
+    (testing "should not fail on disabled missing deps check"
+      (is (not (str/includes? out-str "React Hook has missing dependencies: [z]"))))
+
     (testing "should fail on unnecessary deps"
       (is (str/includes? out-str "`ref` is an unnecessary dependency because it's a ref that doesn't change"))
       (is (str/includes? out-str "`set-v` is an unnecessary dependency because it's a state updater function with a stable identity")))
