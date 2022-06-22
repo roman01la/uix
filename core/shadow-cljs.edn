@@ -9,4 +9,7 @@
               :output-dir "out"
               :modules {:main {:entries [uix.benchmark]}}
               :release {:compiler-options {:infer-externs true
-                                           :closure-defines {goog.DEBUG false}}}}}}
+                                           :closure-defines {goog.DEBUG false}}}}
+  :linter-test {:target :browser
+                :output-dir "out"
+                :modules {:main {:entries [uix.linter-test]}}}}}

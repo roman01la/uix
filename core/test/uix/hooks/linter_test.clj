@@ -1,7 +1,8 @@
 (ns uix.hooks.linter-test
   (:require [clojure.test :refer [deftest is testing]]
-            [uix.hooks.linter :as hooks.linter])
-  (:import (cljs.tagged_literals JSValue)))
+            [shadow.cljs.devtools.cli]
+            [uix.hooks.linter :as hooks.linter]
+            [clojure.string :as str]))
 
 ;; === Rules of Hooks ===
 
@@ -210,26 +211,42 @@
 
 ;; === Exhaustive Deps ===
 
-(deftest test-lint-exhaustive-deps
-  (testing "should report on a function reference passed into a hook"
-    (is (= '([:uix.hooks.linter/inline-function {:source (use-effect identity)}])
-           (hooks.linter/lint-exhaustive-deps {} '(use-effect identity) 'identity nil)))
-    (is (= '([:uix.hooks.linter/inline-function {:source (use-effect identity)}])
-           (hooks.linter/lint-exhaustive-deps {} '(use-effect identity) 'identity []))))
-  (testing "should report on deps being a JS array"
-    (is (= '([:uix.hooks.linter/deps-array-literal {:source (use-effect (fn []) [])}])
-           (hooks.linter/lint-exhaustive-deps {} '(use-effect (fn []) []) '(fn []) (JSValue. [])))))
-  (testing "should report on deps being something else, rather than vector"
-    (is (= '([:uix.hooks.linter/deps-coll-literal {:source (use-effect (fn []) coll)}])
-           (hooks.linter/lint-exhaustive-deps {} '(use-effect (fn []) coll) '(fn []) 'coll))))
-  (testing "should report on deps vector including a literal of a primitive type"
-    (is (= '([:uix.hooks.linter/literal-value-in-deps {:source (use-effect (fn []) [:kw]), :literals (:kw)}])
-           (hooks.linter/lint-exhaustive-deps {} '(use-effect (fn []) [:kw]) '(fn []) [:kw])))
-    (is (= '([:uix.hooks.linter/literal-value-in-deps {:source (use-effect (fn []) [1]), :literals (1)}])
-           (hooks.linter/lint-exhaustive-deps {} '(use-effect (fn []) [1]) '(fn []) [1])))
-    (is (= '([:uix.hooks.linter/literal-value-in-deps {:source (use-effect (fn []) [":kw"]), :literals (":kw")}])
-           (hooks.linter/lint-exhaustive-deps {} '(use-effect (fn []) [":kw"]) '(fn []) [":kw"])))
-    (is (= '([:uix.hooks.linter/literal-value-in-deps {:source (use-effect (fn []) [nil]), :literals (nil)}])
-           (hooks.linter/lint-exhaustive-deps {} '(use-effect (fn []) [nil]) '(fn []) [nil])))
-    (is (= '([:uix.hooks.linter/literal-value-in-deps {:source (use-effect (fn []) [true]), :literals (true)}])
-           (hooks.linter/lint-exhaustive-deps {} '(use-effect (fn []) [true]) '(fn []) [true])))))
+(deftest test-build
+  (let [out-str (with-out-str (shadow.cljs.devtools.cli/-main "compile" "linter-test"))]
+
+    (testing "should fail on missing dependency"
+      (is (str/includes? out-str (str ::hooks.linter/missing-deps)))
+      (is (str/includes? out-str "React Hook has missing dependencies: [x]")))
+
+    (testing "should fail on unnecessary deps"
+      (is (str/includes? out-str "`ref` is an unnecessary dependency because it's a ref that doesn't change"))
+      (is (str/includes? out-str "`set-v` is an unnecessary dependency because it's a state updater function with a stable identity")))
+
+    (testing "#72 should not fail with a local var shadowing the var in outer scope"
+      (is (not (str/includes? out-str "React Hook has missing dependencies: [y]"))))
+
+    (testing "should fail when a function reference passed into a hook"
+      (is (str/includes? out-str (str ::hooks.linter/inline-function)))
+      (is (str/includes? out-str "React Hook received a function whose dependencies are unknown.")))
+
+    (testing "should fail on deps being a JS array"
+      (is (str/includes? out-str (str ::hooks.linter/deps-array-literal))))
+
+    (testing "should fail on deps being something else, rather than vector"
+      (is (str/includes? out-str (str ::hooks.linter/deps-coll-literal))))
+
+    (testing "should fail on deps vector including a literal of a primitive type"
+      (is (str/includes? out-str (str ::hooks.linter/literal-value-in-deps)))
+      (is (str/includes? out-str "[:kw, 1, str, , true]")))
+
+    (testing "should fail on set-state in an effect hook w/o deps"
+      (is (str/includes? out-str (str ::hooks.linter/unsafe-set-state)))
+      (is (str/includes? out-str "React Hook contains a call to `set-value`")))
+
+    (testing "should fail on hook call in a branch"
+      (is (str/includes? out-str (str ::hooks.linter/hook-in-branch)))
+      (is (str/includes? out-str "React Hook (uix.core/use-effect (fn [])) is called conditionally.")))
+
+    (testing "should fail on hook call in loop"
+      (is (str/includes? out-str (str ::hooks.linter/hook-in-loop)))
+      (is (str/includes? out-str "React Hook (uix.core/use-effect (fn [])) may be executed more than once.")))))
