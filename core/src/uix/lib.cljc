@@ -25,3 +25,7 @@
                   o)
                 #js {}
                 m)))
+
+#?(:clj
+   (defn cljs-env? [env]
+     (boolean (:ns env))))

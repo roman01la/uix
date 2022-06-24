@@ -11,7 +11,9 @@
 (def prop-name-cache
   #js {:class "className"
        :for "htmlFor"
-       :charset "charSet"})
+       :charset "charSet"
+       :class-id "classID"
+       :item-id "itemID"})
 
 (def custom-prop-name-cache #js {})
 

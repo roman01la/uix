@@ -103,6 +103,9 @@
                 (case %2
                   :class :className
                   :for :htmlFor
+                  :charset :charSet
+                  :class-id :classID
+                  :item-id :itemID
                   (camel-case-dom %2)))
               (compile-config-kv %2 %3))
       {}
