@@ -1,0 +1,10 @@
+#!/usr/bin/env bash
+
+set -e
+set -o pipefail
+
+echo "Installing NPM deps..."
+yarn install --frozen-lockfile
+
+echo "Running Clojure tests..."
+clojure -A:dev:test -m uix.dom.test-runner
