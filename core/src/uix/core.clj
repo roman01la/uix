@@ -59,16 +59,19 @@
   A component should have a single argument of props."
   [sym & fdecl]
   (let [[fname args fdecl] (parse-sig sym fdecl)]
-    (let [sym (with-meta sym {:tag 'js})
-          body (uix.dev/with-fast-refresh sym fdecl)]
-      (hooks.linter/lint! sym fdecl &env)
-      `(do
-         ~(if (empty? args)
-            (no-args-component fname body)
-            (with-args-component fname args body))
-         (set! (.-uix-component? ~sym) true)
-         (set! (.-displayName ~sym) ~(str (-> &env :ns :name) "/" sym))
-         ~(uix.dev/fast-refresh-signature sym body)))))
+    (hooks.linter/lint! sym fdecl &env)
+    (if (uix.lib/cljs-env? &env)
+      (let [sym (with-meta sym {:tag 'js})
+            body (uix.dev/with-fast-refresh sym fdecl)]
+        `(do
+           ~(if (empty? args)
+              (no-args-component fname body)
+              (with-args-component fname args body))
+           (set! (.-uix-component? ~sym) true)
+           (set! (.-displayName ~sym) ~(str (-> &env :ns :name) "/" sym))
+           ~(uix.dev/fast-refresh-signature sym body)))
+      `(defn ~fname ~args
+         ~@fdecl))))
 
 (defmacro source
   "Returns source string of UIx component"

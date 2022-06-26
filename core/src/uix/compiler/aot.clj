@@ -2,7 +2,8 @@
   "Compiler code that translates HyperScript into React calls at compile-time."
   (:require [uix.compiler.js :as js]
             [uix.compiler.attributes :as attrs]
-            [cljs.analyzer :as ana]))
+            [cljs.analyzer :as ana]
+            [uix.lib]))
 
 (defmulti compile-attrs
   "Compiles a map of attributes into JS object,
@@ -68,7 +69,7 @@
     (into [(first v) {}] (rest v))
     v))
 
-(defmulti compile-element
+(defmulti compile-element*
   "Compiles UIx elements into React.createElement"
   (fn [[tag] _]
     (cond
@@ -76,7 +77,7 @@
       (keyword? tag) :element
       :else :component)))
 
-(defmethod compile-element :element [v {:keys [env]}]
+(defmethod compile-element* :element [v {:keys [env]}]
   (let [[tag attrs & children] (normalize-element env v)
         tag-id-class (attrs/parse-tag tag)
         attrs-children (compile-attrs :element attrs {:tag-id-class tag-id-class})
@@ -86,14 +87,19 @@
               `(>el ~tag-str ~attrs-children (cljs.core/array ~@children)))]
     ret))
 
-(defmethod compile-element :component [v {:keys [env]}]
+(defmethod compile-element* :component [v {:keys [env]}]
   (let [[tag props & children] (normalize-element env v)
         tag (vary-meta tag assoc :tag 'js)
         props-children (compile-attrs :component props nil)]
     `(uix.compiler.alpha/component-element ~tag ~props-children (cljs.core/array ~@children))))
 
-(defmethod compile-element :fragment [v _]
+(defmethod compile-element* :fragment [v _]
   (let [[_ attrs & children] v
         attrs (compile-attrs :fragment attrs nil)
         ret `(>el fragment ~attrs (cljs.core/array ~@children))]
     ret))
+
+(defn compile-element [v {:keys [env] :as opts}]
+  (if (uix.lib/cljs-env? env)
+    (compile-element* v opts)
+    v))

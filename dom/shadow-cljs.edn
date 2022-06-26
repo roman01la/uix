@@ -1,0 +1,9 @@
+{:deps true
+ :builds
+ {:test {:target :node-script
+         :main uix.dom.server-test/-main
+         :output-dir "out"
+         :output-to "out/main.js"
+         :modules {:main {:entries [uix.dom.test-runner]}}
+         :release {:compiler-options {:infer-externs true
+                                      :closure-defines {goog.DEBUG false}}}}}}

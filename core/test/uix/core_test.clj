@@ -1,6 +1,7 @@
 (ns uix.core-test
   (:require [clojure.test :refer :all]
-            [uix.core]))
+            [uix.core]
+            [cljs.analyzer :as ana]))
 
 (deftest test-parse-sig
   (is (thrown-with-msg? AssertionError #"uix.core\/defui doesn't support multi-arity"
@@ -14,9 +15,23 @@
   (is (nil? (uix.core/vector->js-array nil))))
 
 (deftest test-$
-  (is (= (macroexpand-1 '(uix.core/$ :h1))
-         '(uix.compiler.aot/>el "h1" (cljs.core/array nil) (cljs.core/array))))
-  (is (= (macroexpand-1 '(uix.core/$ identity {} 1 2))
-         '(uix.compiler.alpha/component-element identity (cljs.core/array {}) (cljs.core/array 1 2))))
-  (is (= (macroexpand-1 '(uix.core/$ identity {:x 1 :ref 2} 1 2))
-         '(uix.compiler.alpha/component-element identity (cljs.core/array {:x 1 :ref 2}) (cljs.core/array 1 2)))))
+  (testing "in cljs env"
+    (with-redefs [uix.lib/cljs-env? (fn [_] true)
+                  ana/resolve-var (fn [_ _] nil)]
+      (is (= (macroexpand-1 '(uix.core/$ :h1))
+             '(uix.compiler.aot/>el "h1" (cljs.core/array nil) (cljs.core/array))))
+      (is (= (macroexpand-1 '(uix.core/$ identity {} 1 2))
+             '(uix.compiler.alpha/component-element identity (cljs.core/array {}) (cljs.core/array 1 2))))
+      (is (= (macroexpand-1 '(uix.core/$ identity {:x 1 :ref 2} 1 2))
+             '(uix.compiler.alpha/component-element identity (cljs.core/array {:x 1 :ref 2}) (cljs.core/array 1 2))))))
+  (testing "in clj env"
+    (is (= (macroexpand-1 '(uix.core/$ :h1))
+           [:h1]))
+    (is (= (macroexpand-1 '(uix.core/$ identity {} 1 2))
+           '[identity {} 1 2]))
+    (is (= (macroexpand-1 '(uix.core/$ identity {:x 1 :ref 2} 1 2))
+           '[identity {:x 1 :ref 2} 1 2]))))
+
+(uix.core/defui clj-component [props] props)
+(deftest test-defui
+  (is (= {:x 1} (clj-component {:x 1}))))
