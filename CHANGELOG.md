@@ -1,5 +1,15 @@
 # CHANGELOG
 
+## 0.3.0
+
+### Improvements
+
+- Fixed shadowing for non-ns component var generated in dev-only code [4458ee](https://github.com/pitch-io/uix/commit/4458ee7c31aa87e98961140ba0fa2807f57d2de9)
+
+### New
+
+- Basic SSR on JVM [4a10c9](https://github.com/pitch-io/uix/commit/4a10c9b9282fadb2c58029d0786ceba77f4487f4)
+
 ## 0.2.0
 
 ### Improvements

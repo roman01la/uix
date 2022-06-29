@@ -13,8 +13,8 @@ UIx v1 is in [roman01la/uix](https://github.com/roman01la/uix) repo
 ## Installation
 
 ```clj
-{:deps {com.pitch/uix.core {:mvn/version "0.2.0"}
-        com.pitch/uix.dom {:mvn/version "0.2.0"}}}
+{:deps {com.pitch/uix.core {:mvn/version "0.3.0"}
+        com.pitch/uix.dom {:mvn/version "0.3.0"}}}
 ```
 
 ## Usage
