@@ -151,5 +151,13 @@
   (is (= (uix.core/source row-compiled)
          "(defui row-compiled [{:keys [children]}]\n  ($ :div.row children))")))
 
+(defui comp-42336 [{:keys [comp-42336]}]
+  (let [comp-42336 1]
+    "hello"))
+
+(deftest test-42336
+  (is (.-uix-component? ^js comp-42336))
+  (is (= (.-displayName comp-42336) (str `comp-42336))))
+
 (defn -main []
   (run-tests))
