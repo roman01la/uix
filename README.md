@@ -67,3 +67,4 @@ once in the directory. Otherwise the Node.js version you use is in the `.nvmrc` 
 ## Thanks to
 - [UIx v1](https://github.com/roman01la/uix) for initial set of ideas and learnings
 - [Helix](https://github.com/lilactown/helix) for even more ideas
+- [Pitch](https://github.com/pitch-io) for sponsoring and dogfooding the work
