@@ -6,6 +6,8 @@ API compatibility: React v17
 
 UIx v1 is in [roman01la/uix](https://github.com/roman01la/uix) repo
 
+Discuss at #uix on [Clojurians Slack](http://clojurians.net)
+
 [![CircleCI](https://circleci.com/gh/pitch-io/uix.svg?style=svg)](https://circleci.com/gh/pitch-io/uix)
 [![Clojars Project](https://img.shields.io/clojars/v/com.pitch/uix.core.svg)](https://clojars.org/com.pitch/uix.core)
 [![Clojars Project](https://img.shields.io/clojars/v/com.pitch/uix.dom.svg)](https://clojars.org/com.pitch/uix.dom)
