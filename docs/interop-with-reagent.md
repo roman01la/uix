@@ -26,7 +26,7 @@ When using UIx component in Reagent or anywhere else all you have to do is to ke
 
 ## Syncing with ratoms and re-frame
 
-External data sources can be consumed in hooks-based components via `useSyncExternalStoreWithSelector` from `"use-sync-external-store"` package. This part is only concerned around making UI components reactive on external data sources. How the state is updated doesn't change.
+External data sources can be consumed in hooks-based components via `useSyncExternalStoreWithSelector` from `"use-sync-external-store"` package (in React v18 the function is a part of API, not need to install the package). This part is only concerned around making UI components reactive on external data sources. How the state is updated doesn't change.
 
 ### Implementation
 
