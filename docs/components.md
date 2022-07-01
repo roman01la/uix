@@ -25,7 +25,7 @@ React.createElement("div", { onClick: f }, child1, child2);
              :type type
              :on-change #(on-change (.. % -target -value))}))
 
-(defui sing-in-form [{:keys [email password]}]
+(defui sign-in-form [{:keys [email password]}]
   ($ :form
     ($ text-input {:value email :type :email})
     ($ text-input {:value password :type password})
