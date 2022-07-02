@@ -14,6 +14,10 @@ Discuss at #uix on [Clojurians Slack](http://clojurians.net)
 
 ## Installation
 
+```
+yarn add react@17.0.2 react-dom@17.0.2
+```
+
 ```clj
 {:deps {com.pitch/uix.core {:mvn/version "0.3.0"}
         com.pitch/uix.dom {:mvn/version "0.3.0"}}}
