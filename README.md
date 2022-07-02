@@ -60,6 +60,7 @@ yarn add react@17.0.2 react-dom@17.0.2
 - [Hot reloading](/docs/hot-reloading.md)
 - [React DevTools](/docs/react-devtools.md)
 - [Hooks linter](/docs/hooks-linter.md)
+- [Utilities](/docs/utilities.md)
 
 ## Testing
 
