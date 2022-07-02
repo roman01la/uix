@@ -38,7 +38,7 @@ yarn add react@17.0.2 react-dom@17.0.2
   (let [[state set-state!] (uix.core/use-state 0)]
     ($ :<>
       ($ button {:on-click #(set-state! dec)} "-")
-      ($ :span state)]
+      ($ :span state)
       ($ button {:on-click #(set-state! inc)} "+"))))
 
 (uix.dom/render ($ app) (js/document.getElementById "root"))
