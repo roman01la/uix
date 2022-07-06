@@ -153,15 +153,13 @@
   ;; https://github.com/facebook/react/blob/d63cd972454125d4572bb8ffbfeccbdf0c5eb27b/packages/eslint-plugin-react-hooks/src/RulesOfHooks.js#L457
   (str "React Hook " source " is called conditionally.\n"
        "React Hooks must be called in the exact same order in every component render.\n"
-       "Found in " name ", at " line ":" column))
+       "Read https://reactjs.org/docs/hooks-rules.html for more context"))
 
 (defmethod ana/error-message ::hook-in-loop [_ {:keys [name column line source]}]
   ;; https://github.com/facebook/react/blob/d63cd972454125d4572bb8ffbfeccbdf0c5eb27b/packages/eslint-plugin-react-hooks/src/RulesOfHooks.js#L438
-  (str "React Hook " source " may be executed more than once. "
-       "Possibly because it is called in a loop. "
-       "React Hooks must be called in the exact same order in "
-       "every component render.\n"
-       "Found in " name ", at " line ":" column))
+  (str "React Hook " source " may be executed more than once. Possibly because it is called in a loop.\n"
+       "React Hooks must be called in the exact same order in every component render.\n"
+       "Read https://reactjs.org/docs/hooks-rules.html for more context"))
 
 ;; re-frame linter
 
@@ -198,7 +196,8 @@
 
 (defmethod ana/error-message ::non-reactive-re-frame-subscribe [_ {:keys [source] :as v}]
   (str "re-frame subscription " source " is non-reactive in UIx components when called via "
-       (:name v) ", use `use-subscribe` hook instead."))
+       (:name v) ", use `use-subscribe` hook instead.\n"
+       "Read https://github.com/pitch-io/uix/blob/master/docs/interop-with-reagent.md#syncing-with-ratoms-and-re-frame for more context"))
 
 (defn lint! [sym form env]
   (binding [*component-context* (atom {:errors []})]
@@ -262,8 +261,7 @@
     (str "```\n" source "\n```")))
 
 (defmethod ana/error-message ::inline-function [_ {:keys [source]}]
-  (str "React Hook received a function whose dependencies "
-       "are unknown. Pass an inline function instead.\n"
+  (str "React Hook received a function whose dependencies are unknown. Pass an inline function instead.\n"
        (ppr source)))
 
 (defmethod ana/error-message ::missing-deps [_ {:keys [source missing-deps unnecessary-deps suggested-deps]}]
@@ -289,6 +287,7 @@
                    (str/join "\n"))
               "\n"))
        "Update the dependencies vector to be: [" (str/join " " suggested-deps) "]\n"
+       "Read https://beta.reactjs.org/learn/synchronizing-with-effects#step-2-specify-the-effect-dependencies for more context\n"
        (ppr source)))
 
 (defmethod ana/error-message ::deps-array-literal [_ {:keys [source]}]
