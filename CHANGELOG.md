@@ -1,5 +1,16 @@
 # CHANGELOG
 
+## 0.4.0
+
+### Improvements
+
+- Added linter check for non-reactive usage of re-frame subscriptions in UIx components via re-frame API [071650](https://github.com/pitch-io/uix/commit/0716507b6bfdcb28091879ef14958aae4300c751)
+
+### Docs
+
+- Added a section on [“Syncing with ratoms and re-frame”](https://github.com/pitch-io/uix/blob/master/docs/interop-with-reagent.md#syncing-with-ratoms-and-re-frame)
+- Added a section about [“Utilities”](https://github.com/pitch-io/uix/blob/master/docs/utilities.md)
+
 ## 0.3.0
 
 ### Improvements

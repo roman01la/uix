@@ -19,8 +19,8 @@ yarn add react@17.0.2 react-dom@17.0.2
 ```
 
 ```clj
-{:deps {com.pitch/uix.core {:mvn/version "0.3.0"}
-        com.pitch/uix.dom {:mvn/version "0.3.0"}}}
+{:deps {com.pitch/uix.core {:mvn/version "0.4.0"}
+        com.pitch/uix.dom {:mvn/version "0.4.0"}}}
 ```
 
 ## Usage
@@ -72,6 +72,7 @@ _Note: to ensure you're using the right Node.js version, you can use [nvm](https
 once in the directory. Otherwise the Node.js version you use is in the `.nvmrc` file. See nvm repo for more documentation._
 
 ## Thanks to
+
 - [UIx v1](https://github.com/roman01la/uix) for initial set of ideas and learnings
 - [Helix](https://github.com/lilactown/helix) for even more ideas
 - [Pitch](https://github.com/pitch-io) for sponsoring and dogfooding the work
