@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## 0.5.0
+
+### Improvements
+
+- Make re-frame linter check configurable [8ef493](https://github.com/pitch-io/uix/commit/8ef4932f88071377e16dde755c18a8e60aaf05e7)
+- Improve linter's error messages [03609b](https://github.com/pitch-io/uix/commit/03609bd305c6706f830a24517999f6e90527ce35)
+
 ## 0.4.0
 
 ### Improvements
