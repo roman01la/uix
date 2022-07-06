@@ -3,7 +3,8 @@
             [cljs.analyzer :as ana]
             [clojure.string :as str]
             [clojure.pprint :as pp]
-            [cljs.analyzer.api :as ana-api])
+            [cljs.analyzer.api :as ana-api]
+            [uix.lib])
   (:import (cljs.tagged_literals JSValue)
            (java.io Writer)))
 
@@ -160,9 +161,29 @@
        "every component render.\n"
        "Found in " name ", at " line ":" column))
 
+;; re-frame linter
+
+(defn- rf-subscribe-call? [form]
+  (and (list? form)
+       (symbol? (first form))
+       (= "subscribe" (name (first form)))))
+
+(defn lint-re-frame! [form env]
+  (let [sources (->> (uix.lib/find-form rf-subscribe-call? form)
+                     (keep #(let [v (ana/resolve-var env (first %))]
+                              (when (contains? '#{re-frame.core pitch.app.core pitch.app.re-frame} (:ns v))
+                                (assoc v :source %)))))]
+    (run! #(ana/warning ::non-reactive-re-frame-subscribe env %)
+          sources)))
+
+(defmethod ana/error-message ::non-reactive-re-frame-subscribe [_ {:keys [source] :as v}]
+  (str "re-frame subscription " source " is non-reactive in UIx components when called via "
+       (:name v) ", use `use-subscribe` hook instead."))
+
 (defn lint! [sym form env]
   (binding [*component-context* (atom {:errors []})]
     (lint-hooks! form)
+    (lint-re-frame! form env)
     (let [{:keys [errors]} @*component-context*
           {:keys [column line]} env]
       (run! #(ana/warning (:type %) env (into {:name (str (-> env :ns :name) "/" sym)

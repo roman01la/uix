@@ -1,6 +1,7 @@
 (ns uix.lib
   #?(:cljs (:require-macros [uix.lib :refer [doseq-loop]]))
-  #?(:cljs (:require [goog.object :as gobj])))
+  #?(:cljs (:require [goog.object :as gobj]))
+  #?(:clj (:require [clojure.walk])))
 
 #?(:clj
    (defmacro assert! [x message]
@@ -29,3 +30,14 @@
 #?(:clj
    (defn cljs-env? [env]
      (boolean (:ns env))))
+
+#?(:clj
+   (defn find-form [pred sexp]
+     (let [forms (atom [])]
+       (clojure.walk/prewalk
+        (fn [x]
+          (when (pred x)
+            (swap! forms conj x))
+          x)
+        sexp)
+       @forms)))

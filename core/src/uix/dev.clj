@@ -1,21 +1,9 @@
 (ns uix.dev
   (:require [clojure.string :as str]
-            [uix.hooks.linter :as hooks.linter]))
+            [uix.hooks.linter :as hooks.linter]
+            [uix.lib]))
 
 (def ^:private goog-debug (with-meta 'goog.DEBUG {:tag 'boolean}))
-
-(defn find-hooks
-  "Takes body of a component as sexpr and returns
-  a collection of sexprs for hook calls"
-  [body]
-  (let [hooks (atom [])]
-    (clojure.walk/prewalk
-     (fn [x]
-       (when (hooks.linter/hook-call? x)
-         (swap! hooks conj x))
-       x)
-     body)
-    @hooks))
 
 (defn with-fast-refresh [var-sym fdecl]
   (let [signature `(when ~goog-debug
@@ -30,6 +18,6 @@
   `(when ~goog-debug
      (when (cljs.core/exists? js/window.uix.dev)
        (let [sig# (js/window.uix.dev.signature!)]
-         (sig# ~var-sym ~(str/join (find-hooks body)) nil nil)
+         (sig# ~var-sym ~(str/join (uix.lib/find-form hooks.linter/hook-call? body)) nil nil)
          (js/window.uix.dev.register! ~var-sym (.-displayName ~var-sym))
          (set! (.-fast-refresh-signature ~var-sym) sig#)))))
