@@ -4,7 +4,9 @@
             [clojure.string :as str]
             [clojure.pprint :as pp]
             [cljs.analyzer.api :as ana-api]
-            [uix.lib])
+            [uix.lib]
+            [clojure.java.io :as io]
+            [clojure.edn])
   (:import (cljs.tagged_literals JSValue)
            (java.io Writer)))
 
@@ -168,10 +170,28 @@
        (symbol? (first form))
        (= "subscribe" (name (first form)))))
 
+(defn- read-config [path]
+  (let [file (io/file ".uix/config.edn")
+        config (try
+                 (if (.isFile file)
+                   (clojure.edn/read-string (slurp file))
+                   {})
+                 (catch Exception e
+                   {}))]
+    (get-in config path)))
+
+(defn- read-re-frame-config []
+  (-> (reduce-kv (fn [ret k v]
+                   (update ret v (fnil conj #{}) k))
+                 '{re-frame.core/subscribe #{re-frame.core/subscribe}}
+                 (read-config [:linters :re-frame :resolve-as]))
+      (get 're-frame.core/subscribe)))
+
 (defn lint-re-frame! [form env]
-  (let [sources (->> (uix.lib/find-form rf-subscribe-call? form)
+  (let [config (read-re-frame-config)
+        sources (->> (uix.lib/find-form rf-subscribe-call? form)
                      (keep #(let [v (ana/resolve-var env (first %))]
-                              (when (contains? '#{re-frame.core pitch.app.core pitch.app.re-frame} (:ns v))
+                              (when (contains? config (:name v))
                                 (assoc v :source %)))))]
     (run! #(ana/warning ::non-reactive-re-frame-subscribe env %)
           sources)))
