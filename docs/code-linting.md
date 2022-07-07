@@ -150,3 +150,39 @@ This won't cause actual bugs, but it prevents further type checking to determine
   ;; now linter is able to check whether the effect meets deps requirements correctly
   (use-effect #(do-something active? id) [active? id])))
 ```
+
+# Reagent interop linter
+
+When migrating from Reagent + re-frame to UIx you might want to keep using re-frame or at least stick with it for some time, because migrating data management is not as simple as rewriting UI components.
+
+To make sure this transition path is smooth UIx will check for re-frame `subscribe` calls in UIx components and trigger compilation error that will suggest to use `use-subscribe` hook instead and point to [“Syncing with ratoms and re-frame”](https://github.com/pitch-io/uix/blob/master/docs/interop-with-reagent.md#syncing-with-ratoms-and-re-frame) section in UIx docs.
+
+Given this piece of code
+
+```clojure
+(defui component []
+  (rf/subscribe [:user/id]))
+```
+
+You'll get the following compilation error
+
+```
+re-frame subscription (rf/subscribe [:user/id])) is non-reactive in UIx components when called via re-frame.core/subscribe, use `use-subscribe` hook instead.
+
+Read https://github.com/pitch-io/uix/blob/master/docs/interop-with-reagent.md#syncing-with-ratoms-and-re-frame for more context
+```
+
+# Configuring the linter
+
+UIx's linter can be provided with external configuration that should live in `.uix/config.edn` file at the root of your project.
+
+Currently the only onfiguration option available is for re-frame `subscribe` checks for cases when you are wrapping the function in application code.
+
+Example
+
+```clojure
+{:linters
+ {:re-frame
+  {:resolve-as {my.app/subscribe re-frame.core/subscribe}}}}
+  ;; re-frame.core/subscribe is checked by default
+```

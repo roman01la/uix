@@ -59,7 +59,7 @@ yarn add react@17.0.2 react-dom@17.0.2
 - [Server-side rendering](/docs/server-side-rendering.md)
 - [Hot reloading](/docs/hot-reloading.md)
 - [React DevTools](/docs/react-devtools.md)
-- [Hooks linter](/docs/hooks-linter.md)
+- [Code linting](/docs/code-linting.md)
 - [Utilities](/docs/utilities.md)
 
 ## Testing
