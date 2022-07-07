@@ -2,6 +2,8 @@
 
 _Idiomatic ClojureScript interface to modern React.js_
 
+> "Oh god, I just started learning reagent. Don’t tell me I’ll have to switch" /r/clojure
+
 API compatibility: React v17
 
 UIx v1 is in [roman01la/uix](https://github.com/roman01la/uix) repo
