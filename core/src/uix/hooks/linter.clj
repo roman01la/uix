@@ -119,10 +119,36 @@
     (let [[_ _ & body] f]
       (run! #(lint-hooks!* % :in-loop? true) body))))
 
+(defn- ast->seq [ast]
+  (tree-seq :children (fn [{:keys [children] :as ast}]
+                        (let [get-children (apply juxt children)]
+                          (->> (get-children ast)
+                               (mapcat #(if (vector? %) % [%])))))
+            ast))
+
+(defn form->loc [form]
+  (select-keys form [:line :column]))
+
+(defn find-env-for-form [type form]
+  (case type
+    (::hook-in-branch ::hook-in-loop
+                      ::deps-coll-literal ::literal-value-in-deps
+                      ::unsafe-set-state)
+    (form->loc (meta form))
+
+    ::inline-function
+    (form->loc (meta (second form)))
+
+    ::deps-array-literal
+    (form->loc (meta (.-val form)))
+
+    nil))
+
 (defn add-error! [form type]
   (swap! *component-context* update :errors conj {:source form
                                                   :source-context *source-context*
-                                                  :type type}))
+                                                  :type type
+                                                  :env (find-env-for-form type form)}))
 
 (defn lint-hooks!*
   [expr & {:keys [in-branch? in-loop?]
@@ -205,11 +231,13 @@
     (lint-re-frame! form env)
     (let [{:keys [errors]} @*component-context*
           {:keys [column line]} env]
-      (run! #(ana/warning (:type %) env (into {:name (str (-> env :ns :name) "/" sym)
-                                               :column column
-                                               :line line}
-                                              %))
-            errors))))
+      (doseq [err errors]
+        (ana/warning (:type err)
+                     (or (:env err) env)
+                     (into {:name (str (-> env :ns :name) "/" sym)
+                            :column column
+                            :line line}
+                           err))))))
 
 ;; === Exhaustive Deps ===
 
@@ -230,13 +258,6 @@
      form)
     ;; return only those that are local in `env`
     (filter #(get-in env [:locals % :name]) @syms)))
-
-(defn- ast->seq [ast]
-  (tree-seq :children (fn [{:keys [children] :as ast}]
-                        (let [get-children (apply juxt children)]
-                          (->> (get-children ast)
-                               (mapcat #(if (vector? %) % [%])))))
-            ast))
 
 (defn- find-free-variables [env f deps]
   (let [ast (ana/analyze env f)
@@ -261,8 +282,7 @@
     (str "```\n" source "\n```")))
 
 (defmethod ana/error-message ::inline-function [_ {:keys [source]}]
-  (str "React Hook received a function whose dependencies are unknown. Pass an inline function instead.\n"
-       (ppr source)))
+  "React Hook received a function whose dependencies are unknown. Pass an inline function instead.")
 
 (defmethod ana/error-message ::missing-deps [_ {:keys [source missing-deps unnecessary-deps suggested-deps]}]
   (str "React Hook has "
@@ -327,14 +347,16 @@
   (when deps
     (cond
       ;; when deps are passed as JS Array, should be a vector instead
-      (and (= (type deps) JSValue) (vector? (.-val deps))) [::deps-array-literal {:source form}]
+      (and (= (type deps) JSValue) (vector? (.-val deps))) [::deps-array-literal {:source form :env (find-env-for-form ::deps-array-literal deps)}]
 
       ;; when deps are neither JS Array nor Clojure's vector, should be a vector instead
-      (not (vector? deps)) [::deps-coll-literal {:source form}]
+      (not (vector? deps)) [::deps-coll-literal {:source form :env (find-env-for-form ::deps-coll-literal deps)}]
 
       ;; when deps vector has a primitive literal, it can be safely removed
       (and (vector? deps) (seq (deps->literals deps)))
-      [::literal-value-in-deps {:source form :literals (deps->literals deps)}])))
+      [::literal-value-in-deps {:source form
+                                :literals (deps->literals deps)
+                                :env (find-env-for-form ::literal-value-in-deps deps)}])))
 
 (defn find-hook-for-symbol [env sym]
   (when-let [init (-> env :locals (get sym) :init)]
@@ -398,7 +420,7 @@
 (defn- lint-body [env form f deps]
   (cond
     ;; when a reference to a function passed into a hook, should be an inline function instead
-    (not (fn-literal? f)) [::inline-function {:source form}]
+    (not (fn-literal? f)) [::inline-function {:source form :env (find-env-for-form ::inline-function form)}]
 
     (vector? deps)
     (let [[missing-deps declared-unnecessary-deps suggested-deps] (find-missing-and-unnecessary-deps env f deps)]
@@ -414,7 +436,8 @@
     (when-let [unsafe-calls (find-unsafe-set-state-calls env f)]
       ;; when set-state is called directly in a hook without deps, causing infinite loop
       [::unsafe-set-state {:unsafe-calls unsafe-calls
-                           :source form}])))
+                           :source form
+                           :env (find-env-for-form ::unsafe-set-state (first unsafe-calls))}])))
 
 (defn lint-exhaustive-deps [env form f deps]
   (let [errors [(lint-deps form deps)
@@ -423,5 +446,5 @@
 
 (defn lint-exhaustive-deps! [env form f deps]
   (doseq [[error-type opts] (lint-exhaustive-deps env form f deps)]
-    (ana/warning error-type env opts)))
+    (ana/warning error-type (or (:env opts) env) opts)))
 
