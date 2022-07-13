@@ -63,7 +63,9 @@
     (and (map? attrs) (not (contains? attrs :key)))
     (add-error! attrs ::missing-key)
 
-    (or (and (not (map? attrs)) (not (symbol? attrs)))
+    (or (and (not (map? attrs))
+             (not (symbol? attrs))
+             (not (list? attrs)))
         (uix-element? attrs))
     (add-error! form ::missing-key)))
 
