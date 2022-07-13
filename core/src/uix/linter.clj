@@ -1,4 +1,4 @@
-(ns uix.hooks.linter
+(ns uix.linter
   (:require [clojure.walk]
             [cljs.analyzer :as ana]
             [clojure.string :as str]

@@ -9,7 +9,7 @@
 
 (uix.core/defui test-seq-return-comp []
   (for [x (range 2)]
-    ($ :span {} x)))
+    ($ :span {:key x} x)))
 
 (deftest test-seq-return
   (is (= (as-string ($ test-seq-return-comp)) "<span>0</span><span>1</span>")))
