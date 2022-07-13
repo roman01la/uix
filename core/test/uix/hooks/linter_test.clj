@@ -9,7 +9,7 @@
 (defn lint-syms [syms expr-fn]
   (binding [hooks.linter/*component-context* (atom {:errors []})]
     (let [exprs (map expr-fn syms)
-          _ (hooks.linter/lint-hooks! exprs)
+          _ (hooks.linter/lint-body! exprs)
           errors (:errors @hooks.linter/*component-context*)]
       [exprs (map :source-context errors)])))
 

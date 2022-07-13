@@ -31,7 +31,7 @@
 (defn effect-hook? [form]
   (contains? effect-hooks (name (first form))))
 
-(declare lint-hooks!*)
+(declare lint-body!*)
 
 (def forms
   '{:when #{when when-not when-let when-some when-first}
@@ -62,62 +62,62 @@
   form)
 
 (defmethod maybe-lint :when [[_ test & body]]
-  (lint-hooks!* test :in-branch? false)
-  (run! #(lint-hooks!* % :in-branch? true) body))
+  (lint-body!* test :in-branch? false)
+  (run! #(lint-body!* % :in-branch? true) body))
 
 (defmethod maybe-lint :if [[_ test then else]]
-  (lint-hooks!* test :in-branch? false)
-  (lint-hooks!* then :in-branch? true)
-  (lint-hooks!* else :in-branch? true))
+  (lint-body!* test :in-branch? false)
+  (lint-body!* then :in-branch? true)
+  (lint-body!* else :in-branch? true))
 
 (defmethod maybe-lint :logical [[_ test & tests]]
-  (lint-hooks!* test :in-branch? false)
-  (run! #(lint-hooks!* % :in-branch? true) tests))
+  (lint-body!* test :in-branch? false)
+  (run! #(lint-body!* % :in-branch? true) tests))
 
 (defmethod maybe-lint :cond [[_ clause & clauses]]
-  (lint-hooks!* clause :in-branch? false)
-  (run! #(lint-hooks!* % :in-branch? true) clauses))
+  (lint-body!* clause :in-branch? false)
+  (run! #(lint-body!* % :in-branch? true) clauses))
 
 (defmethod maybe-lint :condp [[_ pred e clause & clauses]]
-  (lint-hooks!* pred :in-branch? false)
-  (lint-hooks!* e :in-branch? false)
-  (lint-hooks!* clause :in-branch? false)
-  (run! #(lint-hooks!* % :in-branch? true) clauses))
+  (lint-body!* pred :in-branch? false)
+  (lint-body!* e :in-branch? false)
+  (lint-body!* clause :in-branch? false)
+  (run! #(lint-body!* % :in-branch? true) clauses))
 
 (defmethod maybe-lint :cond-threaded [[_ e & clauses]]
-  (lint-hooks!* e :in-branch? false)
+  (lint-body!* e :in-branch? false)
   (->> (partition 2 clauses)
        (run! (fn [[test expr]]
-               (lint-hooks!* test :in-branch? false)
-               (lint-hooks!* expr :in-branch? true)))))
+               (lint-body!* test :in-branch? false)
+               (lint-body!* expr :in-branch? true)))))
 
 (defmethod maybe-lint :some-threaded [[_ e clause & clauses]]
-  (lint-hooks!* e :in-branch? false)
-  (lint-hooks!* clause :in-branch? false)
-  (run! #(lint-hooks!* % :in-branch? true) clauses))
+  (lint-body!* e :in-branch? false)
+  (lint-body!* clause :in-branch? false)
+  (run! #(lint-body!* % :in-branch? true) clauses))
 
 (defmethod maybe-lint :case [[_ e clause & clauses]]
-  (lint-hooks!* e :in-branch? false)
-  (lint-hooks!* clause :in-branch? false)
-  (run! #(lint-hooks!* % :in-branch? true) clauses))
+  (lint-body!* e :in-branch? false)
+  (lint-body!* clause :in-branch? false)
+  (run! #(lint-body!* % :in-branch? true) clauses))
 
 (defmethod maybe-lint :loop [[_ bindings & body]]
-  (lint-hooks!* bindings :in-loop? false)
-  (run! #(lint-hooks!* % :in-loop? true) body))
+  (lint-body!* bindings :in-loop? false)
+  (run! #(lint-body!* % :in-loop? true) body))
 
 (defmethod maybe-lint :for [[_ bindings & body]]
   (let [[binding & bindings] (partition 2 bindings)]
-    (lint-hooks!* (second binding) :in-loop? false)
-    (run! (fn [[v expr]] (lint-hooks!* expr :in-loop? true))
+    (lint-body!* (second binding) :in-loop? false)
+    (run! (fn [[v expr]] (lint-body!* expr :in-loop? true))
           bindings)
-    (run! #(lint-hooks!* % :in-loop? true) body)))
+    (run! #(lint-body!* % :in-loop? true) body)))
 
 (defmethod maybe-lint :iter-fn [[_ f :as form]]
   (when (and (list? f)
              ('#{fn fn*} (first f))
              (vector? (second f)))
     (let [[_ _ & body] f]
-      (run! #(lint-hooks!* % :in-loop? true) body))))
+      (run! #(lint-body!* % :in-loop? true) body))))
 
 (defn- ast->seq [ast]
   (tree-seq :children (fn [{:keys [children] :as ast}]
@@ -150,7 +150,7 @@
                                                   :type type
                                                   :env (find-env-for-form type form)}))
 
-(defn lint-hooks!*
+(defn lint-body!*
   [expr & {:keys [in-branch? in-loop?]
            :or {in-branch? *in-branch?*
                 in-loop? *in-loop?*}}]
@@ -172,8 +172,8 @@
      expr)
     nil))
 
-(defn lint-hooks! [exprs]
-  (run! lint-hooks!* exprs))
+(defn lint-body! [exprs]
+  (run! lint-body!* exprs))
 
 (defmethod ana/error-message ::hook-in-branch [_ {:keys [name column line source]}]
   ;; https://github.com/facebook/react/blob/d63cd972454125d4572bb8ffbfeccbdf0c5eb27b/packages/eslint-plugin-react-hooks/src/RulesOfHooks.js#L457
@@ -227,7 +227,7 @@
 
 (defn lint! [sym form env]
   (binding [*component-context* (atom {:errors []})]
-    (lint-hooks! form)
+    (lint-body! form)
     (lint-re-frame! form env)
     (let [{:keys [errors]} @*component-context*
           {:keys [column line]} env]
