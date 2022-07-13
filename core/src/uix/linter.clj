@@ -31,6 +31,52 @@
 (defn effect-hook? [form]
   (contains? effect-hooks (name (first form))))
 
+(defn form->loc [form]
+  (select-keys form [:line :column]))
+
+(defn find-env-for-form [type form]
+  (case type
+    (::hook-in-branch ::hook-in-loop
+                      ::deps-coll-literal ::literal-value-in-deps
+                      ::unsafe-set-state ::missing-key)
+    (form->loc (meta form))
+
+    ::inline-function
+    (form->loc (meta (second form)))
+
+    ::deps-array-literal
+    (form->loc (meta (.-val form)))
+
+    nil))
+
+(defn add-error! [form type]
+  (swap! *component-context* update :errors conj {:source form
+                                                  :source-context *source-context*
+                                                  :type type
+                                                  :env (find-env-for-form type form)}))
+
+(defn- uix-element? [form]
+  (and (list? form) (= '$ (first form))))
+
+(defn- missing-key? [[_ _ attrs :as form]]
+  (cond
+    (and (map? attrs) (not (contains? attrs :key)))
+    (add-error! attrs ::missing-key)
+
+    (or (and (not (map? attrs)) (not (symbol? attrs)))
+        (uix-element? attrs))
+    (add-error! form ::missing-key)))
+
+(def mapping-forms
+  '{:for #{for}
+    :iter-fn #{map mapv map-indexed reduce reduce-kv
+               keep keep-indexed mapcat}})
+
+(defn- lint-missing-key! [kv sym body]
+  (when (and (contains? (get mapping-forms kv) sym)
+             (uix-element? (last body)))
+    (missing-key? (last body))))
+
 (declare lint-body!*)
 
 (def forms
@@ -105,18 +151,20 @@
   (lint-body!* bindings :in-loop? false)
   (run! #(lint-body!* % :in-loop? true) body))
 
-(defmethod maybe-lint :for [[_ bindings & body]]
+(defmethod maybe-lint :for [[sym bindings & body]]
   (let [[binding & bindings] (partition 2 bindings)]
     (lint-body!* (second binding) :in-loop? false)
     (run! (fn [[v expr]] (lint-body!* expr :in-loop? true))
           bindings)
+    (lint-missing-key! :for sym body)
     (run! #(lint-body!* % :in-loop? true) body)))
 
-(defmethod maybe-lint :iter-fn [[_ f :as form]]
+(defmethod maybe-lint :iter-fn [[sym f :as form]]
   (when (and (list? f)
              ('#{fn fn*} (first f))
              (vector? (second f)))
     (let [[_ _ & body] f]
+      (lint-missing-key! :iter-fn sym body)
       (run! #(lint-body!* % :in-loop? true) body))))
 
 (defn- ast->seq [ast]
@@ -126,41 +174,6 @@
                                (mapcat #(if (vector? %) % [%])))))
             ast))
 
-(defn form->loc [form]
-  (select-keys form [:line :column]))
-
-(defn find-env-for-form [type form]
-  (case type
-    (::hook-in-branch ::hook-in-loop
-                      ::deps-coll-literal ::literal-value-in-deps
-                      ::unsafe-set-state ::missing-key)
-    (form->loc (meta form))
-
-    ::inline-function
-    (form->loc (meta (second form)))
-
-    ::deps-array-literal
-    (form->loc (meta (.-val form)))
-
-    nil))
-
-(defn add-error! [form type]
-  (swap! *component-context* update :errors conj {:source form
-                                                  :source-context *source-context*
-                                                  :type type
-                                                  :env (find-env-for-form type form)}))
-
-(defn- uix-element? [form]
-  (and (list? form) (= '$ (first form))))
-
-(defn- missing-key? [[_ _ attrs :as form]]
-  (cond
-    (and (map? attrs) (not (contains? attrs :key)))
-    (add-error! attrs ::missing-key)
-
-    (and (not (map? attrs)) (not (symbol? attrs)))
-    (add-error! form ::missing-key)))
-
 (defn lint-body!*
   [expr & {:keys [in-branch? in-loop?]
            :or {in-branch? *in-branch?*
@@ -169,9 +182,6 @@
             *in-loop?* in-loop?]
     (clojure.walk/prewalk
      (fn [form]
-       (when (uix-element? form)
-         (when *in-loop?*
-           (missing-key? form)))
        (cond
          (hook-call? form)
          (do (when *in-branch?* (add-error! form ::hook-in-branch))
