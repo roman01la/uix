@@ -48,3 +48,9 @@
 (defui test-hook-in-loop []
   (for [x []]
     (uix.core/use-effect (fn []))))
+
+(defui test-missing-key []
+  (for [x []]
+    ($ :div.test-missing-key {} x))
+  (for [x []]
+    ($ :div.test-missing-key ($ x))))

@@ -252,4 +252,10 @@
 
     (testing "should fail on hook call in loop"
       (is (str/includes? out-str (str :uix.linter/hook-in-loop)))
-      (is (str/includes? out-str "React Hook (uix.core/use-effect (fn [])) may be executed more than once.")))))
+      (is (str/includes? out-str "React Hook (uix.core/use-effect (fn [])) may be executed more than once.")))
+
+    (testing "should fail on missing key in a loop"
+      (is (str/includes? out-str (str :uix.linter/missing-key)))
+      (is (str/includes? out-str "UIx element is missing :key attribute, which is required"))
+      (is (str/includes? out-str "($ :div.test-missing-key {} x)"))
+      (is (str/includes? out-str "($ :div.test-missing-key ($ x))")))))
