@@ -133,7 +133,7 @@
   (case type
     (::hook-in-branch ::hook-in-loop
                       ::deps-coll-literal ::literal-value-in-deps
-                      ::unsafe-set-state)
+                      ::unsafe-set-state ::missing-key)
     (form->loc (meta form))
 
     ::inline-function
@@ -150,6 +150,17 @@
                                                   :type type
                                                   :env (find-env-for-form type form)}))
 
+(defn- uix-element? [form]
+  (and (list? form) (= '$ (first form))))
+
+(defn- missing-key? [[_ _ attrs :as form]]
+  (cond
+    (and (map? attrs) (not (contains? attrs :key)))
+    (add-error! attrs ::missing-key)
+
+    (and (not (map? attrs)) (not (symbol? attrs)))
+    (add-error! form ::missing-key)))
+
 (defn lint-body!*
   [expr & {:keys [in-branch? in-loop?]
            :or {in-branch? *in-branch?*
@@ -158,6 +169,9 @@
             *in-loop?* in-loop?]
     (clojure.walk/prewalk
      (fn [form]
+       (when (uix-element? form)
+         (when *in-loop?*
+           (missing-key? form)))
        (cond
          (hook-call? form)
          (do (when *in-branch?* (add-error! form ::hook-in-branch))
@@ -174,6 +188,12 @@
 
 (defn lint-body! [exprs]
   (run! lint-body!* exprs))
+
+(defmethod ana/error-message ::missing-key [_ _]
+  (str "UIx element is missing :key attribute, which is required\n"
+       "since the element is rendered as a list item.\n"
+       "Make sure to add a unique value for `:key` attribute derived from element's props,\n"
+       "do not use index."))
 
 (defmethod ana/error-message ::hook-in-branch [_ {:keys [name column line source]}]
   ;; https://github.com/facebook/react/blob/d63cd972454125d4572bb8ffbfeccbdf0c5eb27b/packages/eslint-plugin-react-hooks/src/RulesOfHooks.js#L457
