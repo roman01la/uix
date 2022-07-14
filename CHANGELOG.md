@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## 0.6.1
+
+### Improvements
+
+- Recursive class names stringifier [ebc178](https://github.com/pitch-io/uix/commit/ebc1787dce975a7608aab5549006b7a71aa327ea)
+
 ## 0.6.0
 
 ### Improvements
