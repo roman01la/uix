@@ -1,6 +1,7 @@
 (ns uix.aot-test
   (:require [clojure.test :refer [deftest is testing]]
-            [uix.compiler.aot :as aot]))
+            [uix.compiler.aot :as aot]
+            [uix.compiler.attributes :as attrs]))
 
 (defmulti x identity)
 
@@ -18,3 +19,10 @@
   (testing "should not throw when there's no Hiccup children"
     (is (aot/validate-children #js [1 2 3]))
     (is (aot/validate-children #js [1 [2 3] [4 [5 6]]]))))
+
+(deftest test-interpret-attrs
+  (let [[props] (attrs/interpret-attrs {:class ["x" ["y" "z" ["p"]]]} #js [] false)]
+    (is (= "x y z p" (.-className props))))
+  (let [[props] (attrs/interpret-attrs {:class ["x" ["y" "z" ["p"]]]} #js [nil "id" "c l ass"] false)]
+    (is (= "c l ass x y z p" (.-className props)))
+    (is (= "id" (.-id props)))))
