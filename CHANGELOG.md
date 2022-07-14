@@ -1,5 +1,15 @@
 # CHANGELOG
 
+## 0.6.0
+
+### Improvements
+
+- Better code location pointing in linting errors [7116d7](https://github.com/pitch-io/uix/commit/7116d76f18d6d7d216ec410894142bd041550de8)
+
+### New
+
+- Linter rule to report on missing `:key` attribute [fed7d8](https://github.com/pitch-io/uix/commit/fed7d8e0e2532dd6edf82dc60425a7a6e062813b)
+
 ## 0.5.0
 
 ### Improvements
