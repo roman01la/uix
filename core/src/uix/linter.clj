@@ -1,4 +1,4 @@
-(ns uix.hooks.linter
+(ns uix.linter
   (:require [clojure.walk]
             [cljs.analyzer :as ana]
             [clojure.string :as str]
@@ -31,7 +31,55 @@
 (defn effect-hook? [form]
   (contains? effect-hooks (name (first form))))
 
-(declare lint-hooks!*)
+(defn form->loc [form]
+  (select-keys form [:line :column]))
+
+(defn find-env-for-form [type form]
+  (case type
+    (::hook-in-branch ::hook-in-loop
+                      ::deps-coll-literal ::literal-value-in-deps
+                      ::unsafe-set-state ::missing-key)
+    (form->loc (meta form))
+
+    ::inline-function
+    (form->loc (meta (second form)))
+
+    ::deps-array-literal
+    (form->loc (meta (.-val form)))
+
+    nil))
+
+(defn add-error! [form type]
+  (swap! *component-context* update :errors conj {:source form
+                                                  :source-context *source-context*
+                                                  :type type
+                                                  :env (find-env-for-form type form)}))
+
+(defn- uix-element? [form]
+  (and (list? form) (= '$ (first form))))
+
+(defn- missing-key? [[_ _ attrs :as form]]
+  (cond
+    (and (map? attrs) (not (contains? attrs :key)))
+    (add-error! attrs ::missing-key)
+
+    (or (and (not (map? attrs))
+             (not (symbol? attrs))
+             (not (list? attrs)))
+        (uix-element? attrs))
+    (add-error! form ::missing-key)))
+
+(def mapping-forms
+  '{:for #{for}
+    :iter-fn #{map mapv map-indexed reduce reduce-kv
+               keep keep-indexed mapcat}})
+
+(defn- lint-missing-key! [kv sym body]
+  (when (and (contains? (get mapping-forms kv) sym)
+             (uix-element? (last body)))
+    (missing-key? (last body))))
+
+(declare lint-body!*)
 
 (def forms
   '{:when #{when when-not when-let when-some when-first}
@@ -62,62 +110,64 @@
   form)
 
 (defmethod maybe-lint :when [[_ test & body]]
-  (lint-hooks!* test :in-branch? false)
-  (run! #(lint-hooks!* % :in-branch? true) body))
+  (lint-body!* test :in-branch? false)
+  (run! #(lint-body!* % :in-branch? true) body))
 
 (defmethod maybe-lint :if [[_ test then else]]
-  (lint-hooks!* test :in-branch? false)
-  (lint-hooks!* then :in-branch? true)
-  (lint-hooks!* else :in-branch? true))
+  (lint-body!* test :in-branch? false)
+  (lint-body!* then :in-branch? true)
+  (lint-body!* else :in-branch? true))
 
 (defmethod maybe-lint :logical [[_ test & tests]]
-  (lint-hooks!* test :in-branch? false)
-  (run! #(lint-hooks!* % :in-branch? true) tests))
+  (lint-body!* test :in-branch? false)
+  (run! #(lint-body!* % :in-branch? true) tests))
 
 (defmethod maybe-lint :cond [[_ clause & clauses]]
-  (lint-hooks!* clause :in-branch? false)
-  (run! #(lint-hooks!* % :in-branch? true) clauses))
+  (lint-body!* clause :in-branch? false)
+  (run! #(lint-body!* % :in-branch? true) clauses))
 
 (defmethod maybe-lint :condp [[_ pred e clause & clauses]]
-  (lint-hooks!* pred :in-branch? false)
-  (lint-hooks!* e :in-branch? false)
-  (lint-hooks!* clause :in-branch? false)
-  (run! #(lint-hooks!* % :in-branch? true) clauses))
+  (lint-body!* pred :in-branch? false)
+  (lint-body!* e :in-branch? false)
+  (lint-body!* clause :in-branch? false)
+  (run! #(lint-body!* % :in-branch? true) clauses))
 
 (defmethod maybe-lint :cond-threaded [[_ e & clauses]]
-  (lint-hooks!* e :in-branch? false)
+  (lint-body!* e :in-branch? false)
   (->> (partition 2 clauses)
        (run! (fn [[test expr]]
-               (lint-hooks!* test :in-branch? false)
-               (lint-hooks!* expr :in-branch? true)))))
+               (lint-body!* test :in-branch? false)
+               (lint-body!* expr :in-branch? true)))))
 
 (defmethod maybe-lint :some-threaded [[_ e clause & clauses]]
-  (lint-hooks!* e :in-branch? false)
-  (lint-hooks!* clause :in-branch? false)
-  (run! #(lint-hooks!* % :in-branch? true) clauses))
+  (lint-body!* e :in-branch? false)
+  (lint-body!* clause :in-branch? false)
+  (run! #(lint-body!* % :in-branch? true) clauses))
 
 (defmethod maybe-lint :case [[_ e clause & clauses]]
-  (lint-hooks!* e :in-branch? false)
-  (lint-hooks!* clause :in-branch? false)
-  (run! #(lint-hooks!* % :in-branch? true) clauses))
+  (lint-body!* e :in-branch? false)
+  (lint-body!* clause :in-branch? false)
+  (run! #(lint-body!* % :in-branch? true) clauses))
 
 (defmethod maybe-lint :loop [[_ bindings & body]]
-  (lint-hooks!* bindings :in-loop? false)
-  (run! #(lint-hooks!* % :in-loop? true) body))
+  (lint-body!* bindings :in-loop? false)
+  (run! #(lint-body!* % :in-loop? true) body))
 
-(defmethod maybe-lint :for [[_ bindings & body]]
+(defmethod maybe-lint :for [[sym bindings & body]]
   (let [[binding & bindings] (partition 2 bindings)]
-    (lint-hooks!* (second binding) :in-loop? false)
-    (run! (fn [[v expr]] (lint-hooks!* expr :in-loop? true))
+    (lint-body!* (second binding) :in-loop? false)
+    (run! (fn [[v expr]] (lint-body!* expr :in-loop? true))
           bindings)
-    (run! #(lint-hooks!* % :in-loop? true) body)))
+    (lint-missing-key! :for sym body)
+    (run! #(lint-body!* % :in-loop? true) body)))
 
-(defmethod maybe-lint :iter-fn [[_ f :as form]]
+(defmethod maybe-lint :iter-fn [[sym f :as form]]
   (when (and (list? f)
              ('#{fn fn*} (first f))
              (vector? (second f)))
     (let [[_ _ & body] f]
-      (run! #(lint-hooks!* % :in-loop? true) body))))
+      (lint-missing-key! :iter-fn sym body)
+      (run! #(lint-body!* % :in-loop? true) body))))
 
 (defn- ast->seq [ast]
   (tree-seq :children (fn [{:keys [children] :as ast}]
@@ -126,31 +176,7 @@
                                (mapcat #(if (vector? %) % [%])))))
             ast))
 
-(defn form->loc [form]
-  (select-keys form [:line :column]))
-
-(defn find-env-for-form [type form]
-  (case type
-    (::hook-in-branch ::hook-in-loop
-                      ::deps-coll-literal ::literal-value-in-deps
-                      ::unsafe-set-state)
-    (form->loc (meta form))
-
-    ::inline-function
-    (form->loc (meta (second form)))
-
-    ::deps-array-literal
-    (form->loc (meta (.-val form)))
-
-    nil))
-
-(defn add-error! [form type]
-  (swap! *component-context* update :errors conj {:source form
-                                                  :source-context *source-context*
-                                                  :type type
-                                                  :env (find-env-for-form type form)}))
-
-(defn lint-hooks!*
+(defn lint-body!*
   [expr & {:keys [in-branch? in-loop?]
            :or {in-branch? *in-branch?*
                 in-loop? *in-loop?*}}]
@@ -172,8 +198,14 @@
      expr)
     nil))
 
-(defn lint-hooks! [exprs]
-  (run! lint-hooks!* exprs))
+(defn lint-body! [exprs]
+  (run! lint-body!* exprs))
+
+(defmethod ana/error-message ::missing-key [_ _]
+  (str "UIx element is missing :key attribute, which is required\n"
+       "since the element is rendered as a list item.\n"
+       "Make sure to add a unique value for `:key` attribute derived from element's props,\n"
+       "do not use index."))
 
 (defmethod ana/error-message ::hook-in-branch [_ {:keys [name column line source]}]
   ;; https://github.com/facebook/react/blob/d63cd972454125d4572bb8ffbfeccbdf0c5eb27b/packages/eslint-plugin-react-hooks/src/RulesOfHooks.js#L457
@@ -227,7 +259,7 @@
 
 (defn lint! [sym form env]
   (binding [*component-context* (atom {:errors []})]
-    (lint-hooks! form)
+    (lint-body! form)
     (lint-re-frame! form env)
     (let [{:keys [errors]} @*component-context*
           {:keys [column line]} env]

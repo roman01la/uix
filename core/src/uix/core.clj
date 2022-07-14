@@ -3,7 +3,7 @@
   (:require [uix.compiler.aot]
             [uix.source]
             [cljs.core]
-            [uix.hooks.linter :as hooks.linter]
+            [uix.linter]
             [uix.dev]
             [uix.lib]))
 
@@ -59,7 +59,7 @@
   A component should have a single argument of props."
   [sym & fdecl]
   (let [[fname args fdecl] (parse-sig sym fdecl)]
-    (hooks.linter/lint! sym fdecl &env)
+    (uix.linter/lint! sym fdecl &env)
     (if (uix.lib/cljs-env? &env)
       (let [var-sym (-> (str (-> &env :ns :name) "/" sym) symbol (with-meta {:tag 'js}))
             body (uix.dev/with-fast-refresh var-sym fdecl)]
@@ -97,7 +97,7 @@
     :else coll))
 
 (defn- make-hook-with-deps [sym env form f deps]
-  (hooks.linter/lint-exhaustive-deps! env form f deps)
+  (uix.linter/lint-exhaustive-deps! env form f deps)
   (if deps
     `(~sym ~f ~(vector->js-array deps))
     `(~sym ~f)))
@@ -139,8 +139,8 @@
 
   See: https://reactjs.org/docs/hooks-reference.html#useimperativehandle"
   ([ref f]
-   (hooks.linter/lint-exhaustive-deps! &env &form f nil)
+   (uix.linter/lint-exhaustive-deps! &env &form f nil)
    `(uix.hooks.alpha/use-imperative-handle ~ref ~f))
   ([ref f deps]
-   (hooks.linter/lint-exhaustive-deps! &env &form f deps)
+   (uix.linter/lint-exhaustive-deps! &env &form f deps)
    `(uix.hooks.alpha/use-imperative-handle ~ref ~f ~(vector->js-array deps))))

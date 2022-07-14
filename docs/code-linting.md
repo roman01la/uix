@@ -151,6 +151,18 @@ This won't cause actual bugs, but it prevents further type checking to determine
   (use-effect #(do-something active? id) [active? id])))
 ```
 
+# Missing `:key` attribute linter
+
+UIx will check for missing `:key` attribute when UIx element is rendered as a list item (via `for`, `map`, etc.)
+
+```clojure
+(for [x items]
+  ($ item {:title "hello" :x x})) ;; error: missing key
+
+(for [x items]
+  ($ item {:title "hello" :x x :key x})) ;; no error
+```
+
 # Reagent interop linter
 
 When migrating from Reagent + re-frame to UIx you might want to keep using re-frame or at least stick with it for some time, because migrating data management is not as simple as rewriting UI components.
