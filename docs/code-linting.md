@@ -163,6 +163,15 @@ UIx will check for missing `:key` attribute when UIx element is rendered as a li
   ($ item {:title "hello" :x x :key x})) ;; no error
 ```
 
+## Config
+
+UIx's linter can be provided with external configuration that should live in `.uix/config.edn` file at the root of your project.
+
+```clojure
+{:linters {:react-key {:enabled? false}}}
+;; the rule is enabled by default
+```
+
 # Reagent interop linter
 
 When migrating from Reagent + re-frame to UIx you might want to keep using re-frame or at least stick with it for some time, because migrating data management is not as simple as rewriting UI components.
@@ -184,13 +193,9 @@ re-frame subscription (rf/subscribe [:user/id])) is non-reactive in UIx componen
 Read https://github.com/pitch-io/uix/blob/master/docs/interop-with-reagent.md#syncing-with-ratoms-and-re-frame for more context
 ```
 
-# Configuring the linter
+## Config
 
 UIx's linter can be provided with external configuration that should live in `.uix/config.edn` file at the root of your project.
-
-Currently the only onfiguration option available is for re-frame `subscribe` checks for cases when you are wrapping the function in application code.
-
-Example
 
 ```clojure
 {:linters

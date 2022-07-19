@@ -17,6 +17,16 @@
 (def ^:dynamic *in-branch?* false)
 (def ^:dynamic *in-loop?* false)
 
+(defn- read-config [path]
+  (let [file (io/file ".uix/config.edn")
+        config (try
+                 (if (.isFile file)
+                   (clojure.edn/read-string (slurp file))
+                   {})
+                 (catch Exception e
+                   {}))]
+    (get-in config path)))
+
 (defn hook? [sym]
   (and (symbol? sym)
        (some? (re-find #"^use-|use[A-Z]" (name sym)))))
@@ -79,8 +89,14 @@
     (uix-element? expr) (missing-key? expr)
     (list? expr) (recur (last expr))))
 
+(def react-key-rule-enabled?
+  (if-some [v (read-config [:linters :react-key :enabled?])]
+    v
+    true))
+
 (defn- lint-missing-key! [kv sym body]
-  (when (contains? (get mapping-forms kv) sym)
+  (when (and react-key-rule-enabled?
+             (contains? (get mapping-forms kv) sym))
     (lint-missing-key!* (last body))))
 
 (declare lint-body!*)
@@ -230,16 +246,6 @@
        (symbol? (first form))
        (= "subscribe" (name (first form)))))
 
-(defn- read-config [path]
-  (let [file (io/file ".uix/config.edn")
-        config (try
-                 (if (.isFile file)
-                   (clojure.edn/read-string (slurp file))
-                   {})
-                 (catch Exception e
-                   {}))]
-    (get-in config path)))
-
 (defn- read-re-frame-config []
   (-> (reduce-kv (fn [ret k v]
                    (update ret v (fnil conj #{}) k))
@@ -247,11 +253,13 @@
                  (read-config [:linters :re-frame :resolve-as]))
       (get 're-frame.core/subscribe)))
 
+(def re-frame-config
+  (read-re-frame-config))
+
 (defn lint-re-frame! [form env]
-  (let [config (read-re-frame-config)
-        sources (->> (uix.lib/find-form rf-subscribe-call? form)
+  (let [sources (->> (uix.lib/find-form rf-subscribe-call? form)
                      (keep #(let [v (ana/resolve-var env (first %))]
-                              (when (contains? config (:name v))
+                              (when (contains? re-frame-config (:name v))
                                 (assoc v :source %)))))]
     (run! #(ana/warning ::non-reactive-re-frame-subscribe env %)
           sources)))
