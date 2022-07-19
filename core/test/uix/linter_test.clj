@@ -258,4 +258,5 @@
       (is (str/includes? out-str (str :uix.linter/missing-key)))
       (is (str/includes? out-str "UIx element is missing :key attribute, which is required"))
       (is (str/includes? out-str "($ :div.test-missing-key {} x)"))
-      (is (str/includes? out-str "($ :div.test-missing-key ($ x))")))))
+      (is (str/includes? out-str "($ :div.test-missing-key ($ x))"))
+      (is (str/includes? out-str "($ :div.test-missing-key-nested ($ x))")))))

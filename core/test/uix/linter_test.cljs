@@ -53,4 +53,9 @@
   (for [x []]
     ($ :div.test-missing-key {} x))
   (for [x []]
-    ($ :div.test-missing-key ($ x))))
+    ($ :div.test-missing-key ($ x)))
+  (for [x []]
+    (let [x x]
+      (do
+        ($ :div.test-missing-key ($ x))
+        ($ :div.test-missing-key-nested ($ x))))))

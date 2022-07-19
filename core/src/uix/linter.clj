@@ -74,10 +74,14 @@
     :iter-fn #{map mapv map-indexed reduce reduce-kv
                keep keep-indexed mapcat}})
 
+(defn- lint-missing-key!* [expr]
+  (cond
+    (uix-element? expr) (missing-key? expr)
+    (list? expr) (recur (last expr))))
+
 (defn- lint-missing-key! [kv sym body]
-  (when (and (contains? (get mapping-forms kv) sym)
-             (uix-element? (last body)))
-    (missing-key? (last body))))
+  (when (contains? (get mapping-forms kv) sym)
+    (lint-missing-key!* (last body))))
 
 (declare lint-body!*)
 
