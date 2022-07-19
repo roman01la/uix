@@ -1,5 +1,12 @@
 # CHANGELOG
 
+## 0.6.2
+
+### Improvements
+
+- Improved linter rule for missing `:key` attribute [1ee076](https://github.com/pitch-io/uix/commit/1ee076bf1f877e82f105a65faaa0e6586e7c4dc1)
+- Make missing `:key` rule configurable [6f4873](https://github.com/pitch-io/uix/commit/6f4873af5881cda2e3a44e0c4223c399efcf79e4)
+
 ## 0.6.1
 
 ### Improvements
