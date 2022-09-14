@@ -159,5 +159,12 @@
   (is (.-uix-component? ^js comp-42336))
   (is (= (.-displayName comp-42336) (str `comp-42336))))
 
+(defui comp-props-map [props] 1)
+
+(deftest test-props-map
+  (is (= 1 (comp-props-map #js {:argv nil})))
+  (is (= 1 (comp-props-map #js {:argv {}})))
+  (is (thrown-with-msg? js/Error #"UIx component expects a map of props, but instead got \[\]" (comp-props-map #js {:argv []}))))
+
 (defn -main []
   (run-tests))

@@ -18,10 +18,15 @@
 
 (defn- with-args-component [sym var-sym args body]
   `(defn ~sym [props#]
-     (let [~args (cljs.core/array (glue-args props#))
+     (let [clj-props# (glue-args props#)
+           ~args (cljs.core/array clj-props#)
            f# (fn [] ~@body)]
        (if ~goog-debug
-         (binding [*current-component* ~var-sym] (f#))
+         (binding [*current-component* ~var-sym]
+           (assert (or (map? clj-props#)
+                       (nil? clj-props#))
+                   (str "UIx component expects a map of props, but instead got " clj-props#))
+           (f#))
          (f#)))))
 
 (defn parse-sig [name fdecl]
