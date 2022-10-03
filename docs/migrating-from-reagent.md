@@ -126,7 +126,7 @@ While arguably in Reagent a one-to-one mapping between arguments and parameters 
 
 ## Global shared state
 
-In Reagent it's common to have shared state in a form of a global var that holds an `r/atom`. In UIx and React shared state is not global at namesapce level, instead it's a local state that lives in UI tree and is being shared down the tree via React Context.
+In Reagent it's common to have shared state in the form of a global var that holds an `r/atom`. In UIx and React shared state is not global at the namespace level, instead it's a local state that lives in UI tree and is being shared down the tree via React Context.
 
 ```clojure
 ;; Reagent
