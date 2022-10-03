@@ -1,6 +1,6 @@
 # Components
 
-UIx components are defined using `defui` macro that returns React elements created using `$` macro. The signature of `$` macro is similar to `React.createElement` , with an additional shorthand syntax in the tag name to declare CSS id and class names, similar to Hiccup:
+UIx components are defined using the `defui` macro, which returns React elements created using the `$` macro. The signature of `$` macro is similar to `React.createElement`, with an additional shorthand syntax in the tag name to declare CSS id and class names (similar to Hiccup):
 
 ```js
 // React without JSX
@@ -34,7 +34,7 @@ React.createElement("div", { onClick: f }, child1, child2);
 
 ## Component props
 
-`defui` components are similar to React’s JSX components in a way how they take props and children, and provide them within a component in a single map of props.
+`defui` components are similar to React’s JSX components. They take props and children and provide them within a component as a single map of props.
 
 Let's take a look at the following example:
 
@@ -46,9 +46,9 @@ function Button({ onClick, children }) {
 <Button onClick={console.log}>Press me</Button>;
 ```
 
-The `Button` component takes JSX attributes and `"Press me"` string as a child element. The signature of the component declares a single parameter which is assigned to an object of passed in attributes + child elements stored under `children` key.
+The `Button` component takes JSX attributes and the `"Press me"` string as a child element. The signature of the component declares a single parameter which is assigned to an object of passed in attributes + child elements stored under the `children` key.
 
-Similarly in UIx, components are taking a map of props and an arbitrary number of child elements, and the signature of the `defui` declares a single parameter which is assigned a hash map of passed in properties + child elements assigned to `:children` key.
+Similarly in UIx, components take a map of props and an arbitrary number of child element. The signature of `defui` declares a single parameter which is assigned a hash map of passed in properties + child elements stored under the `:children` key.
 
 ```clojure
 (defui button [{:keys [on-click children]}]
@@ -60,7 +60,7 @@ Similarly in UIx, components are taking a map of props and an arbitrary number o
 
 ## DOM attributes
 
-DOM attributes are keywords in kebab-case. Values that are normally strings without whitespace can be written as keywords as well, this may also improve autocompletion in your IDE.
+DOM attributes are written as keywords in kebab-case. Values that are normally strings without whitespace can be written as keywords as well, which may improve autocompletion in your IDE.
 
 ```clojure
 ($ :button {:title "play button"
@@ -69,7 +69,7 @@ DOM attributes are keywords in kebab-case. Values that are normally strings with
 
 ## children
 
-Similar to React, child components are passed as `children` in props map. `children` is JS Array of React elements.
+Similar to React, child components are passed as `children` in the props map. `children` is a JS Array of React elements.
 
 ```clojure
 (defui popover [{:keys [children]}]
@@ -78,7 +78,7 @@ Similar to React, child components are passed as `children` in props map. `child
 
 ## :ref attribute
 
-[Refs](https://reactjs.org/docs/refs-and-the-dom.html) provide a way to refer to DOM nodes. In UIx ref is passed as a normal attribute onto DOM elements, similar to React. `use-ref` return a ref with Atom-like API: the ref can be dereferenced `@` and updated with either `clojure.core/reset!` or `clojure.core/swap!`.
+[Refs](https://reactjs.org/docs/refs-and-the-dom.html) provide a way to refer to DOM nodes. In UIx `ref` is passed as a normal attribute onto DOM elements, similar to React. `use-ref` returns a ref with an Atom-like API: the ref can be dereferenced using `@` and updated with either `clojure.core/reset!` or `clojure.core/swap!`.
 
 ```clojure
 (defui form []
@@ -89,7 +89,7 @@ Similar to React, child components are passed as `children` in props map. `child
         "press to focus on input"))))
 ```
 
-> UIx components doesn't take refs because they are built on top of React's function-based components that doesn't have instances.
+> UIx components don't take refs because they are built on top of React's function-based components which don't have instances.
 
 When you need to pass a ref into child component, pass it as a normal prop.
 
@@ -106,7 +106,7 @@ When you need to pass a ref into child component, pass it as a normal prop.
 ```
 
 ## Class-based components
-Sometimes you want to create a class-based React component, for example an error boundary. For that there's `uix.core/create-class` function.
+Sometimes you want to create a class-based React component, for example an error boundary. For that there's the `uix.core/create-class` function.
 
 ```clojure
 (def error-boundary
