@@ -6,7 +6,7 @@ There are multiple differences from pure React though.
 
 ## Dependency array
 
-Some hooks accept an array of dependencies as the second argument. While in pure React it has to be an array literal, `#js []`, to make it more idiomatic for Clojure, in UIx it is a vector literal `[]`.
+Some hooks accept an array of dependencies as the second argument. While in pure React this has to be an array literal, `#js []`, UIx uses a vector literal `[]` to make it more idiomatic for Clojure.
 
 ```clojure
 (uix/use-effect
@@ -35,7 +35,7 @@ When the same dependency has a different value between component updates, the ho
   [x]) ;; x = 2, `x` has changed, rerun the hook
 ```
 
-That works as expected for primitive values that map to identical constructs in JS like numbers and strings, but what about Clojure's maps and vectors that can be compared by value?
+This works as expected for primitive values that map to identical constructs in JS like numbers and strings, but what about Clojure's maps and vectors that can be compared by value?
 
 TL;DR: As a rule of thumb, you should prefer to use only primitives as dependencies inside of a hook.
 
@@ -63,15 +63,15 @@ Thus it's important to think about what type of values you are passing as depend
     [a])))
 ```
 
-### What about other Clojure's primitives?
+### What about other ClojureScript primitives?
 
-In addition to JavaScript's primitives like `Number` or `String`, ClojureScript has keywords, symbols and UUIDs that are represented as JS objects when compiled into JS and thus fall into the same trap with equality check.
+In addition to JavaScript primitives like `Number` or `String`, ClojureScript has keywords, symbols, and UUIDs that are represented as JS objects when compiled into JS and thus fall into the same trap with equality checks.
 
 To make things more idiomatic and less cumbersome in Clojure, UIx automatically stringifies those three types when passed in the dependency vector.
 
 ## Return value in effect hooks
 
-The _setup_ function, that is passed into one of the effect hooks, requires the return value to be either a function (that will be called on _cleanup_) or `js/undefined`. Otherwise React will throw an error saying that it got something else.
+The _setup_ function, which is passed into one of the effect hooks, requires the return value to be either a function (that will be called on _cleanup_) or `js/undefined`. Otherwise React will throw an error saying that it got something else.
 
 ```clojure
 (react/useEffect
@@ -99,9 +99,9 @@ Thus when using React hooks directly you'd have to explicitly return `js/undefin
   #js [])
 ```
 
-This complication is also handled by UIx and if the return value is not a function it will automatically return `js/undefined`. However keep in mind that, since in Clojure the last expression is always returned implicitly, you still have to make sure the hook doesn't return a function accidentally, because it's going to be executed in its _cleanup_ phase.
+This complication is also handled by UIx and if the return value is not a function it will automatically return `js/undefined`. However, keep in mind that since in Clojure the last expression is always returned implicitly, you still have to make sure the hook doesn't return a function accidentally, because it's going to be executed in its _cleanup_ phase.
 
-In other words, React will never complain about return value in UIx's effect hooks, unlike in pure React. And since Clojure has implicit return, make sure you don't return a function by accident.
+In other words, React will never complain about the return value in UIx's effect hooks, unlike in pure React. And since Clojure has implicit return, make sure you don't return a function by accident.
 
 ```clojure
 (uix/use-effect
@@ -111,7 +111,7 @@ In other words, React will never complain about return value in UIx's effect hoo
 
 (uix/use-effect
   (fn []
-    (map inc [1 2 3])) ;; return value is a collection, nothing wrong here as well
+    (map inc [1 2 3])) ;; return value is a collection, nothing wrong here either
   [])
 
   (uix/use-effect
@@ -123,15 +123,15 @@ In other words, React will never complain about return value in UIx's effect hoo
 
 ## Differences from `use-callback` and `use-memo` hooks
 
-In pure React both the `use-callback` and `use-memo` hooks accept an optional dependency array. However, since the purpose of both hooks is memoization it generally doesn't make sense to call them without any dependencies; not providing the dependency array effectively means there's no memoization applied. In JavaScript this is enforced by ESLint rule, in UIx on the other hand we simply removed the single arity method for those hooks, and so you must always pass a dependency vector.
+In pure React both the `use-callback` and `use-memo` hooks accept an optional dependency array. However, since the purpose of both hooks is memoization it generally doesn't make sense to call them without any dependencies; not providing the dependency array effectively means there's no memoization applied. In JavaScript this is enforced by an ESLint rule. In UIx on we simply removed the single arity method for those hooks, and so you must always pass a dependency vector.
 
 ## `use-ref` hook
 
 The `use-ref` hook returns an object that has a stable identity throughout the lifecycle of a component and allows storing arbitrary values inside of it. A ref is basically a mutable container bound to an instance of a component. This aligns pretty well with Clojure's `ref` types, namely `Atom` which is commonly used as a mutable container for immutable values.
 
-While in pure React `useRef` returns an object with `current` property, in UIx `use-ref` returns the same object, but with an API identical to `Atom`. The ref can be dereferenced `@` to read its current value, and updated via `reset!` or `swap!` to set a new value.
+While in pure React `useRef` returns an object with a `current` property, in UIx `use-ref` returns the same object but with an API identical to `Atom`. The ref can be dereferenced using `@` to read the current value, and updated via `reset!` or `swap!` to set a new value.
 
-Note that unlike `r/atom` in Reagent, a ref in UIx and React is not a state primitive, it's a mutable value that doesn't trigger an update.
+Note that unlike `r/atom` in Reagent, a ref in UIx and React is not a state primitive, it's a mutable value and doesn't trigger an update.
 
 ```clojure
 (defui component []
