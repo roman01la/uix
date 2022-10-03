@@ -1,8 +1,8 @@
 # Hot reloading
 
-While UIx component tree can be reloaded in a traditional way, by re-rendering from the root after reload, this resets component local state and re-runs hooks. It happens because effectively a reloaded namespace creates new component functions which in turn invailidates UI tree when re-rendering after reload and thus updated components are re-mounted.
+While a UIx component tree can be reloaded in a traditional way, by re-rendering from the root after reload, this resets component local state and re-runs hooks. It happens because the reloaded namespace will create new component functions, which in turn invalidate the UI tree when re-rendering after reload and cause the updated components to be re-mounted.
 
-[react-refresh](https://www.npmjs.com/package/react-refresh) makes it possible to reload components in a way that preserves local state and state of hooks.
+[react-refresh](https://www.npmjs.com/package/react-refresh) makes it possible to reload components in a way that preserves local state and the state of hooks.
 
 ## Setup for shadow-cljs
 
@@ -10,7 +10,7 @@ While UIx component tree can be reloaded in a traditional way, by re-rendering f
 
 2. Install the package `yarn add react-refresh --dev`
 
-3. Create dev-only namespace that will be responsible for managning hot-reloading
+3. Create a dev-only namespace that will be responsible for managning hot-reloading
 
 ```clojure
 (ns my.app.preload
@@ -34,8 +34,8 @@ While UIx component tree can be reloaded in a traditional way, by re-rendering f
   {:devtools {:preloads [my.app.preload]}}}}
 ```
 
-5. That's it. Now you can edit UIx component, hit save and once reloaded in the browser, local state should be preserved.
+5. That's it. Now you can edit a UIx component, hit save, and once reloaded in the browser the local state should be preserved.
 
 ### Things to look out for
 
-Make sure that your UI is not re-rendered from the root in a trasitional way when using fast-refresh, otherwise fast-refresh won't work and you'll still get state reset.
+Make sure that your UI is not re-rendered from the root in a traditional way when using fast-refresh, otherwise fast-refresh won't work and the state will be reset.
