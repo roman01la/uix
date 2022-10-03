@@ -10,7 +10,7 @@ Let's say you want to split out a library of UI components into a separate bundl
   ...)
 ```
 
-Similarly to React, with UIx you can use `uix.core/lazy` that will take care of loading UIx component from a separate module. Then in UI code you can use React's `Suspense` to load the component lazily and display a fallback UI while it's loading. The example below demonstrates how to create and load a lazy component using shadow's loader API.
+Similarly to React, with UIx you can use `uix.core/lazy` that will take care of loading the UIx component from a separate module. Then in UI code you can use React's `Suspense` to load the component lazily and display a fallback UI while it's loading. The example below demonstrates how to create and load a lazy component using the loader API from [shadow-cljs](https://github.com/thheller/shadow-cljs).
 
 ```clojure
 (ns app.core
@@ -47,4 +47,4 @@ For the above to compile correctly you'd have to update build config in `shadow-
 
 If you are not familiar with ClojureScript's `:modules` configuration, make sure to read [documentation about this compiler option](https://clojurescript.org/reference/compiler-options#modules).
 
-Also check out [React's documentation page on Code-splitting and React.lazy](https://reactjs.org/docs/code-splitting.html) for more example.
+Also check out [React's documentation page on Code-splitting and React.lazy](https://reactjs.org/docs/code-splitting.html) for more examples.
