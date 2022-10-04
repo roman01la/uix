@@ -29,7 +29,7 @@ Here’s how to use it in UIx:
 When a non-UIx component is passed into `$`, the props map is converted into JS object using the following set of rules:
 
 1. kebab-cased keys are automatically converted into camel-cased keys.
-   - Similarly toprops in a DOM element, the following keys are renamed into their React counterparts:
+   - Similarly to props in a DOM element, the following keys are renamed into their React counterparts:
      - `:class` -> `"className"`
      - `:for` -> `"htmlFor"`
      - `:charset` -> `"charSet"`
