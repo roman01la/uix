@@ -2,9 +2,9 @@
 
 ## Using React components in UIx
 
-In [“Elements”](/docs/elements.md) section it was briefly mentioned that React components written in JavaScript can be used in `$` macro, but with a difference in how props are passed into such a component.
+In the [“Elements”](/docs/elements.md) section it was briefly mentioned that React components written in JavaScript can be used in the `$` macro, but with a difference in how props are passed into such a component.
 
-As an example lets say we have `Button` component that we want to use in UIx component.
+As an example, let's say we have `Button` component that we want to use in a UIx component.
 
 ```js
 function Button({ onClick, title, style, className, children }) {
@@ -26,10 +26,10 @@ Here’s how to use it in UIx:
   "press me")
 ```
 
-When a non-UIx component is passed into `$`, props map is converted into JS object using the following set of rules:
+When a non-UIx component is passed into `$`, the props map is converted into JS object using the following set of rules:
 
 1. kebab-cased keys are automatically converted into camel-cased keys.
-   - Similarly to DOM elements props, the following keys are renamed into their React counterparts:
+   - Similarly to props in a DOM element, the following keys are renamed into their React counterparts:
      - `:class` -> `"className"`
      - `:for` -> `"htmlFor"`
      - `:charset` -> `"charSet"`
@@ -41,9 +41,9 @@ When a non-UIx component is passed into `$`, props map is converted into JS obje
 
 ## Using UIx components in React
 
-Now the other way around, we want to use UIx component in React component.
+Now the other way around, we want to use a UIx component in a React component.
 
-To achieve this we have to write interop layer using `uix.core/as-react` helper that takes a function which will take React props as a bean and call UIx component.
+To achieve this we have to write interop layer using `uix.core/as-react` helper that takes a function which will take React props as a bean and call the UIx component.
 
 > Note that `as-react` doesn’t transform camel case keys into kebab case.
 

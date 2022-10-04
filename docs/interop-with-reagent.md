@@ -2,7 +2,7 @@
 
 ## Using Reagent components in UIx
 
-In order to use Reagent component in UIx you just have to wrap Reagent's Hiccup with `r/as-element` so that Reagent can take care of Hiccup and convert it into React calls.
+In order to use a Reagent component in UIx you need to wrap Reagent's Hiccup with `r/as-element` so that Reagent can take care of Hiccup and convert it into React calls.
 
 ```clojure
 (defn reagent-component []
@@ -14,7 +14,7 @@ In order to use Reagent component in UIx you just have to wrap Reagent's Hiccup 
 
 ## Using UIx components in Reagent
 
-When using UIx component in Reagent or anywhere else all you have to do is to keep using `$` macro. The macro will make sure that UIx component is properly created, no matter in which context it is used.
+When using a UIx component in Reagent (or anywhere else) you can continue to use the`$` macro without changing anything. The macro will make sure that UIx component is properly created no matter  which context it is used in.
 
 ```clojure
 (defui uix-component []
@@ -26,7 +26,7 @@ When using UIx component in Reagent or anywhere else all you have to do is to ke
 
 ## Syncing with ratoms and re-frame
 
-External data sources can be consumed in hooks-based components via `useSyncExternalStoreWithSelector` from `"use-sync-external-store"` package (in React v18 the function is a part of public API, not need to install the package). This part is only concerned around making UI components reactive on external data sources. How the state is updated doesn't change.
+External data sources can be consumed in hooks-based components via `useSyncExternalStoreWithSelector` from the `"use-sync-external-store"` package (in React v18 the function is a part of the public API so there is no need to install the package). This part is only concerned about making the UI components reactive on external data sources. How the state is updated doesn't change.
 
 ### Implementation
 

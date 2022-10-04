@@ -1,10 +1,10 @@
 # Elements
 
-UIx is using `$` to create elements that describe UI structure. There are 3 main types of elements: DOM elements, UIx component instances and interop elements.
+UIx is using `$` to create elements that describe UI structure. There are 3 main types of elements: DOM elements, UIx component instances, and interop elements.
 
 ## DOM elements
 
-`$` takes tag name keyword, optional map of attributes and zero or more child elements.
+`$` takes a tag name keyword, an optional map of attributes, and zero or more child elements.
 
 ```clojure
 ($ :button {:title "Submit"} "press me")
@@ -20,7 +20,7 @@ Element name is declared as a keyword with optional `id` and `class` attributes 
 
 ## UIx component instances
 
-Component instance is also created via `$` macro call, where the first argument is the component function itself, the second argument is an optional map of props and the rest are child elements.
+Component instances are also created via the `$` macro call, where the first argument is the component function itself, the second argument is an optional map of props, and the rest are child elements.
 
 ```clojure
 (defui button [{:keys [on-click children]}]
@@ -33,7 +33,7 @@ Component instance is also created via `$` macro call, where the first argument 
 
 ## React component instances
 
-React components written in JavaScript can be used directly in UIx with a minor difference in how props are passed into a component, more on that in [“Interop with React”](/docs/interop-with-react.md) page.
+React components written in JavaScript can be used directly in UIx with a minor differences in how props are passed into a component. See more detalis on the [“Interop with React”](/docs/interop-with-react.md) page.
 
 ```clojure
 ($ Button {:on-click #(js/console.log :click)}

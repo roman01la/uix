@@ -1,7 +1,7 @@
 # Utilities
 
 ## Component's source string
-Sometimes you might need to print component's source as a string, the most common use case would be when building a design system it's useful to display source alongside live UI. Instead of writing code twice (as UI code and as source string) an dkeeping it in sync, it would be cool to just print UI code itself.
+Sometimes you might need to print a component's source as a string. The most common use case would be when building a design system where it's useful to display the source alongside live UI. Instead of writing code twice (as UI code and as source string) and keeping it in sync, it is possible to print the UI code directly.
 
 `uix.core/source` macro does exactly that, it takes a reference to a component and returns its source string at compile-time:
 
