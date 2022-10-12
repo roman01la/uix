@@ -5,9 +5,9 @@
 
 (deftest test-parse-sig
   (is (thrown-with-msg? AssertionError #"uix.core\/defui doesn't support multi-arity"
-                        (uix.core/parse-sig 'component-name '(([props]) ([props x])))))
+                        (uix.core/parse-sig 'uix.core/defui 'component-name '(([props]) ([props x])))))
   (is (thrown-with-msg? AssertionError #"uix.core\/defui is a single argument component"
-                        (uix.core/parse-sig 'component-name '([props x])))))
+                        (uix.core/parse-sig 'uix.core/defui 'component-name '([props x])))))
 
 (deftest test-vector->js-array
   (is (= '(uix.core/jsfy-deps (cljs.core/array 1 2 3)) (uix.core/vector->js-array [1 2 3])))
@@ -35,3 +35,7 @@
 (uix.core/defui clj-component [props] props)
 (deftest test-defui
   (is (= {:x 1} (clj-component {:x 1}))))
+
+(def clj-fn-component (uix.core/fn [props] props))
+(deftest test-fn
+  (is (= {:x 1} (clj-fn-component {:x 1}))))

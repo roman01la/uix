@@ -1,6 +1,8 @@
 (ns uix.core
   "Public API"
-  (:require [uix.compiler.aot]
+  (:refer-clojure :exclude [fn])
+  (:require [clojure.core :as core]
+            [uix.compiler.aot]
             [uix.source]
             [cljs.core]
             [uix.linter]
@@ -11,7 +13,7 @@
 
 (defn- no-args-component [sym var-sym body]
   `(defn ~sym []
-     (let [f# (fn [] ~@body)]
+     (let [f# (core/fn [] ~@body)]
        (if ~goog-debug
          (binding [*current-component* ~var-sym] (f#))
          (f#)))))
@@ -20,7 +22,7 @@
   `(defn ~sym [props#]
      (let [clj-props# (glue-args props#)
            ~args (cljs.core/array clj-props#)
-           f# (fn [] ~@body)]
+           f# (core/fn [] ~@body)]
        (if ~goog-debug
          (binding [*current-component* ~var-sym]
            (assert (or (map? clj-props#)
@@ -29,7 +31,27 @@
            (f#))
          (f#)))))
 
-(defn parse-sig [name fdecl]
+(defn- no-args-fn-component [sym var-sym body]
+  `(core/fn ~sym []
+     (let [f# (core/fn [] ~@body)]
+       (if ~goog-debug
+         (binding [*current-component* ~var-sym] (f#))
+         (f#)))))
+
+(defn- with-args-fn-component [sym var-sym args body]
+  `(core/fn ~sym [props#]
+     (let [clj-props# (glue-args props#)
+           ~args (cljs.core/array clj-props#)
+           f# (core/fn [] ~@body)]
+       (if ~goog-debug
+         (binding [*current-component* ~var-sym]
+           (assert (or (map? clj-props#)
+                       (nil? clj-props#))
+                   (str "UIx component expects a map of props, but instead got " clj-props#))
+           (f#))
+         (f#)))))
+
+(defn parse-sig [form name fdecl]
   (let [[fdecl m] (if (string? (first fdecl))
                     [(next fdecl) {:doc (first fdecl)}]
                     [fdecl {}])
@@ -46,13 +68,13 @@
         m (conj (if (meta name) (meta name) {}) m)]
     (uix.lib/assert!
      (= 1 (count fdecl))
-     (str `defui " doesn't support multi-arity.\n"
+     (str form " doesn't support multi-arity.\n"
           "If you meant to make props an optional argument, you can safely skip it and have a single-arity component.\n
                  It's safe to destructure the props value even if it's `nil`."))
     (let [[args & fdecl] (first fdecl)]
       (uix.lib/assert!
        (>= 1 (count args))
-       (str `defui " is a single argument component taking a map of props, found: " args "\n"
+       (str form " is a single argument component taking a map of props, found: " args "\n"
             "If you meant to retrieve `children`, they are under `:children` field in props map."))
       [(with-meta name m) args fdecl])))
 
@@ -63,7 +85,7 @@
   "Creates UIx component. Similar to defn, but doesn't support multi arity.
   A component should have a single argument of props."
   [sym & fdecl]
-  (let [[fname args fdecl] (parse-sig sym fdecl)]
+  (let [[fname args fdecl] (parse-sig `defui sym fdecl)]
     (uix.linter/lint! sym fdecl &env)
     (if (uix.lib/cljs-env? &env)
       (let [var-sym (-> (str (-> &env :ns :name) "/" sym) symbol (with-meta {:tag 'js}))
@@ -76,6 +98,26 @@
            (set! (.-displayName ~var-sym) ~(str var-sym))
            ~(uix.dev/fast-refresh-signature var-sym body)))
       `(defn ~fname ~args
+         ~@fdecl))))
+
+(defmacro fn
+  "Creates anonymous UIx component. Similar to fn, but doesn't support multi arity.
+  A component should have a single argument of props."
+  [& fdecl]
+  (let [[sym fdecl] (if (symbol? (first fdecl))
+                      [(first fdecl) (rest fdecl)]
+                      [(gensym "uix-fn") fdecl])
+        [fname args body] (parse-sig `fn sym fdecl)]
+    (uix.linter/lint! sym body &env)
+    (if (uix.lib/cljs-env? &env)
+      (let [var-sym (with-meta sym {:tag 'js})]
+        `(let [~var-sym ~(if (empty? args)
+                           (no-args-fn-component fname var-sym body)
+                           (with-args-fn-component fname var-sym args body))]
+           (set! (.-uix-component? ~var-sym) true)
+           (set! (.-displayName ~var-sym) ~(str var-sym))
+           ~var-sym))
+      `(core/fn ~fname ~args
          ~@fdecl))))
 
 (defmacro source

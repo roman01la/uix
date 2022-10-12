@@ -6,7 +6,8 @@
             [react-dom]
             [uix.test-utils :as t]
             [uix.compiler.attributes :as attrs]
-            [uix.hiccup :refer [row-compiled]]))
+            [uix.hiccup :refer [row-compiled]]
+            [clojure.string :as str]))
 
 (deftest test-use-ref
   (uix.core/defui test-use-ref-comp [_]
@@ -165,6 +166,25 @@
   (is (= 1 (comp-props-map #js {:argv nil})))
   (is (= 1 (comp-props-map #js {:argv {}})))
   (is (thrown-with-msg? js/Error #"UIx component expects a map of props, but instead got \[\]" (comp-props-map #js {:argv []}))))
+
+(deftest test-fn
+  (let [anon-named-fn (uix.core/fn fn-component [{:keys [x]}] x)
+        anon-fn (uix.core/fn [{:keys [x]}] x)
+        root (js/document.createElement "div")]
+
+    (is (.-uix-component? ^js anon-named-fn))
+    (is (= (.-displayName anon-named-fn) "fn-component"))
+
+    (is (.-uix-component? ^js anon-fn))
+    (is (str/starts-with? (.-displayName anon-fn) "uix-fn"))
+
+    (react-dom/render ($ anon-named-fn {:x "HELLO!"}) root)
+    (is (= "HELLO!" (.-textContent root)))
+    (react-dom/unmountComponentAtNode root)
+
+    (react-dom/render ($ anon-fn {:x "HELLO! 2"}) root)
+    (is (= "HELLO! 2" (.-textContent root)))
+    (react-dom/unmountComponentAtNode root)))
 
 (defn -main []
   (run-tests))
