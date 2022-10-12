@@ -32,6 +32,42 @@ React.createElement("div", { onClick: f }, child1, child2);
     ($ button {} "Sign in")))
 ```
 
+## Inline components
+
+Sometimes you might want to create an inline component using anonymous function. Let's take a look at the following example:
+
+```clojure
+(defui ui-list [{{:keys [key-fn data item]}}]
+  ($ :div
+    (for [x data]
+      ($ item {:data x :key (key-fn x)}))))
+
+(defui list-item [{:keys [data]}]
+  ($ :div (:id data)))
+
+($ ul-list
+  {:key-fn :id
+   :data [{:id 1} {:id 2} {:id 3}]
+   :item list-item})
+```
+
+In the example above `ul-list` takes `item` props which has to be a `defui` component, which means you have to declare `list-item` elsewhere.
+
+With `uix.core/fn` it becomes less annoying:
+
+```clojure
+(defui ui-list [{{:keys [key-fn data item]}}]
+  ($ :div
+    (for [x data]
+      ($ item {:data x :key (key-fn x)}))))
+
+($ ul-list
+  {:key-fn :id
+   :data [{:id 1} {:id 2} {:id 3}]
+   :item (uix/fn [{:keys [data]}]
+           ($ :div (:id data)))})
+```
+
 ## Component props
 
 `defui` components are similar to React’s JSX components. They take props and children and provide them within a component as a single map of props.
@@ -106,6 +142,7 @@ When you need to pass a ref into child component, pass it as a normal prop.
 ```
 
 ## Class-based components
+
 Sometimes you want to create a class-based React component, for example an error boundary. For that there's the `uix.core/create-class` function.
 
 ```clojure
