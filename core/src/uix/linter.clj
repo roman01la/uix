@@ -200,8 +200,8 @@
   [expr & {:keys [in-branch? in-loop?]
            :or {in-branch? *in-branch?*
                 in-loop? *in-loop?*}}]
-  (binding [*in-branch?* in-branch?
-            *in-loop?* in-loop?]
+  (binding [*in-branch?* (or *in-branch?* in-branch?)
+            *in-loop?* (or *in-loop?* in-loop?)]
     (clojure.walk/prewalk
      (fn [form]
        (cond

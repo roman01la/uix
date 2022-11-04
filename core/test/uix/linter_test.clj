@@ -254,6 +254,12 @@
       (is (str/includes? out-str (str :uix.linter/hook-in-loop)))
       (is (str/includes? out-str "React Hook (uix.core/use-effect (fn [])) may be executed more than once.")))
 
+    (testing "should fail on hook call in nested branch or loop"
+      (is (str/includes? out-str (str :uix.linter/hook-in-branch)))
+      (is (str/includes? out-str (str :uix.linter/hook-in-loop)))
+      (is (str/includes? out-str "React Hook (uix.core/use-effect (fn [] \"nested condition\")) is called conditionally."))
+      (is (str/includes? out-str "React Hook (uix.core/use-effect (fn [] \"nested loop\")) may be executed more than once.")))
+
     (testing "should fail on missing key in a loop"
       (is (str/includes? out-str (str :uix.linter/missing-key)))
       (is (str/includes? out-str "UIx element is missing :key attribute, which is required"))

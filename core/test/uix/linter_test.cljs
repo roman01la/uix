@@ -49,6 +49,12 @@
   (for [x []]
     (uix.core/use-effect (fn []))))
 
+(defui test-nested []
+  (when false
+    (or (uix.core/use-effect (fn [] "nested condition")) 1))
+  (loop []
+    (loop [x (uix.core/use-effect (fn [] "nested loop"))])))
+
 (defui test-missing-key []
   (for [x []]
     ($ :div.test-missing-key {} x))
