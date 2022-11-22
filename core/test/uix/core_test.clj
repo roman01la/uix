@@ -4,10 +4,27 @@
             [cljs.analyzer :as ana]))
 
 (deftest test-parse-sig
+  (let [[sym methods] (uix.lib/parse-sig 'test '("docstring" ([x y] x) ([x] x)))]
+    (is (= 'test sym))
+    (is (= "docstring" (:doc (meta sym))))
+    (is (= '(([x y] x) ([x] x)) methods))))
+
+(deftest test-parse-defui-sig
   (is (thrown-with-msg? AssertionError #"uix.core\/defui doesn't support multi-arity"
-                        (uix.core/parse-sig 'uix.core/defui 'component-name '(([props]) ([props x])))))
+                        (uix.core/parse-defui-sig 'uix.core/defui 'component-name '(([props]) ([props x])))))
   (is (thrown-with-msg? AssertionError #"uix.core\/defui is a single argument component"
-                        (uix.core/parse-sig 'uix.core/defui 'component-name '([props x])))))
+                        (uix.core/parse-defui-sig 'uix.core/defui 'component-name '([props x]))))
+
+  (is (thrown-with-msg? AssertionError #"uix.core\/fn doesn't support multi-arity"
+                        (uix.core/parse-defui-sig 'uix.core/fn 'component-name '(([props]) ([props x])))))
+  (is (thrown-with-msg? AssertionError #"uix.core\/fn is a single argument component"
+                        (uix.core/parse-defui-sig 'uix.core/fn 'component-name '([props x])))))
+
+(deftest test-parse-defhook-sig
+  (is (thrown-with-msg? AssertionError #"React Hook name should start with `use-`, found `get-element-size` instead"
+                        (uix.core/parse-defhook-sig 'get-element-size '(([props]) ([props x])))))
+  (is (= '[use-element-size [([props]) ([props x])]]
+         (uix.core/parse-defhook-sig 'use-element-size '(([props]) ([props x]))))))
 
 (deftest test-vector->js-array
   (is (= '(uix.core/jsfy-deps (cljs.core/array 1 2 3)) (uix.core/vector->js-array [1 2 3])))

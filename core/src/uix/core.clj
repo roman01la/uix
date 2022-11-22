@@ -7,7 +7,8 @@
             [cljs.core]
             [uix.linter]
             [uix.dev]
-            [uix.lib]))
+            [uix.lib]
+            [clojure.string :as str]))
 
 (def ^:private goog-debug (with-meta 'goog.DEBUG {:tag 'boolean}))
 
@@ -51,32 +52,19 @@
            (f#))
          (f#)))))
 
-(defn parse-sig [form name fdecl]
-  (let [[fdecl m] (if (string? (first fdecl))
-                    [(next fdecl) {:doc (first fdecl)}]
-                    [fdecl {}])
-        [fdecl m] (if (map? (first fdecl))
-                    [(next fdecl) (conj m (first fdecl))]
-                    [fdecl m])
-        fdecl (if (vector? (first fdecl))
-                (list fdecl)
-                fdecl)
-        [fdecl m] (if (map? (last fdecl))
-                    [(butlast fdecl) (conj m (last fdecl))]
-                    [fdecl m])
-        m (conj {:arglists (list 'quote (#'cljs.core/sigs fdecl))} m)
-        m (conj (if (meta name) (meta name) {}) m)]
+(defn parse-defui-sig [form name fdecl]
+  (let [[fname methods] (uix.lib/parse-sig name fdecl)]
     (uix.lib/assert!
-     (= 1 (count fdecl))
+     (= 1 (count methods))
      (str form " doesn't support multi-arity.\n"
           "If you meant to make props an optional argument, you can safely skip it and have a single-arity component.\n
                  It's safe to destructure the props value even if it's `nil`."))
-    (let [[args & fdecl] (first fdecl)]
+    (let [[args & body] (first methods)]
       (uix.lib/assert!
        (>= 1 (count args))
        (str form " is a single argument component taking a map of props, found: " args "\n"
             "If you meant to retrieve `children`, they are under `:children` field in props map."))
-      [(with-meta name m) args fdecl])))
+      [fname args body])))
 
 (defmacro
   ^{:arglists '([name doc-string? attr-map? [params*] prepost-map? body]
@@ -85,11 +73,11 @@
   "Creates UIx component. Similar to defn, but doesn't support multi arity.
   A component should have a single argument of props."
   [sym & fdecl]
-  (let [[fname args fdecl] (parse-sig `defui sym fdecl)]
-    (uix.linter/lint! sym fdecl &env)
+  (let [[fname args fdecl] (parse-defui-sig `defui sym fdecl)]
     (if (uix.lib/cljs-env? &env)
       (let [var-sym (-> (str (-> &env :ns :name) "/" sym) symbol (with-meta {:tag 'js}))
             body (uix.dev/with-fast-refresh var-sym fdecl)]
+        (uix.linter/lint! sym fdecl &env)
         `(do
            ~(if (empty? args)
               (no-args-component fname var-sym body)
@@ -107,10 +95,10 @@
   (let [[sym fdecl] (if (symbol? (first fdecl))
                       [(first fdecl) (rest fdecl)]
                       [(gensym "uix-fn") fdecl])
-        [fname args body] (parse-sig `fn sym fdecl)]
-    (uix.linter/lint! sym body &env)
+        [fname args body] (parse-defui-sig `fn sym fdecl)]
     (if (uix.lib/cljs-env? &env)
       (let [var-sym (with-meta sym {:tag 'js})]
+        (uix.linter/lint! sym body &env)
         `(let [~var-sym ~(if (empty? args)
                            (no-args-fn-component fname var-sym body)
                            (with-args-fn-component fname var-sym args body))]
@@ -134,6 +122,28 @@
    (uix.compiler.aot/compile-element [tag] {:env &env}))
   ([tag props & children]
    (uix.compiler.aot/compile-element (into [tag props] children) {:env &env})))
+
+(defn parse-defhook-sig [sym fdecl]
+  (let [[fname methods] (uix.lib/parse-sig sym fdecl)]
+    (uix.lib/assert! (str/starts-with? (name fname) "use-")
+                     (str "React Hook name should start with `use-`, found `" (name fname) "` instead."))
+    [fname methods]))
+
+(defmacro
+  ^{:arglists '([name doc-string? attr-map? [params*] prepost-map? body]
+                [name doc-string? attr-map? ([params*] prepost-map? body) + attr-map?])}
+  defhook
+  "Like `defn`, but creates React hook with additional validation,
+  the name should start with `use-`
+  (defhook use-in-viewport []
+    ...)"
+  [sym & fdecl]
+  (let [[fname methods] (parse-defhook-sig sym fdecl)
+        fname (vary-meta fname assoc :uix/hook true)]
+    (when (uix.lib/cljs-env? &env)
+      (doseq [[_ & body] methods]
+        (uix.linter/lint! sym body &env)))
+    `(defn ~fname ~@methods)))
 
 ;; === Hooks ===
 

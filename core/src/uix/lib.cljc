@@ -1,7 +1,8 @@
 (ns uix.lib
   #?(:cljs (:require-macros [uix.lib :refer [doseq-loop]]))
   #?(:cljs (:require [goog.object :as gobj]))
-  #?(:clj (:require [clojure.walk])))
+  #?(:clj (:require [clojure.walk]
+                    [cljs.core])))
 
 #?(:clj
    (defmacro assert! [x message]
@@ -41,3 +42,21 @@
           x)
         sexp)
        @forms)))
+
+#?(:clj
+   (defn parse-sig [name fdecl]
+     (let [[fdecl m] (if (string? (first fdecl))
+                       [(next fdecl) {:doc (first fdecl)}]
+                       [fdecl {}])
+           [fdecl m] (if (map? (first fdecl))
+                       [(next fdecl) (conj m (first fdecl))]
+                       [fdecl m])
+           fdecl (if (vector? (first fdecl))
+                   (list fdecl)
+                   fdecl)
+           [fdecl m] (if (map? (last fdecl))
+                       [(butlast fdecl) (conj m (last fdecl))]
+                       [fdecl m])
+           m (conj {:arglists (list 'quote (#'cljs.core/sigs fdecl))} m)
+           m (conj (if (meta name) (meta name) {}) m)]
+       [(with-meta name m) fdecl])))

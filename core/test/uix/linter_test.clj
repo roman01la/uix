@@ -7,10 +7,10 @@
 ;; === Rules of Hooks ===
 
 (defn lint-syms [syms expr-fn]
-  (binding [uix.linter/*component-context* (atom {:errors []})]
+  (binding [uix.linter/*context* (atom {:errors []})]
     (let [exprs (map expr-fn syms)
           _ (uix.linter/lint-body! exprs)
-          errors (:errors @uix.linter/*component-context*)]
+          errors (:errors @uix.linter/*context*)]
       [exprs (map :source-context errors)])))
 
 (deftest test-lint-when
@@ -265,4 +265,9 @@
       (is (str/includes? out-str "UIx element is missing :key attribute, which is required"))
       (is (str/includes? out-str "($ :div.test-missing-key {} x)"))
       (is (str/includes? out-str "($ :div.test-missing-key ($ x))"))
-      (is (str/includes? out-str "($ :div.test-missing-key-nested ($ x))")))))
+      (is (str/includes? out-str "($ :div.test-missing-key-nested ($ x))")))
+
+    (testing "should fail when a non-hook function with `use-` name is used in a component"
+      (is (str/includes? out-str (str :uix.linter/non-defhook-hook)))
+      (is (str/includes? out-str "The function `(use-g)` is named after React Hook, but doesn't appear to be on"))
+      (is (not (str/includes? out-str "The function `(use-f)` is named after React Hook, but doesn't appear to be on"))))))

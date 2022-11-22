@@ -65,3 +65,9 @@
       (do
         ($ :div.test-missing-key ($ x))
         ($ :div.test-missing-key-nested ($ x))))))
+
+(defn use-g [])
+(uix.core/defhook use-f [])
+(defui test-non-defhook []
+  (use-g)
+  (use-f))

@@ -6,13 +6,14 @@
             [cljs.analyzer.api :as ana-api]
             [uix.lib]
             [clojure.java.io :as io]
-            [clojure.edn])
+            [clojure.edn]
+            [cljs.env :as env])
   (:import (cljs.tagged_literals JSValue)
            (java.io Writer)))
 
 ;; === Rules of Hooks ===
 
-(def ^:dynamic *component-context* nil)
+(def ^:dynamic *context* nil)
 (def ^:dynamic *source-context* false)
 (def ^:dynamic *in-branch?* false)
 (def ^:dynamic *in-loop?* false)
@@ -48,7 +49,7 @@
   (case type
     (::hook-in-branch ::hook-in-loop
                       ::deps-coll-literal ::literal-value-in-deps
-                      ::unsafe-set-state ::missing-key)
+                      ::unsafe-set-state ::missing-key ::non-defhook-hook)
     (form->loc (meta form))
 
     ::inline-function
@@ -60,10 +61,10 @@
     nil))
 
 (defn add-error! [form type]
-  (swap! *component-context* update :errors conj {:source form
-                                                  :source-context *source-context*
-                                                  :type type
-                                                  :env (find-env-for-form type form)}))
+  (swap! *context* update :errors conj {:source form
+                                        :source-context *source-context*
+                                        :type type
+                                        :env (find-env-for-form type form)}))
 
 (defn- uix-element? [form]
   (and (list? form) (= '$ (first form))))
@@ -196,6 +197,16 @@
                                (mapcat #(if (vector? %) % [%])))))
             ast))
 
+(defn defhook? [form]
+  (if-not (:env @*context*)
+    ;; Always returning true when the linter runs in non CLJS env,
+    ;; since the function depends on cljs env
+    true
+    (let [var (ana/resolve-var (:env @*context*) (first form))]
+      (or (= 'uix.core (:ns var))
+          (= 'js (:ns var))
+          (some-> var :meta :uix/hook)))))
+
 (defn lint-body!*
   [expr & {:keys [in-branch? in-loop?]
            :or {in-branch? *in-branch?*
@@ -208,6 +219,7 @@
          (hook-call? form)
          (do (when *in-branch?* (add-error! form ::hook-in-branch))
              (when *in-loop?* (add-error! form ::hook-in-loop))
+             (when-not (defhook? form) (add-error! form ::non-defhook-hook))
              nil)
 
          (and (list? form) (or (not *in-branch?*) (not *in-loop?*)))
@@ -220,6 +232,11 @@
 
 (defn lint-body! [exprs]
   (run! lint-body!* exprs))
+
+(defmethod ana/error-message ::non-defhook-hook [_ {:keys [name column line source]}]
+  (str "The function `" source "` is named after React Hook, but doesn't appear to be one.\n"
+       "If it's indeed a hook, make sure to declare it via `uix.core/defhook`,\n"
+       "otherwise use a different name for the function, to not confuse it with a hook."))
 
 (defmethod ana/error-message ::missing-key [_ _]
   (str "UIx element is missing :key attribute, which is required\n"
@@ -270,10 +287,10 @@
        "Read https://github.com/pitch-io/uix/blob/master/docs/interop-with-reagent.md#syncing-with-ratoms-and-re-frame for more context"))
 
 (defn lint! [sym form env]
-  (binding [*component-context* (atom {:errors []})]
+  (binding [*context* (atom {:errors [] :env env})]
     (lint-body! form)
     (lint-re-frame! form env)
-    (let [{:keys [errors]} @*component-context*
+    (let [{:keys [errors]} @*context*
           {:keys [column line]} env]
       (doseq [err errors]
         (ana/warning (:type err)
