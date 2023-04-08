@@ -1,5 +1,3 @@
-[![SWUbanner](https://raw.githubusercontent.com/vshymanskyy/StandWithUkraine/main/banner-personal-page.svg)](https://stand-with-ukraine.pp.ua/)
-
 <img src="logo.png" width="125" />
 
 _Idiomatic ClojureScript interface to modern React.js_
@@ -12,9 +10,9 @@ Discuss at [#uix on Clojurians Slack](http://clojurians.net/). Bug reports, feat
 
 [API Documentation](https://roman01la.github.io/uix/docs/)
 
-<a href="https://www.patreon.com/bePatron?c=1239559">
-  <img src="https://c5.patreon.com/external/logo/become_a_patron_button.png" height="40px" />
-</a>
+_If you like what I do, consider supporting my work via donation_
+
+[![](https://www.buymeacoffee.com/assets/img/guidelines/download-assets-sm-1.svg)](https://www.buymeacoffee.com/romanliutikov)
 
 [![CircleCI](https://circleci.com/gh/roman01la/uix.svg?style=svg)](https://circleci.com/gh/roman01la/uix)
 
