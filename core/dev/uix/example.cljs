@@ -73,7 +73,7 @@
      [:div {:style {:display :flex
                     :flex 1}}
       [editor {:init-value initial-code
-               :on-change handle-change
+               :on-change #(handle-change % :x)
                :on-eval #(eval-string @code)}]
       [view]]]))
 
