@@ -6,7 +6,7 @@ _Idiomatic ClojureScript interface to modern React.js_
 
 Discuss at [#uix on Clojurians Slack](http://clojurians.net/). Bug reports, feature requests and PRs are welcome.
 
-UIxv2 is available at https://github.com/pitch-io/uix
+UIx v2 is available at https://github.com/pitch-io/uix
 
 [Try it in online REPL](https://roman01la.github.io/uix/)
 
