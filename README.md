@@ -1,3 +1,5 @@
+> UIx v1 is not actively maintained anymore, consider using its successor v2 at [pitch-io/uix](https://github.com/pitch-io/uix)
+
 <img src="logo.png" width="125" />
 
 _Idiomatic ClojureScript interface to modern React.js_
